@@ -19,8 +19,6 @@ import {
   isEnterpriseMode,
   isProviderConnectRequest,
 } from '../enterprise-mode.js';
-import { discoverProviderModels } from './model-discovery.js';
-import { readDisabledProviders, setProviderDisabled } from './providers.js';
 import { vcsInitRefusal, vcsInitRefusalBody } from '../git/repository-root.js';
 
 // Version reads use the same short deadline as the health probe of `/api/info`.
@@ -169,47 +167,17 @@ export const registerOpenCodeRoutes = (app, dependencies) => {
     }
   });
 
+  // The agent is bundled with OpenChamber and updates with it: this reports the
+  // version that runs and never asks a registry for a newer one.
   app.get('/api/opencode/upgrade-status', async (_req, res) => {
     try {
-      // Whether a newer OpenCode exists and whether OpenChamber can install it
-      // are two answers: the UI announces the version either way and offers
-      // the Update action only when `upgrade.supported` is true.
       const capability = getOpenCodeUpgradeCapability();
-      const [healthResponse, latestVersion] = await Promise.all([
-        fetch(buildOpenCodeUrl('/api/info', ''), {
-          method: 'GET',
-          headers: { Accept: 'application/json', ...getOpenCodeAuthHeaders() },
-          signal: AbortSignal.timeout(OPENCODE_INFO_TIMEOUT_MS),
-        }),
-        fetchLatestOpenCodeVersion(),
-      ]);
-      const info = await healthResponse.json().catch(() => null);
-      if (!healthResponse.ok) {
-        return res.status(healthResponse.status).json({
-          available: null,
-          error: info?.error || healthResponse.statusText || 'Failed to read OpenCode version',
-        });
-      }
-      const currentVersion = typeof info?.version === 'string' ? info.version.replace(/^v/, '') : null;
-      if (!currentVersion || !latestVersion) {
-        return res.json({ available: null, currentVersion, latestVersion: latestVersion || null, upgrade: capability });
-      }
-      // A bundled binary updates together with the desktop app, and a pinned
-      // one with the administrator's rollout, so a newer OpenCode is not
-      // something the user can act on: never announce it.
-      const available = capability.reason === 'bundled' || capability.reason === 'policy'
-        ? false
-        : compareVersions(latestVersion, currentVersion) > 0;
-      return res.json({
-        available,
-        currentVersion,
-        latestVersion,
-        upgrade: capability,
-      });
+      const { version } = await getOpenCodeCompatibility();
+      return res.json({ available: false, currentVersion: version, latestVersion: version, upgrade: capability });
     } catch (error) {
       return res.status(500).json({
         available: null,
-        error: error instanceof Error ? error.message : 'Failed to check OpenCode upgrade status',
+        error: error instanceof Error ? error.message : 'Failed to read the agent version',
       });
     }
   });
@@ -265,24 +233,12 @@ export const registerOpenCodeRoutes = (app, dependencies) => {
 
   app.get('/api/opencode/version', async (_req, res) => {
     try {
-      const healthResponse = await fetch(buildOpenCodeUrl('/api/info', ''), {
-        method: 'GET',
-        headers: { Accept: 'application/json', ...getOpenCodeAuthHeaders() },
-        signal: AbortSignal.timeout(OPENCODE_INFO_TIMEOUT_MS),
-      });
-      const info = await healthResponse.json().catch(() => null);
-      if (!healthResponse.ok) {
-        return res.status(healthResponse.status).json({
-          version: null,
-          error: info?.error || healthResponse.statusText || 'Failed to read OpenCode version',
-        });
-      }
-      const version = typeof info?.version === 'string' ? info.version.replace(/^v/, '') : null;
+      const { version } = await getOpenCodeCompatibility();
       return res.json({ version });
     } catch (error) {
       return res.status(500).json({
         version: null,
-        error: error instanceof Error ? error.message : 'Failed to read OpenCode version',
+        error: error instanceof Error ? error.message : 'Failed to read the agent version',
       });
     }
   });
@@ -295,69 +251,6 @@ export const registerOpenCodeRoutes = (app, dependencies) => {
       console.error('[API:PUT /api/config/settings] Failed to save settings:', error);
       console.error('[API:PUT /api/config/settings] Error stack:', error.stack);
       res.status(500).json({ error: 'Failed to save settings' });
-    }
-  });
-
-  // Providers turned off in the user's OpenCode config. OpenCode leaves them
-  // out of its provider list, so Settings reads them here to offer them back.
-  app.get('/api/provider/disabled', (_req, res) => {
-    try {
-      return res.json({ providers: readDisabledProviders(null) });
-    } catch (error) {
-      console.error('Failed to read disabled providers:', error);
-      return res.status(500).json({ error: 'Failed to read disabled providers' });
-    }
-  });
-
-  app.put('/api/provider/:providerId/disabled', async (req, res) => {
-    if (typeof req.body?.disabled !== 'boolean') {
-      return res.status(400).json({ error: 'disabled must be true or false' });
-    }
-    try {
-      const providers = setProviderDisabled(req.params.providerId, req.body.disabled, null);
-      return res.json({ providers, ...buildAppliedResponse('Provider updated.') });
-    } catch (error) {
-      if (error?.statusCode === 400) return res.status(400).json({ error: error.message });
-      console.error('Failed to update disabled providers:', error);
-      return res.status(500).json({ error: 'Failed to update disabled providers' });
-    }
-  });
-
-  app.get('/api/provider/:providerId/source', async (req, res) => {
-    try {
-      const { providerId } = req.params;
-      if (!providerId) {
-        return res.status(400).json({ error: 'Provider ID is required' });
-      }
-
-      const headerDirectory = typeof req.get === 'function' ? req.get('x-opencode-directory') : null;
-      const queryDirectory = Array.isArray(req.query?.directory)
-        ? req.query.directory[0]
-        : req.query?.directory;
-      const requestedDirectory = headerDirectory || queryDirectory || null;
-
-      let directory = null;
-      const resolved = await resolveProjectDirectory(req);
-      if (resolved.directory) {
-        directory = resolved.directory;
-      } else if (requestedDirectory) {
-        return res.status(400).json({ error: resolved.error });
-      }
-
-      const sources = getProviderSources(providerId, directory);
-      const { getProviderAuth } = await getAuthLibrary();
-      sources.sources.auth.exists = providerId === 'claude-code'
-        ? getClaudeCliAuthStatus().connected
-        : Boolean(await getProviderAuth(providerId));
-
-      return res.json({
-        providerId,
-        sources: sources.sources,
-        config: sources.config,
-      });
-    } catch (error) {
-      console.error('Failed to get provider sources:', error);
-      return res.status(500).json({ error: error.message || 'Failed to get provider sources' });
     }
   });
 
@@ -386,103 +279,6 @@ export const registerOpenCodeRoutes = (app, dependencies) => {
   app.use((req, res, next) => {
     const refusal = vcsInitRefusal(req.method, req.originalUrl, req.headers);
     return refusal ? res.status(400).json(vcsInitRefusalBody(refusal)) : next();
-  });
-
-  app.put('/api/provider', refuseInEnterpriseMode, async (req, res) => {
-    try {
-      const providerID = typeof req.body?.providerID === 'string'
-        ? req.body.providerID.trim()
-        : (typeof req.body?.providerId === 'string' ? req.body.providerId.trim() : '');
-      const config = req.body?.config;
-      const scope = typeof req.body?.scope === 'string' ? req.body.scope : 'user';
-
-      if (!providerID) {
-        return res.status(400).json({ error: 'Provider ID is required' });
-      }
-      if (!config || typeof config !== 'object' || Array.isArray(config)) {
-        return res.status(400).json({ error: 'Provider config is required' });
-      }
-      if (scope !== 'user' && scope !== 'project' && scope !== 'custom') {
-        return res.status(400).json({ error: 'Invalid scope' });
-      }
-
-      const headerDirectory = typeof req.get === 'function' ? req.get('x-opencode-directory') : null;
-      const queryDirectory = Array.isArray(req.query?.directory)
-        ? req.query.directory[0]
-        : req.query?.directory;
-      const requestedDirectory = headerDirectory || queryDirectory || null;
-
-      let directory = null;
-      if (scope === 'project' || requestedDirectory) {
-        const resolved = await resolveProjectDirectory(req);
-        if (!resolved.directory) {
-          return res.status(400).json({ error: resolved.error || 'Working directory is required' });
-        }
-        directory = resolved.directory;
-      } else {
-        const resolved = await resolveProjectDirectory(req);
-        if (resolved.directory) {
-          directory = resolved.directory;
-        }
-      }
-
-      // OpenCode 2 keeps credentials in its own store, out of this server's
-      // sight, so the form states whether one exists or follows this write.
-      const { getProviderAuth } = await getAuthLibrary();
-      const hasStoredAuth = req.body?.hasCredential === true || Boolean(await getProviderAuth(providerID));
-      const upsertResult = upsertProviderConfig(providerID, config, directory, scope, { hasStoredAuth });
-
-      return res.json({
-        ...buildAppliedResponse(
-          `Provider ${providerID} saved.`,
-        ),
-        providerId: upsertResult.providerId,
-        path: upsertResult.path,
-        config: upsertResult.config,
-      });
-    } catch (error) {
-      const status = typeof error?.statusCode === 'number' ? error.statusCode : 500;
-      console.error('Failed to upsert provider config:', error);
-      return res.status(status).json({ error: error.message || 'Failed to save provider config' });
-    }
-  });
-
-  app.post('/api/provider/discover-models', refuseInEnterpriseMode, async (req, res) => {
-    try {
-      const providerID = typeof req.body?.providerID === 'string' ? req.body.providerID.trim() : '';
-      // A stored key that cannot be read leaves discovery to the key in the form.
-      let storedApiKey = null;
-      let storedBaseURL;
-      if (providerID) {
-        try {
-          const { getProviderAuth } = await getAuthLibrary();
-          const storedAuth = await getProviderAuth(providerID);
-          storedApiKey = storedAuth?.type === 'api' && typeof storedAuth.key === 'string' ? storedAuth.key : null;
-          const { value: rawProvider } = readSectionEntry(readConfigLayers().mergedConfig, 'providers', providerID);
-          const providerEntity = rawProvider ? toProviderEntity(rawProvider) : null;
-          storedBaseURL = providerEntity?.settings?.baseURL;
-          if (!storedApiKey) {
-            // OpenCode tries each `env` name in order, so pick the first one
-            // that is set; when none is, keep the first so discovery can name
-            // it in the error instead of failing as an anonymous 401. This
-            // reads the server's environment: a variable that exists only in
-            // the managed OpenCode launch environment (Settings user env) is
-            // not visible here.
-            const envName = providerEntity?.env?.find((name) => process.env[name]) ?? providerEntity?.env?.[0];
-            storedApiKey = providerEntity?.settings?.apiKey || (envName ? `{env:${envName}}` : null);
-          }
-        } catch {
-          storedApiKey = null;
-        }
-      }
-      return res.json(await discoverProviderModels(req.body, { storedApiKey, storedBaseURL }));
-    } catch (error) {
-      const status = typeof error?.statusCode === 'number' ? error.statusCode : 500;
-      return res.status(status).json({
-        error: error instanceof Error ? error.message : 'Failed to discover provider models',
-        code: typeof error?.code === 'string' ? error.code : 'discovery_failed',
-      });
-    }
   });
 
   // The web search choice (`websearch` in OpenCode config). OpenCode watches
@@ -542,75 +338,6 @@ export const registerOpenCodeRoutes = (app, dependencies) => {
     } catch (error) {
       console.error('Failed to save compaction settings:', error);
       return res.status(500).json({ error: error.message || 'Failed to save compaction settings' });
-    }
-  });
-
-  app.delete('/api/provider/:providerId/auth', async (req, res) => {
-    try {
-      const { providerId } = req.params;
-      if (!providerId) {
-        return res.status(400).json({ error: 'Provider ID is required' });
-      }
-
-      const scope = typeof req.query?.scope === 'string' ? req.query.scope : 'auth';
-      const headerDirectory = typeof req.get === 'function' ? req.get('x-opencode-directory') : null;
-      const queryDirectory = Array.isArray(req.query?.directory)
-        ? req.query.directory[0]
-        : req.query?.directory;
-      const requestedDirectory = headerDirectory || queryDirectory || null;
-      let directory = null;
-
-      if (scope === 'project' || requestedDirectory) {
-        const resolved = await resolveProjectDirectory(req);
-        if (!resolved.directory) {
-          return res.status(400).json({ error: resolved.error });
-        }
-        directory = resolved.directory;
-      } else {
-        const resolved = await resolveProjectDirectory(req);
-        if (resolved.directory) {
-          directory = resolved.directory;
-        }
-      }
-
-      // OpenCode 2.x owns credentials: it imported `auth.json` once and now
-      // keeps them in its own store behind `/api/credential`. OpenChamber can
-      // still remove a provider's CONFIG (those files are ours), but a
-      // credential has to be removed where it lives.
-      let removed = false;
-      if (scope === 'auth') {
-        return res.status(409).json({
-          error: 'OpenCode 2 stores provider credentials itself. Disconnect the provider in Settings, which asks OpenCode to remove it.',
-          code: 'PROVIDER_CREDENTIAL_OWNED_BY_OPENCODE',
-        });
-      } else if (scope === 'user' || scope === 'project' || scope === 'custom') {
-        removed = removeProviderConfig(providerId, directory, scope);
-      } else if (scope === 'all') {
-        const userRemoved = removeProviderConfig(providerId, directory, 'user');
-        const projectRemoved = directory ? removeProviderConfig(providerId, directory, 'project') : false;
-        const customRemoved = removeProviderConfig(providerId, directory, 'custom');
-        removed = userRemoved || projectRemoved || customRemoved;
-      } else {
-        return res.status(400).json({ error: 'Invalid scope' });
-      }
-
-      if (removed) {
-        return res.json({
-          success: true,
-          removed,
-          ...buildAppliedResponse('Provider disconnected successfully.'),
-        });
-      }
-
-      return res.json({
-        success: true,
-        removed,
-        requiresReload: false,
-        message: 'Provider was not connected',
-      });
-    } catch (error) {
-      console.error('Failed to disconnect provider:', error);
-      return res.status(500).json({ error: error.message || 'Failed to disconnect provider' });
     }
   });
 

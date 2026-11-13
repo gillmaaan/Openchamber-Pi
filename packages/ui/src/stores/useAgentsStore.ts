@@ -686,8 +686,6 @@ export const useAgentsStore = create<AgentsStore>()(
             if (config.permissions?.length) agentConfig.permissions = config.permissions;
             if (config.scope) agentConfig.scope = config.scope;
 
-            console.log('[AgentsStore] Agent config to save:', agentConfig);
-
             const configDirectory = resolveDirectory(requestedDirectory);
             const queryParams = configDirectory ? `?directory=${encodeURIComponent(configDirectory)}` : '';
 

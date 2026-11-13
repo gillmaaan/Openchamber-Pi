@@ -1,6 +1,10 @@
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 import { describe, it, expect } from 'vitest';
 import express from 'express';
 import request from 'supertest';
+import { createMcpStore } from '../pi/config-routes/mcp.js';
 import { registerConfigEntityRoutes } from './config-entity-routes.js';
 
 const createApp = () => {
@@ -14,11 +18,14 @@ const createApp = () => {
   registerConfigEntityRoutes(app, {
     resolveProjectDirectory: async () => ({ directory: '/work/project' }),
     resolveOptionalProjectDirectory: async () => ({ directory: '/work/project' }),
-    getAgentSources: () => ({ md: { exists: false }, json: { exists: false } }),
-    createAgent: record('createAgent'),
-    deleteAgent: record('deleteAgent'),
-    createCommand: record('createCommand'),
-    deleteCommand: record('deleteCommand'),
+    piAgentStore: {
+      create: record('createAgent'),
+      remove: record('deleteAgent'),
+    },
+    piCommandStore: {
+      create: record('createCommand'),
+      remove: record('deleteCommand'),
+    },
   });
   return { app, calls };
 };
@@ -35,8 +42,10 @@ describe('MCP saves from a remote origin', () => {
     registerConfigEntityRoutes(app, {
       resolveProjectDirectory: async () => ({ directory: '/work/project' }),
       resolveOptionalProjectDirectory: async () => ({ directory: '/work/project' }),
-      createMcpConfig: record,
-      updateMcpConfig: record,
+      // The Pi store translates OpenCode's shape to Pi's on write; the route
+      // must hand it the body untouched.
+      piMcpStore: { create: record, update: record },
+      piAgentDir: () => '/home/user/.pi/agent',
     });
     return { app, saved };
   };
@@ -68,6 +77,70 @@ describe('MCP saves from a remote origin', () => {
       .expect(200);
 
     expect(saved.map((entry) => entry.config.oauth)).toEqual([oauth, oauth]);
+  });
+});
+
+describe('MCP routes write Pi\'s mcp.json', () => {
+  it('creates, lists, updates and deletes a server in the agent folder', async () => {
+    const root = fs.mkdtempSync(path.join(fs.realpathSync(os.tmpdir()), 'oc-mcp-routes-'));
+    try {
+      const agentDir = path.join(root, 'agent');
+      const app = express();
+      app.use(express.json());
+      registerConfigEntityRoutes(app, {
+        resolveProjectDirectory: async () => ({ directory: '/work/project' }),
+        resolveOptionalProjectDirectory: async () => ({ directory: '/work/project' }),
+        piMcpStore: createMcpStore({ getAgentDir: () => agentDir, isProjectTrusted: async () => true }),
+        piAgentDir: () => agentDir,
+      });
+
+      await request(app).post('/api/config/mcp/docs').send({ type: 'remote', url: 'https://mcp.example.com', oauth: { redirect_uri: 'https://chamber.example.com/cb' } }).expect(200);
+      const file = JSON.parse(fs.readFileSync(path.join(agentDir, 'mcp.json'), 'utf8'));
+      expect(file.mcpServers.docs).toMatchObject({ type: 'http', url: 'https://mcp.example.com', oauth: { callbackUrl: 'https://chamber.example.com/cb' }, exposure: 'direct' });
+
+      const list = (await request(app).get('/api/config/mcp').expect(200)).body;
+      expect(list).toEqual([expect.objectContaining({ name: 'docs', type: 'remote', url: 'https://mcp.example.com', scope: 'user' })]);
+
+      await request(app).patch('/api/config/mcp/docs').send({ disabled: true }).expect(200);
+      expect(JSON.parse(fs.readFileSync(path.join(agentDir, 'mcp.json'), 'utf8')).mcpServers.docs.enabled).toBe(false);
+
+      await request(app).delete('/api/config/mcp/docs').expect(200);
+      expect(JSON.parse(fs.readFileSync(path.join(agentDir, 'mcp.json'), 'utf8')).mcpServers).toEqual({});
+    } finally {
+      fs.rmSync(root, { recursive: true, force: true });
+    }
+  });
+});
+
+describe('snippet routes beside Pi configuration', () => {
+  it('preserves listing, preview and CRUD without consuming expand as a name', async () => {
+    const calls = [];
+    const record = (action, result) => (...args) => { calls.push({ action, args }); return result; };
+    const app = express();
+    app.use(express.json());
+    registerConfigEntityRoutes(app, {
+      resolveOptionalProjectDirectory: async () => ({ directory: '/work/project' }),
+      listSnippets: record('list', [{ name: 'greeting' }]),
+      getSnippet: record('get', { name: 'greeting' }),
+      previewSnippet: record('preview', 'previewed'),
+      createSnippet: record('create', { name: 'greeting' }),
+      updateSnippet: record('update', { name: 'greeting' }),
+      deleteSnippet: record('delete'),
+    });
+    expect((await request(app).get('/api/config/snippets').expect(200)).body).toEqual([{ name: 'greeting' }]);
+    expect((await request(app).get('/api/config/snippets/greeting').expect(200)).body).toEqual({ name: 'greeting' });
+    expect((await request(app).post('/api/config/snippets/expand').send({ content: 'hello' }).expect(200)).body).toEqual({ text: 'previewed' });
+    await request(app).post('/api/config/snippets/greeting').send({ content: 'hello', scope: 'project' }).expect(200);
+    await request(app).patch('/api/config/snippets/greeting').send({ content: 'updated' }).expect(200);
+    await request(app).delete('/api/config/snippets/greeting').expect(200);
+    expect(calls).toEqual([
+      { action: 'list', args: ['/work/project'] },
+      { action: 'get', args: ['greeting', '/work/project'] },
+      { action: 'preview', args: ['hello', '/work/project'] },
+      { action: 'create', args: ['greeting', { content: 'hello', scope: 'project' }, '/work/project', 'project'] },
+      { action: 'update', args: ['greeting', { content: 'updated' }, '/work/project'] },
+      { action: 'delete', args: ['greeting', '/work/project'] },
+    ]);
   });
 });
 

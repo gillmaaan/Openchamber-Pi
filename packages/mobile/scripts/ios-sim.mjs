@@ -74,17 +74,17 @@ switch (command) {
     break;
   }
   case 'install': {
-    const udid = bootDevice();
+    const udid = bootDevice(process.argv.slice(3).join(' ') || DEFAULT_DEVICE);
     run('xcrun', ['simctl', 'install', udid, getBuiltAppPath()]);
     break;
   }
   case 'launch': {
-    const udid = bootDevice();
+    const udid = bootDevice(process.argv.slice(3).join(' ') || DEFAULT_DEVICE);
     run('xcrun', ['simctl', 'launch', udid, BUNDLE_ID]);
     break;
   }
   case 'run': {
-    const udid = bootDevice();
+    const udid = bootDevice(process.argv.slice(3).join(' ') || DEFAULT_DEVICE);
     run('xcrun', ['simctl', 'install', udid, getBuiltAppPath()]);
     run('xcrun', ['simctl', 'launch', udid, BUNDLE_ID]);
     break;

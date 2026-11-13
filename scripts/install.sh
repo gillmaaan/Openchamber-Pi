@@ -181,7 +181,7 @@ main() {
   echo "  ╭───────────────────────────────────╮"
   echo "  │                                   │"
   echo "  │   OpenChamber Installer           │"
-  echo "  │   Web interface for OpenCode      │"
+  echo "  │   Web interface for Pi            │"
   echo "  │                                   │"
   echo "  ╰───────────────────────────────────╯"
   echo ""
@@ -288,7 +288,7 @@ EOF
     fi
     echo ""
     echo "  Prerequisites:"
-    echo "    Make sure OpenCode is running: opencode serve"
+    echo "    Node.js 22.19 or newer (OpenChamber runs the Pi coding agent on it)"
     echo ""
   else
     echo ""

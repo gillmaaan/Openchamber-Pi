@@ -81,11 +81,10 @@ describe('ElectronSshManager', () => {
         fs.writeFileSync(file, `#!/bin/sh\n${script}\n`, { mode: 0o755 });
       };
       executable(path.join(bin, 'bun'), 'printf "%s\\n" "$@" > "$HOME/install-args"');
-      executable(path.join(bin, 'opencode'), 'printf "1.2.3\\n"');
       executable(path.join(bin, 'openchamber'), `
 if [ "$1" = "--version" ]; then printf '1.2.3\\n'; exit 0; fi
 printf '%s' "$PATH" > "$HOME/launch-path"
-printf '%s' "$OPENCODE_BINARY" > "$HOME/launch-opencode"
+printf '%s' "\${OPENCODE_BINARY:-unset}" > "$HOME/launch-opencode"
 printf '4321\\n'`);
       // An earlier candidate with a different version must not win discovery.
       executable(path.join(home, '.openchamber', 'npm-global', 'bin', 'openchamber'), 'printf "0.9.0\\n"');
@@ -101,6 +100,7 @@ printf '4321\\n'`);
       manager.runRemoteCommand = async (_parsed, _controlPath, script) =>
         execFileSync('/bin/sh', ['-c', script], { env, encoding: 'utf8', timeout: 5000 });
       manager.remoteServerRunning = async () => true;
+      manager.ensureRemoteNode = async () => undefined;
       const parsed = { destination: 'user@example.test', args: [] };
 
       await manager.installOpenChamberManaged(parsed, '/unused.sock', '1.2.3', 'auto');
@@ -110,7 +110,8 @@ printf '4321\\n'`);
       }, parsed, '/unused.sock');
       expect(result.remoteBinPath).toBe(path.join(bin, 'openchamber'));
       expect(result.remotePort).toBe(4321);
-      expect(fs.readFileSync(path.join(home, 'launch-opencode'), 'utf8')).toBe(path.join(bin, 'opencode'));
+      // The remote server runs the Pi agent from its own dependency: no binary is handed over.
+      expect(fs.readFileSync(path.join(home, 'launch-opencode'), 'utf8')).toBe('unset');
       const launchPath = fs.readFileSync(path.join(home, 'launch-path'), 'utf8').split(':');
       expect(launchPath).toContain(path.join(cache, '.bun', 'bin'));
       expect(launchPath).toContain(path.join(home, '.bun', 'bin'));
@@ -471,20 +472,19 @@ printf '4321\\n'`);
     }
   });
 
-  test.skipIf(process.platform === 'win32')('starts the managed server with an nvm-installed opencode that the SSH login shell does not have on PATH', async () => {
-    const home = fs.mkdtempSync(path.join(os.tmpdir(), 'openchamber-ssh-nvm-opencode-'));
+  test.skipIf(process.platform === 'win32')('finds a Node under nvm that the SSH login shell does not have on PATH, for the Pi coding agent', async () => {
+    const home = fs.mkdtempSync(path.join(os.tmpdir(), 'openchamber-ssh-nvm-node-'));
     tempDirs.push(home);
     const executable = (file, script) => {
       fs.mkdirSync(path.dirname(file), { recursive: true });
       fs.writeFileSync(file, `#!/bin/sh\n${script}\n`, { mode: 0o755 });
     };
-    // opencode only under nvm's node, and no nvm entry on PATH: exactly what a
+    // node only under nvm, and no nvm entry on PATH: exactly what a
     // non-interactive SSH login shell sees after `npm install -g` with nvm.
     const nvmBin = path.join(home, '.nvm', 'versions', 'node', 'v24.18.0', 'bin');
-    executable(path.join(nvmBin, 'opencode'), 'exit 0');
+    executable(path.join(nvmBin, 'node'), 'printf "v24.18.0\\n"');
     executable(path.join(home, '.openchamber', 'npm-global', 'bin', 'openchamber'), `
 if [ "$1" = "--version" ]; then printf '1.2.3\\n'; exit 0; fi
-printf '%s' "$OPENCODE_BINARY" > "$HOME/launch-opencode"
 printf '4321\\n'`);
     const env = { HOME: home, PATH: '/usr/bin:/bin' };
     const manager = new ElectronSshManager({
@@ -497,13 +497,12 @@ printf '4321\\n'`);
     manager.remoteServerRunning = async () => true;
 
     const result = await manager.ensureRemoteServer(
-      { id: 'ssh-nvm-opencode', auth: {}, remoteOpenchamber: { mode: 'managed' } },
+      { id: 'ssh-nvm-node', auth: {}, remoteOpenchamber: { mode: 'managed' } },
       { destination: 'user@example.test', args: [] },
       '/unused.sock',
     );
 
     expect(result.remotePort).toBe(4321);
-    expect(fs.readFileSync(path.join(home, 'launch-opencode'), 'utf8')).toBe(path.join(nvmBin, 'opencode'));
   });
 
   test('installs OpenChamber into a home-owned npm prefix instead of the root-owned global one', async () => {
@@ -555,7 +554,7 @@ printf '4321\\n'`);
       appVersion: '1.2.3',
       emit: () => undefined,
     });
-    manager.resolveRemoteTool = async () => '/home/pi/.opencode/bin/opencode';
+    manager.ensureRemoteNode = async () => undefined;
     manager.runRemoteCommand = async (_parsed, _controlPath, script) => {
       started = script;
       return '4321\n';
@@ -572,19 +571,25 @@ printf '4321\\n'`);
 
     expect(port).toBe(4321);
     expect(started).toContain("'/home/pi/.openchamber/npm-global/bin/openchamber' serve");
-    expect(started).toContain("OPENCODE_BINARY='/home/pi/.opencode/bin/opencode'");
-    expect(started).toContain('$HOME/.opencode/bin:');
+    expect(started).not.toContain('OPENCODE_BINARY');
+    expect(started).toContain('$HOME/.openchamber/npm-global/bin');
   });
 
-  test('refuses to start when the remote machine has no opencode CLI', async () => {
+  test.each([
+    ['too old', 'v20.11.0\n', /Node 20\.11\.0, but the Pi coding agent needs Node 22\.19\.0 or newer/],
+    ['missing', '', /Node is not installed on the remote machine/],
+    ['unreadable', 'command not found\n', /Node is not installed on the remote machine/],
+  ])('refuses to start when the remote Node is %s', async (_name, output, message) => {
     const manager = new ElectronSshManager({
       settingsFilePath: path.join(os.tmpdir(), 'unused-settings.json'),
       appVersion: '1.2.3',
       emit: () => undefined,
     });
-    manager.resolveRemoteTool = async () => null;
-    manager.runRemoteCommand = async () => {
-      throw new Error('should not start the server without a CLI');
+    const scripts = [];
+    manager.runRemoteCommand = async (_parsed, _controlPath, script) => {
+      scripts.push(script);
+      if (script.includes('node --version')) return output;
+      throw new Error('should not start the server without a supported Node');
     };
 
     await expect(manager.startRemoteServerManaged(
@@ -593,8 +598,21 @@ printf '4321\\n'`);
       { id: 'ssh-1', auth: {}, remoteOpenchamber: { mode: 'managed' } },
       4321,
       '/home/pi/.bun/bin/openchamber',
-    )).rejects.toThrow(/opencode CLI is not installed/);
+    )).rejects.toThrow(message);
+    expect(scripts).toHaveLength(1);
   });
+
+  test('accepts Node 22.19.0, the first release Pi supports, and newer ones', async () => {
+    for (const version of ['v22.19.0\n', 'v22.20.1\n', 'v24.21.0\n', 'v23.0.0\n']) {
+      const manager = new ElectronSshManager({ settingsFilePath: path.join(os.tmpdir(), 'unused-settings.json'), appVersion: '1.2.3', emit: () => undefined });
+      manager.runRemoteCommand = async () => version;
+      await expect(manager.ensureRemoteNode({ destination: 'user@example.test', args: [] }, '/tmp/control.sock')).resolves.toBeUndefined();
+    }
+    const old = new ElectronSshManager({ settingsFilePath: path.join(os.tmpdir(), 'unused-settings.json'), appVersion: '1.2.3', emit: () => undefined });
+    old.runRemoteCommand = async () => 'v22.18.9\n';
+    await expect(old.ensureRemoteNode({ destination: 'user@example.test', args: [] }, '/tmp/control.sock')).rejects.toThrow(/needs Node 22\.19\.0/);
+  });
+
   test('prefers a bun that only exists in the home directory over npm', async () => {
     const commands = [];
     const manager = new ElectronSshManager({
@@ -641,7 +659,7 @@ printf '4321\\n'`);
       appVersion: '1.2.3',
       emit: () => undefined,
     });
-    manager.resolveRemoteTool = async () => '/home/pi/.opencode/bin/opencode';
+    manager.ensureRemoteNode = async () => undefined;
     let started = '';
     manager.runRemoteCommand = async (_parsed, _controlPath, script) => {
       started = script;
@@ -681,7 +699,7 @@ printf '4321\\n'`);
         appVersion: '1.2.3',
         emit: () => undefined,
       });
-      manager.resolveRemoteTool = async () => '/home/pi/.opencode/bin/opencode';
+      manager.ensureRemoteNode = async () => undefined;
       manager.remoteOpenChamberCandidates = async () => [{ binPath: '/home/pi/.bun/bin/openchamber', version: '1.2.3' }];
       manager.runRemoteCommand = async (_parsed, _controlPath, script) => {
         const probedPort = script.match(/127\.0\.0\.1:(\d+)\/api\/system\/info/);
@@ -744,6 +762,31 @@ printf '4321\\n'`);
       expect(host.stopped).toEqual([30001]);
       expect(result.startedByUs).toBe(true);
       expect(host.servers.map((entry) => entry.version)).toEqual(['1.2.3']);
+    });
+
+    test('replaces a daemon of the same version once this app installed a new build, and reuses it otherwise', async () => {
+      const bundle = (reinstalled) => async () => ({ binPath: '/home/pi/.openchamber/npm-global/bin/openchamber', reinstalled });
+      const stale = createRemoteHost([{ port: 30001, version: '1.2.3' }]);
+      stale.manager.ensureBundledWebInstall = bundle(true);
+      const replaced = await stale.manager.ensureRemoteServer(managed(), parsed, '/unused.sock');
+      expect(stale.host.stopped).toEqual([30001]);
+      expect(replaced.startedByUs).toBe(true);
+
+      const current = createRemoteHost([{ port: 30001, version: '1.2.3' }]);
+      current.manager.ensureBundledWebInstall = bundle(false);
+      const reused = await current.manager.ensureRemoteServer(managed(), parsed, '/unused.sock');
+      expect(current.host.stopped).toEqual([]);
+      expect(reused).toMatchObject({ remotePort: 30001, startedByUs: false });
+    });
+
+    test('leaves a foreground server of the same version running after a reinstall', async () => {
+      const { host, manager } = createRemoteHost([{ port: 30001, version: '1.2.3', launchMode: 'foreground' }]);
+      manager.ensureBundledWebInstall = async () => ({ binPath: '/home/pi/.openchamber/npm-global/bin/openchamber', reinstalled: true });
+
+      const result = await manager.ensureRemoteServer(managed(), parsed, '/unused.sock');
+
+      expect(host.stopped).toEqual([]);
+      expect(result).toMatchObject({ remotePort: 30001, startedByUs: false });
     });
 
     test('leaves a foreground server of another version to its process manager', async () => {

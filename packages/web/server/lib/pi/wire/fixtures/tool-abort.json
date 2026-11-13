@@ -1,0 +1,826 @@
+{
+ "name": "tool-abort",
+ "description": "A user abort while a bash command runs.",
+ "cwd": "/work/project",
+ "header": {
+  "type": "session",
+  "version": 3,
+  "id": "ses_fixture_tool_abort",
+  "timestamp": "2026-11-10T06:22:30.471Z",
+  "cwd": "/work/project"
+ },
+ "events": [
+  {
+   "type": "agent_start"
+  },
+  {
+   "type": "turn_start"
+  },
+  {
+   "type": "message_start",
+   "message": {
+    "role": "system",
+    "content": "",
+    "sections": {
+     "preamble": "trimmed"
+    },
+    "timestamp": 1794291750496
+   }
+  },
+  {
+   "type": "message_end",
+   "message": {
+    "role": "system",
+    "content": "",
+    "sections": {
+     "preamble": "trimmed"
+    },
+    "timestamp": 1794291750496
+   }
+  },
+  {
+   "type": "message_start",
+   "message": {
+    "role": "user",
+    "content": [
+     {
+      "type": "text",
+      "text": "STEPS:[[{\"name\":\"bash\",\"args\":{\"command\":\"sleep 30\"}}]]"
+     }
+    ],
+    "timestamp": 1794291750496
+   }
+  },
+  {
+   "type": "message_end",
+   "message": {
+    "role": "user",
+    "content": [
+     {
+      "type": "text",
+      "text": "STEPS:[[{\"name\":\"bash\",\"args\":{\"command\":\"sleep 30\"}}]]"
+     }
+    ],
+    "timestamp": 1794291750496
+   }
+  },
+  {
+   "type": "message_start",
+   "message": {
+    "role": "assistant",
+    "content": [
+     {
+      "type": "text",
+      "text": "Step 1. "
+     }
+    ],
+    "api": "openai-completions",
+    "provider": "mock",
+    "model": "mock-model",
+    "usage": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "totalTokens": 0,
+     "cost": {
+      "input": 0,
+      "output": 0,
+      "cacheRead": 0,
+      "cacheWrite": 0,
+      "total": 0
+     }
+    },
+    "stopReason": "pending",
+    "timestamp": 1794291750505
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 100,
+    "output": 20,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "reasoning": 0,
+    "totalTokens": 120,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "text_start",
+    "contentIndex": 0
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 100,
+    "output": 20,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "reasoning": 0,
+    "totalTokens": 120,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "text_delta",
+    "contentIndex": 0,
+    "delta": "Step 1. "
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 100,
+    "output": 20,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "reasoning": 0,
+    "totalTokens": 120,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "toolcall_start",
+    "contentIndex": 1,
+    "id": "call_0_0",
+    "toolName": "bash"
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 100,
+    "output": 20,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "reasoning": 0,
+    "totalTokens": 120,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "toolcall_delta",
+    "contentIndex": 1,
+    "delta": ""
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 100,
+    "output": 20,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "reasoning": 0,
+    "totalTokens": 120,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "toolcall_delta",
+    "contentIndex": 1,
+    "delta": "{\"comman"
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 100,
+    "output": 20,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "reasoning": 0,
+    "totalTokens": 120,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "toolcall_delta",
+    "contentIndex": 1,
+    "delta": "d\":\"sleep 30\"}"
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 100,
+    "output": 20,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "reasoning": 0,
+    "totalTokens": 120,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "text_end",
+    "contentIndex": 0,
+    "content": "Step 1. "
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 100,
+    "output": 20,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "reasoning": 0,
+    "totalTokens": 120,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "toolcall_end",
+    "contentIndex": 1,
+    "toolCall": {
+     "type": "toolCall",
+     "id": "call_0_0",
+     "name": "bash",
+     "arguments": {
+      "command": "sleep 30"
+     }
+    }
+   }
+  },
+  {
+   "type": "message_end",
+   "message": {
+    "role": "assistant",
+    "content": [
+     {
+      "type": "text",
+      "text": "Step 1. "
+     },
+     {
+      "type": "toolCall",
+      "id": "call_0_0",
+      "name": "bash",
+      "arguments": {
+       "command": "sleep 30"
+      }
+     }
+    ],
+    "api": "openai-completions",
+    "provider": "mock",
+    "model": "mock-model",
+    "usage": {
+     "input": 100,
+     "output": 20,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "reasoning": 0,
+     "totalTokens": 120,
+     "cost": {
+      "input": 0,
+      "output": 0,
+      "cacheRead": 0,
+      "cacheWrite": 0,
+      "total": 0,
+      "totalFromProvider": false
+     }
+    },
+    "stopReason": "toolUse",
+    "timestamp": 1794291750505,
+    "responseId": "mock-1",
+    "rawStopReason": "tool_calls",
+    "durationMs": 18,
+    "thinkingLevel": "low"
+   }
+  },
+  {
+   "type": "tool_execution_start",
+   "toolCallId": "call_0_0",
+   "toolName": "bash",
+   "args": {
+    "command": "sleep 30"
+   }
+  },
+  {
+   "type": "tool_execution_update",
+   "toolCallId": "call_0_0",
+   "toolName": "bash",
+   "args": {
+    "command": "sleep 30"
+   },
+   "partialResult": {
+    "content": []
+   }
+  },
+  {
+   "type": "tool_execution_end",
+   "toolCallId": "call_0_0",
+   "toolName": "bash",
+   "result": {
+    "content": [
+     {
+      "type": "text",
+      "text": "Command aborted"
+     }
+    ],
+    "details": {}
+   },
+   "isError": true,
+   "durationMs": 306
+  },
+  {
+   "type": "message_start",
+   "message": {
+    "role": "toolResult",
+    "toolCallId": "call_0_0",
+    "toolName": "bash",
+    "content": [
+     {
+      "type": "text",
+      "text": "Command aborted"
+     }
+    ],
+    "details": {},
+    "isError": true,
+    "durationMs": 306,
+    "timestamp": 1794291750833
+   }
+  },
+  {
+   "type": "message_end",
+   "message": {
+    "role": "toolResult",
+    "toolCallId": "call_0_0",
+    "toolName": "bash",
+    "content": [
+     {
+      "type": "text",
+      "text": "Command aborted"
+     }
+    ],
+    "details": {},
+    "isError": true,
+    "durationMs": 306,
+    "timestamp": 1794291750833
+   }
+  },
+  {
+   "type": "turn_end",
+   "message": {
+    "role": "assistant",
+    "content": [
+     {
+      "type": "text",
+      "text": "Step 1. "
+     },
+     {
+      "type": "toolCall",
+      "id": "call_0_0",
+      "name": "bash",
+      "arguments": {
+       "command": "sleep 30"
+      }
+     }
+    ],
+    "api": "openai-completions",
+    "provider": "mock",
+    "model": "mock-model",
+    "usage": {
+     "input": 100,
+     "output": 20,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "reasoning": 0,
+     "totalTokens": 120,
+     "cost": {
+      "input": 0,
+      "output": 0,
+      "cacheRead": 0,
+      "cacheWrite": 0,
+      "total": 0,
+      "totalFromProvider": false
+     }
+    },
+    "stopReason": "toolUse",
+    "timestamp": 1794291750505,
+    "responseId": "mock-1",
+    "rawStopReason": "tool_calls",
+    "durationMs": 18,
+    "thinkingLevel": "low"
+   },
+   "toolResults": [
+    {
+     "role": "toolResult",
+     "toolCallId": "call_0_0",
+     "toolName": "bash",
+     "content": [
+      {
+       "type": "text",
+       "text": "Command aborted"
+      }
+     ],
+     "details": {},
+     "isError": true,
+     "durationMs": 306,
+     "timestamp": 1794291750833
+    }
+   ]
+  },
+  {
+   "type": "turn_start"
+  },
+  {
+   "type": "message_start",
+   "message": {
+    "role": "assistant",
+    "content": [],
+    "api": "openai-completions",
+    "provider": "mock",
+    "model": "mock-model",
+    "usage": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "totalTokens": 0,
+     "cost": {
+      "input": 0,
+      "output": 0,
+      "cacheRead": 0,
+      "cacheWrite": 0,
+      "total": 0
+     }
+    },
+    "stopReason": "error",
+    "errorMessage": "This operation was aborted",
+    "timestamp": 1794291750836,
+    "durationMs": 0,
+    "thinkingLevel": "low"
+   }
+  },
+  {
+   "type": "message_end",
+   "message": {
+    "role": "assistant",
+    "content": [],
+    "api": "openai-completions",
+    "provider": "mock",
+    "model": "mock-model",
+    "usage": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "totalTokens": 0,
+     "cost": {
+      "input": 0,
+      "output": 0,
+      "cacheRead": 0,
+      "cacheWrite": 0,
+      "total": 0
+     }
+    },
+    "stopReason": "error",
+    "errorMessage": "This operation was aborted",
+    "timestamp": 1794291750836,
+    "durationMs": 0,
+    "thinkingLevel": "low"
+   }
+  },
+  {
+   "type": "turn_end",
+   "message": {
+    "role": "assistant",
+    "content": [],
+    "api": "openai-completions",
+    "provider": "mock",
+    "model": "mock-model",
+    "usage": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "totalTokens": 0,
+     "cost": {
+      "input": 0,
+      "output": 0,
+      "cacheRead": 0,
+      "cacheWrite": 0,
+      "total": 0
+     }
+    },
+    "stopReason": "error",
+    "errorMessage": "This operation was aborted",
+    "timestamp": 1794291750836,
+    "durationMs": 0,
+    "thinkingLevel": "low"
+   },
+   "toolResults": []
+  },
+  {
+   "type": "agent_end",
+   "messages": [
+    {
+     "role": "system",
+     "content": "",
+     "sections": {
+      "preamble": "trimmed"
+     },
+     "timestamp": 1794291750496
+    },
+    {
+     "role": "user",
+     "content": [
+      {
+       "type": "text",
+       "text": "STEPS:[[{\"name\":\"bash\",\"args\":{\"command\":\"sleep 30\"}}]]"
+      }
+     ],
+     "timestamp": 1794291750496
+    },
+    {
+     "role": "assistant",
+     "content": [
+      {
+       "type": "text",
+       "text": "Step 1. "
+      },
+      {
+       "type": "toolCall",
+       "id": "call_0_0",
+       "name": "bash",
+       "arguments": {
+        "command": "sleep 30"
+       }
+      }
+     ],
+     "api": "openai-completions",
+     "provider": "mock",
+     "model": "mock-model",
+     "usage": {
+      "input": 100,
+      "output": 20,
+      "cacheRead": 0,
+      "cacheWrite": 0,
+      "reasoning": 0,
+      "totalTokens": 120,
+      "cost": {
+       "input": 0,
+       "output": 0,
+       "cacheRead": 0,
+       "cacheWrite": 0,
+       "total": 0,
+       "totalFromProvider": false
+      }
+     },
+     "stopReason": "toolUse",
+     "timestamp": 1794291750505,
+     "responseId": "mock-1",
+     "rawStopReason": "tool_calls",
+     "durationMs": 18,
+     "thinkingLevel": "low"
+    },
+    {
+     "role": "toolResult",
+     "toolCallId": "call_0_0",
+     "toolName": "bash",
+     "content": [
+      {
+       "type": "text",
+       "text": "Command aborted"
+      }
+     ],
+     "details": {},
+     "isError": true,
+     "durationMs": 306,
+     "timestamp": 1794291750833
+    },
+    {
+     "role": "assistant",
+     "content": [],
+     "api": "openai-completions",
+     "provider": "mock",
+     "model": "mock-model",
+     "usage": {
+      "input": 0,
+      "output": 0,
+      "cacheRead": 0,
+      "cacheWrite": 0,
+      "totalTokens": 0,
+      "cost": {
+       "input": 0,
+       "output": 0,
+       "cacheRead": 0,
+       "cacheWrite": 0,
+       "total": 0
+      }
+     },
+     "stopReason": "error",
+     "errorMessage": "This operation was aborted",
+     "timestamp": 1794291750836,
+     "durationMs": 0,
+     "thinkingLevel": "low"
+    }
+   ],
+   "willRetry": false
+  },
+  {
+   "type": "agent_settled",
+   "aborted": true
+  }
+ ],
+ "entries": [
+  {
+   "type": "model_change",
+   "id": "3ac60455",
+   "parentId": null,
+   "timestamp": "2026-11-10T06:22:30.492Z",
+   "provider": "mock",
+   "modelId": "mock-model"
+  },
+  {
+   "type": "thinking_level_change",
+   "id": "9a473d7c",
+   "parentId": "3ac60455",
+   "timestamp": "2026-11-10T06:22:30.492Z",
+   "thinkingLevel": "low"
+  },
+  {
+   "type": "message",
+   "id": "7db5fae9",
+   "parentId": "9a473d7c",
+   "timestamp": "2026-11-10T06:22:30.497Z",
+   "message": {
+    "role": "system",
+    "content": "",
+    "sections": {
+     "preamble": "trimmed"
+    },
+    "timestamp": 1794291750496
+   }
+  },
+  {
+   "type": "message",
+   "id": "0141ea75",
+   "parentId": "7db5fae9",
+   "timestamp": "2026-11-10T06:22:30.497Z",
+   "message": {
+    "role": "user",
+    "content": [
+     {
+      "type": "text",
+      "text": "STEPS:[[{\"name\":\"bash\",\"args\":{\"command\":\"sleep 30\"}}]]"
+     }
+    ],
+    "timestamp": 1794291750496
+   }
+  },
+  {
+   "type": "message",
+   "id": "7094648b",
+   "parentId": "0141ea75",
+   "timestamp": "2026-11-10T06:22:30.524Z",
+   "message": {
+    "role": "assistant",
+    "content": [
+     {
+      "type": "text",
+      "text": "Step 1. "
+     },
+     {
+      "type": "toolCall",
+      "id": "call_0_0",
+      "name": "bash",
+      "arguments": {
+       "command": "sleep 30"
+      }
+     }
+    ],
+    "api": "openai-completions",
+    "provider": "mock",
+    "model": "mock-model",
+    "usage": {
+     "input": 100,
+     "output": 20,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "reasoning": 0,
+     "totalTokens": 120,
+     "cost": {
+      "input": 0,
+      "output": 0,
+      "cacheRead": 0,
+      "cacheWrite": 0,
+      "total": 0,
+      "totalFromProvider": false
+     }
+    },
+    "stopReason": "toolUse",
+    "timestamp": 1794291750505,
+    "responseId": "mock-1",
+    "rawStopReason": "tool_calls",
+    "durationMs": 18,
+    "thinkingLevel": "low"
+   }
+  },
+  {
+   "type": "message",
+   "id": "024550b9",
+   "parentId": "7094648b",
+   "timestamp": "2026-11-10T06:22:30.833Z",
+   "message": {
+    "role": "toolResult",
+    "toolCallId": "call_0_0",
+    "toolName": "bash",
+    "content": [
+     {
+      "type": "text",
+      "text": "Command aborted"
+     }
+    ],
+    "details": {},
+    "isError": true,
+    "durationMs": 306,
+    "timestamp": 1794291750833
+   }
+  },
+  {
+   "type": "message",
+   "id": "31fed86e",
+   "parentId": "024550b9",
+   "timestamp": "2026-11-10T06:22:30.836Z",
+   "message": {
+    "role": "assistant",
+    "content": [],
+    "api": "openai-completions",
+    "provider": "mock",
+    "model": "mock-model",
+    "usage": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "totalTokens": 0,
+     "cost": {
+      "input": 0,
+      "output": 0,
+      "cacheRead": 0,
+      "cacheWrite": 0,
+      "total": 0
+     }
+    },
+    "stopReason": "error",
+    "errorMessage": "This operation was aborted",
+    "timestamp": 1794291750836,
+    "durationMs": 0,
+    "thinkingLevel": "low"
+   }
+  }
+ ]
+}

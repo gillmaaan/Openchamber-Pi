@@ -663,6 +663,7 @@ describe('managed agent tool runtime', () => {
     expect(Object.keys(tool.openchamber_notify.input.properties.parameters.properties).sort())
       .toEqual(['body', 'showWhenFocused', 'title']);
     expect(Object.keys(tool.openchamber.input.properties.parameters.properties)).not.toContain('showWhenFocused');
+    expect(tool.openchamber_notify.options).toEqual({ codemode: false });
 
     const { runtime: plain, dataDir: plainDir } = await createRuntime();
     await prepareManagedEnv(plain, { includeControl: true, includeWeb: false, includeMemory: false });
@@ -681,7 +682,7 @@ describe('managed agent tool runtime', () => {
     expect(tool.openchamber_image.description.length).toBeLessThanOrEqual(2048);
   });
 
-  it('exposes usage as its own tool behind Code Mode, only when switched on', async () => {
+  it('exposes usage as its own direct tool, only when switched on', async () => {
     const { runtime, dataDir } = await createRuntime();
     await prepareManagedEnv(runtime, { includeControl: false, includeWeb: false, includeMemory: false, includeUsage: true });
     const namespaces = [];
@@ -689,9 +690,10 @@ describe('managed agent tool runtime', () => {
 
     expect(Object.keys(tool)).toEqual(['openchamber_usage']);
     expect(Object.keys(tool.openchamber_usage.input.properties.parameters.properties)).toEqual(['providerId']);
-    expect(tool.openchamber_usage.options).toEqual({ codemode: true });
-    // Its catalog line names when to read it, so agents do not check limits before every task.
-    expect(namespaces).toEqual([expect.objectContaining({ name: 'openchamber_usage', description: expect.stringContaining('when the user asks about limits') })]);
+    expect(tool.openchamber_usage.options).toEqual({ codemode: false });
+    // The description names when to read it, so agents do not check limits before every task.
+    expect(tool.openchamber_usage.description).toContain('when the user asks about limits');
+    expect(namespaces).toEqual([]);
     expect(tool.openchamber_usage.description.length).toBeLessThanOrEqual(2048);
 
     await runtime.materializePlugin({ includeControl: true, includeWeb: false, includeMemory: false });
@@ -934,27 +936,17 @@ describe('managed agent tool runtime', () => {
     }
   });
 
-  it('puts the control, schedule, browser, memory, knowledge and notify tools behind Code Mode, and the render tool direct', async () => {
+  it('registers every tool direct, with no Code Mode namespace', async () => {
     const { runtime, dataDir } = await createRuntime();
-    await prepareManagedEnv(runtime, { includeControl: true, includeSchedule: true, includeWeb: true, includeMemory: true, includeKnowledge: true, includeNotify: true, includeRender: true });
+    await prepareManagedEnv(runtime, { includeControl: true, includeSchedule: true, includeWeb: true, includeMemory: true, includeKnowledge: true, includeNotify: true, includeRender: true, includeUsage: true });
     const namespaces = [];
-    const { openchamber_render: render, ...behindExecute } = await loadTools(dataDir, 'codemode', {}, [], namespaces);
-    const names = ['openchamber', 'openchamber_knowledge', 'openchamber_memory', 'openchamber_notify', 'openchamber_schedule', 'openchamber_web'];
-    expect(Object.keys(behindExecute).sort()).toEqual(names);
-    for (const tool of Object.values(behindExecute)) {
-      expect(tool.options).toEqual({ codemode: true });
+    const tools = await loadTools(dataDir, 'direct', {}, [], namespaces);
+    expect(Object.keys(tools).sort()).toEqual(['openchamber', 'openchamber_knowledge', 'openchamber_memory', 'openchamber_notify', 'openchamber_render', 'openchamber_schedule', 'openchamber_usage', 'openchamber_web']);
+    for (const [name, tool] of Object.entries(tools)) {
+      expect(tool.options, name).toEqual({ codemode: false });
     }
-    expect(render.options).toEqual({ codemode: false });
-    // Names stay as they are; each tool gets a namespace of its own name, so
-    // its catalog row says what it is even when the catalog lists none of it.
-    expect(namespaces.map((namespace) => namespace.name).sort()).toEqual(names);
-    expect(namespaces.find((namespace) => namespace.name === 'openchamber_web').description).toContain('browser panel');
-
-    // A tool switched off takes its namespace along.
-    await prepareManagedEnv(runtime, { includeControl: true, includeWeb: false, includeMemory: false, includeRender: true });
-    const fewer = [];
-    await loadTools(dataDir, 'fewer', {}, [], fewer);
-    expect(fewer.map((namespace) => namespace.name)).toEqual(['openchamber']);
+    // A direct tool is declared under its own name, so a namespace line would be a second entry for it.
+    expect(namespaces).toEqual([]);
   });
 
   it('refuses to inject a plugin with no tools in it', async () => {

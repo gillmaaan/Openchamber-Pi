@@ -108,10 +108,9 @@ the user can want independently:
   enabled only while `agentUsageToolEnabled` is `true`, and the action reads
   the setting on every call and refuses while it is not. Each call runs the
   page's readers again, so the description tells agents to read once per
-  decision and that a rate-limited provider answers with its last sample. It
-  sits behind Code Mode like notify, since the chat draws nothing from its
-  call, and its catalog line says to read it when the user asks about limits
-  or a model choice depends on them, never before every task.
+  decision and that a rate-limited provider answers with its last sample, and
+  to read it when the user asks about limits or a model choice depends on them,
+  never before every task.
 - `openchamber_workflow` — `workflow.*`, scripts that fan a large task out to
   many agents, run by OpenChamber (`../workflows/DOCUMENTATION.md`). Off by
   default: enabled only while `agentWorkflowToolEnabled` is `true`, and the
@@ -136,28 +135,26 @@ from the schema rather than leaving them visible. The plugin is injected only
 when OpenChamber launches and owns the OpenCode process, and not at all when
 both settings are `false`.
 
-- `openchamber`, `openchamber_schedule`, `openchamber_web`,
-  `openchamber_memory`, `openchamber_knowledge` and `openchamber_notify` are
-  registered with `codemode: true`, behind OpenCode's Code Mode `execute`
-  tool; there is no setting for it. On `scripts/tool-use-bench` with three
-  models this cut the first request of a session by about 30% with the same or
-  better use of the tools, and one provider's tool-call streaming stalled on
-  their direct schemas. `openchamber_render`, `openchamber_secret`,
-  `openchamber_image`, `openchamber_workflow` and
-  `openchamber_workflow_answer` stay direct (`codemode: false`): the chat
-  draws a page, a secret card, images or a run card from the tool's own call,
-  and inside an `execute` script that call is only an entry in `execute`'s
-  list.
-- Behind Code Mode each tool also registers a namespace of its own name with
+- Every tool is registered with `codemode: false`, direct, and there is no
+  setting for it. The chat draws a page, a secret card, images or a run card
+  from the tool's own call (`openchamber_render`, `openchamber_secret`,
+  `openchamber_image`, `openchamber_workflow`, `openchamber_workflow_answer`),
+  and a browser action is the call the model made, which is what the browser
+  panel's rows read; inside a script each is only an entry in the script's
+  list, so these stay direct whatever else changes. The control, schedule,
+  memory, knowledge, notify and usage tools are direct by the maintainer's
+  choice. Behind Code Mode's script tool they cut the first request of a
+  session by about 30% on `scripts/tool-use-bench` with three models, with the
+  same or better use of the tools, and one provider's tool-call streaming
+  stalled on their direct schemas.
+- The Code Mode path is still in the generators: a spec with `codeMode: true`
+  registers behind Code Mode and also registers a namespace of its own name with
   a one-line description (`CODE_MODE_CATALOG_LINES`). The catalog always
   lists namespaces with their descriptions but tools only within a small
   budget, and with large MCP servers connected ours showed as bare rows such
   as `openchamber_web (1 tool, none shown)`; agents asked to open a page in the
   browser panel fetched it instead and said they had no browser
-  (`scripts/tool-use-bench`). Names and paths stay as they are: agents call
-  `tools.openchamber(...)` straight from the session guidance, and both a
-  control tool renamed into a shared namespace and one with the other tools
-  nested under it made them stop calling it.
+  (`scripts/tool-use-bench`). No spec uses it now, so nothing exercises it.
 - The plugin accepts the action's inputs either inside `parameters` or beside
   `action`, because models produce both shapes; an explicit `parameters` object
   wins on a conflict. Rejecting the flattened shape turned a call that plainly
@@ -412,3 +409,12 @@ tool fails rather than driving the browser. An unresolvable action answers with
 the actions that tool actually has, because an error that only says
 "unsupported" leaves the model to guess a second wrong name — which is exactly
 what happened before this existed.
+
+## Pi extension
+
+`pi-extension.js` generates the same tools as one Pi extension for the Pi
+runtime, from the catalog `createPluginSource` uses (`managedToolSpecs` and
+`toolInputPreparation` in `runtime.js`), so the two cannot drift. The callback
+and its envelope are shared; `PI-EXTENSION.md` has what the Pi side owns: tool
+exposure, the permission hook for `secret.run`, how waiting calls end, and what
+was verified.

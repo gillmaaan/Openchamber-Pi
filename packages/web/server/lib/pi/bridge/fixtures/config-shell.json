@@ -1,0 +1,12 @@
+[
+  {
+    "path": "/bin/bash",
+    "name": "bash",
+    "acceptable": true
+  },
+  {
+    "path": "/bin/csh",
+    "name": "csh",
+    "acceptable": true
+  }
+]

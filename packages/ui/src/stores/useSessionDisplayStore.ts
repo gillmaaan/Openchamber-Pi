@@ -11,6 +11,7 @@ import {
   type SidebarPinList,
   type SidebarSectionEntry,
 } from '@/lib/sidebarSections';
+import { defaultSidebarNav, normalizeSidebarNav, setSidebarNavShown, type SidebarMode, type SidebarNav } from '@/lib/sidebarNav';
 
 type ProjectSortOrder = 'manual' | 'a-z' | 'z-a' | 'date-added' | 'recent';
 // Worktree groups inside a project. 'recent' floats worktrees with the latest
@@ -83,6 +84,16 @@ type SessionDisplayStore = {
   setSections: (sections: SidebarSectionEntry[]) => void;
   setPinLists: (lists: SidebarPinList[]) => void;
   setHiddenSections: (ids: string[]) => void;
+  /**
+   * The desktop and web sidebar's mode: Chat lists the chats that belong to no
+   * project, Code the projects. A choice of this device, like the rows below.
+   */
+  sidebarMode: SidebarMode;
+  setSidebarMode: (mode: SidebarMode) => void;
+  /** The pages each mode shows as a row, in order; the rest sit under More. */
+  sidebarNav: SidebarNav;
+  setSidebarNavRows: (mode: SidebarMode, rows: string[]) => void;
+  setSidebarNavRowShown: (mode: SidebarMode, id: string, shown: boolean) => void;
   // VS Code only: the compact webview keeps archived buckets inline because it
   // has no room for the full Archive page. Web/desktop ignore this flag and
   // always route archived sessions to the Archive page instead.
@@ -192,6 +203,14 @@ export const useSessionDisplayStore = create<SessionDisplayStore>()(
       setSections: (sections) => set({ sections: sidebarSectionsSchema.parse(sections), sectionsOwner: getRuntimeKey() }),
       setPinLists: (lists) => set({ pinLists: sidebarPinListsSchema.parse(lists), sectionsOwner: getRuntimeKey() }),
       setHiddenSections: (ids) => set({ hiddenSections: hiddenSidebarSectionsSchema.parse(ids), sectionsOwner: getRuntimeKey() }),
+      sidebarMode: 'code',
+      setSidebarMode: (mode) => set({ sidebarMode: mode }),
+      sidebarNav: defaultSidebarNav(),
+      // The same rules as a stored value: duplicates dropped, the limit held.
+      setSidebarNavRows: (mode, rows) => set((state) => ({ sidebarNav: normalizeSidebarNav({ ...state.sidebarNav, [mode]: rows }) })),
+      setSidebarNavRowShown: (mode, id, shown) => set((state) => ({
+        sidebarNav: normalizeSidebarNav({ ...state.sidebarNav, [mode]: setSidebarNavShown(state.sidebarNav[mode], id, shown) }),
+      })),
       // Default to HIDDEN so the pre-hydration state matches the quiet/safe
       // option: archived sessions must never flash visible on startup and then
       // disappear once the persisted preference rehydrates.
@@ -219,6 +238,8 @@ export const useSessionDisplayStore = create<SessionDisplayStore>()(
       // v8→v9 added worktreeSortOrder; v10→v11 drops it again.
       // v9→v10 drops showRecentSection (Recent is gone).
       // v11→v12 turns two-line rows on for a phone that was on List.
+      // The mode and the navigation rows came without a version bump: a stored
+      // state without them takes the defaults in `merge`.
       migrate: migrateSessionDisplayState,
       // Sections cached by another build (an older one before a filter field
       // existed) are read through the same rules as the stored setting.
@@ -226,7 +247,13 @@ export const useSessionDisplayStore = create<SessionDisplayStore>()(
         // SAFETY: `migrate` has already brought the stored state to this version's shape.
         const state = (persisted ?? {}) as Partial<SessionDisplayStore>;
         const sections = sidebarSectionsSchema.safeParse(state.sections ?? current.sections);
-        return { ...current, ...state, sections: sections.success ? sections.data : [...DEFAULT_SIDEBAR_SECTIONS] };
+        return {
+          ...current,
+          ...state,
+          sections: sections.success ? sections.data : [...DEFAULT_SIDEBAR_SECTIONS],
+          sidebarMode: state.sidebarMode === 'chat' ? 'chat' : 'code',
+          sidebarNav: normalizeSidebarNav(state.sidebarNav),
+        };
       },
     },
   ),

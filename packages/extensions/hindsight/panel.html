@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hindsight</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--oc-bg); color: var(--oc-fg); font-family: var(--oc-font); font-size: 13px; }
+    #root { padding: 12px; min-inline-size: 0; }
+    .toolbar, .actions, .search-row, .pagination { display: flex; align-items: center; gap: 8px; min-inline-size: 0; }
+    .toolbar { justify-content: space-between; }
+    .toolbar > .oc-sdk-select { min-inline-size: 0; flex: 1; }
+    .toolbar .oc-sdk-trigger { max-inline-size: 100%; }
+    .toolbar .oc-sdk-menu { flex-shrink: 0; }
+    .toolbar .oc-sdk-menu > .oc-sdk-btn { max-inline-size: 110px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .status { block-size: 20px; line-height: 20px; margin: 4px 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--oc-muted); }
+    .status[data-error="true"] { color: var(--oc-error-text); }
+    .navigation { overflow-x: auto; margin-block-end: 8px; }
+    .search-row { margin-block-end: 10px; }
+    .search-row[hidden] { display: none; }
+    .search-row > :first-child { min-inline-size: 0; flex: 1; }
+    .search-row > :last-child { flex: 0 0 auto; }
+    .muted { color: var(--oc-muted); font-size: 12px; margin-block: 6px; overflow-wrap: anywhere; }
+    .notice { background: color-mix(in srgb, var(--oc-warning) 12%, transparent); color: var(--oc-warning-text); padding: 10px; border-radius: var(--oc-radius); line-height: 1.5; }
+    .entries { margin-block-start: 10px; }
+    .entries .oc-sdk-row-main { min-inline-size: 0; }
+    .pagination { justify-content: space-between; margin-block-start: 12px; }
+    .detail { display: flex; flex-direction: column; gap: 8px; }
+    .entry-title { margin-block: 4px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .actions { flex-wrap: wrap; }
+    .body { font: 12px/1.65 var(--oc-mono); white-space: pre-wrap; overflow-wrap: anywhere; margin-block: 8px; }
+    .path { font-family: var(--oc-mono); }
+  </style>
+</head>
+<body><main id="root"></main><script src="panel.js"></script></body>
+</html>

@@ -465,6 +465,18 @@ describe('settings helpers', () => {
     expect(helpers.sanitizeSettingsUpdate({ desktopWindowControlsPosition: 'center' })).toEqual({});
   });
 
+  it('keeps the sidebar translucency switch and an opacity inside its range', () => {
+    const helpers = createTestHelpers();
+    expect(helpers.sanitizeSettingsUpdate({ desktopSidebarTranslucent: true, desktopSidebarOpacity: 40 })).toEqual({
+      desktopSidebarTranslucent: true,
+      desktopSidebarOpacity: 40,
+    });
+    expect(helpers.sanitizeSettingsUpdate({ desktopSidebarTranslucent: 'yes', desktopSidebarOpacity: 9 })).toEqual({});
+    expect(helpers.sanitizeSettingsUpdate({ desktopSidebarOpacity: 10 })).toEqual({ desktopSidebarOpacity: 10 });
+    expect(helpers.sanitizeSettingsUpdate({ desktopSidebarOpacity: 101 })).toEqual({});
+    expect(helpers.sanitizeSettingsUpdate({ desktopSidebarOpacity: 55.5 })).toEqual({});
+  });
+
   it('sanitizes desktopWindowControlsStyle and rejects unknown values', () => {
     const helpers = createTestHelpers();
 
@@ -958,6 +970,7 @@ describe('settings registry gate', () => {
     usageExpandedFamilies: { anthropic: ['f'] }, usageModelGroups: { anthropic: { customGroups: [{ id: 'g', label: 'G', models: ['claude'], order: 0 }] } },
     globalBehaviorPrompt: 'Be brief.', responseStyleEnabled: true, responseStylePreset: 'concise', responseStyleCustomInstructions: 'x',
     pwaAppName: 'OpenChamber', pwaOrientation: 'portrait', mobileKeyboardMode: 'native', desktopWindowControlsPosition: 'left', desktopWindowControlsStyle: 'classic',
+    desktopSidebarTranslucent: true, desktopSidebarOpacity: 65,
     inputBarOffset: 10,
     customProviderIcons: { 'campus-llm': 'cloud' },
     customProviderLogos: { acme: { mime: 'image/png', updatedAt: 1 } },

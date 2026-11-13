@@ -5,7 +5,9 @@
  *
  * Reads the minified @remixicon/react bundle, extracts SVG path data
  * for all Ri* icons used in packages/ui/src, and writes
- * packages/ui/src/components/icon/sprite.ts.
+ * packages/ui/src/components/icon/sprite.ts. A name with a glyph in
+ * scripts/icons/phosphor-glyphs.mjs is drawn from there instead; the rest
+ * keep their Remix drawing.
  */
 
 import { readFileSync, writeFileSync, readdirSync, statSync } from "node:fs"
@@ -14,6 +16,7 @@ import { fileURLToPath } from "node:url"
 
 import { glyphInner } from "./brand/geometry.mjs"
 import { openInAppGlyphs } from "./icons/open-in-apps.mjs"
+import { phosphorGlyphs } from "./icons/phosphor-glyphs.mjs"
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const repoRoot = resolve(__dirname, "..")
@@ -390,6 +393,11 @@ for (const iconName of [...usedIcons].sort()) {
   const varName = nameToVar.get(iconName)
   if (!varName) {
     console.warn(`  ⚠ Unknown icon: ${iconName}`)
+    continue
+  }
+  const replacement = phosphorGlyphs[remixToSpriteName(iconName)]
+  if (replacement) {
+    iconEntries.push({ name: iconName, content: replacement })
     continue
   }
   const paths = varPathMap.get(varName)

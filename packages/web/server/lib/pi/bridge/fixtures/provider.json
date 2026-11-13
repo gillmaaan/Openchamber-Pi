@@ -1,0 +1,17 @@
+{
+  "location": {
+    "directory": "/work/proj"
+  },
+  "data": [
+    {
+      "id": "mock",
+      "name": "Mock",
+      "activation": "enabled",
+      "package": "@opencode/ai/providers/openai-compatible",
+      "settings": {
+        "apiKey": "test",
+        "baseURL": "http://127.0.0.1:56330/v1"
+      }
+    }
+  ]
+}

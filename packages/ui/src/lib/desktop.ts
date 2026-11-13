@@ -46,6 +46,16 @@ export type DesktopWindowControlAction = 'close' | 'minimize' | 'maximize';
 // No fixed-width constant: control width depends on the style (classic vs traffic-lights).
 export type DesktopWindowControlsStyle = 'classic' | 'traffic-lights';
 
+/** Share of the sidebar's own colour that stays over the macOS material, in percent. */
+export const DESKTOP_SIDEBAR_OPACITY_MIN = 10;
+export const DESKTOP_SIDEBAR_OPACITY_MAX = 100;
+export const DESKTOP_SIDEBAR_OPACITY_DEFAULT = 65;
+
+export const clampDesktopSidebarOpacity = (value: number): number => {
+  if (!Number.isFinite(value)) return DESKTOP_SIDEBAR_OPACITY_DEFAULT;
+  return Math.min(DESKTOP_SIDEBAR_OPACITY_MAX, Math.max(DESKTOP_SIDEBAR_OPACITY_MIN, Math.round(value)));
+};
+
 // The settings document is defined once, in the registry, and re-exported here
 // so the many existing importers keep their path.
 export type { DesktopSettings } from '@/lib/settings/registry';
@@ -105,6 +115,11 @@ export const usesFramelessElectronChrome = (): boolean => {
   if (platform === 'linux') return getElectronRuntime()?.nativeFrame !== true;
   return platform === 'win32';
 };
+
+/** The macOS desktop app is the one surface whose window can show a material behind the sidebar. */
+export const supportsDesktopSidebarVibrancy = (): boolean => (
+  isElectronShell() && getElectronPlatform() === 'darwin'
+);
 
 /** Normalize a stored preference; legacy `auto` maps to the right-side default. */
 export const normalizeDesktopWindowControlsPosition = (

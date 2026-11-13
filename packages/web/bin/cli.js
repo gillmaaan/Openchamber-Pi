@@ -32,7 +32,7 @@ import {
   findClosestMatch,
 } from './lib/cli-args.js';
 import { readDesktopLocalPortFromSettings } from './lib/cli-paths.js';
-import { resolveExplicitBinary, searchPathFor } from './lib/cli-executables.js';
+import { searchPathFor } from './lib/cli-executables.js';
 import { startupCommand } from './lib/commands-startup.js';
 import { logsCommand } from './lib/commands-logs.js';
 import { statusCommand } from './lib/commands-status.js';
@@ -73,7 +73,7 @@ import {
   logStatus,
 } from './cli-output.js';
 import { applyConnectAttemptTimeout } from '../server/lib/network-defaults.js';
-import { createOpenCodeEnvRuntime } from '../server/lib/opencode/env-runtime.js';
+import { piRuntimeProblem, resolvePiRpcEntry } from '../server/lib/pi/launch.js';
 import { bunVersionRunsBunPty } from '../server/lib/terminal/bun-pty-support.js';
 
 // The CLI process performs provider fetches (quota/usage, update notes) under
@@ -162,38 +162,24 @@ function getServerRuntimeBinary() {
   return searchPathFor('node') ?? process.execPath;
 }
 
-async function checkOpenCodeCLI(onNotice) {
-  if (process.env.OPENCODE_BINARY) {
-    const override = resolveExplicitBinary(process.env.OPENCODE_BINARY);
-    if (override) {
-      process.env.OPENCODE_BINARY = override;
-      return override;
-    }
-    const message = `OPENCODE_BINARY="${process.env.OPENCODE_BINARY}" is not an executable file. Falling back to PATH lookup.`;
-    if (typeof onNotice === 'function') {
-      onNotice({ level: 'warning', code: 'OPENCODE_BINARY_INVALID', message });
-    } else {
-      console.warn(`Warning: ${message}`);
-    }
+/**
+ * OpenChamber runs the Pi Coding Agent from its own dependency, so there is no
+ * binary to find on PATH. This only confirms the package resolves, so a broken
+ * install fails here with one clear sentence instead of at the first prompt.
+ */
+async function checkPiRuntime() {
+  let entry;
+  try {
+    entry = resolvePiRpcEntry();
+  } catch (error) {
+    throw new Error(
+      `The Pi coding agent package (@earendil-works/pi-coding-agent) cannot be loaded: ${error instanceof Error ? error.message : String(error)}. ` +
+      'Reinstall OpenChamber so its dependencies are complete.'
+    );
   }
-
-  let resolvedFromPath = searchPathFor('opencode');
-  if (!resolvedFromPath) {
-    // A startup service starts with the platform's default PATH (its saved
-    // environment holds none, see cli-startup.js); the user's tools are on
-    // the login shell's PATH, which the server would add only after this check.
-    createOpenCodeEnvRuntime({ state: {} }).applyLoginShellEnvSnapshot();
-    resolvedFromPath = searchPathFor('opencode');
-  }
-  if (resolvedFromPath) {
-    process.env.OPENCODE_BINARY = resolvedFromPath;
-    return resolvedFromPath;
-  }
-
-  throw new Error(
-    `Unable to locate the opencode CLI on PATH (${process.env.PATH || '<empty>'}). ` +
-    'Ensure the CLI is installed and reachable, or set OPENCODE_BINARY to its full path.'
-  );
+  const problem = piRuntimeProblem();
+  if (problem) throw new Error(problem);
+  return entry;
 }
 
 const commands = {
@@ -224,7 +210,7 @@ const commands = {
 
 commands.serve = createServeCommand({
   serverPath: path.join(__dirname, '..', 'server', 'index.js'),
-  checkOpenCodeCLI,
+  checkPiRuntime,
   getServerRuntimeBinary,
   setForegroundServerActive(value) { foregroundServerActive = value; },
   setForegroundShutdown(handler) { foregroundShutdown = handler; },

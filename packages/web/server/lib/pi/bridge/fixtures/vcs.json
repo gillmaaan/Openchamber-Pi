@@ -1,0 +1,12 @@
+{
+  "location": {
+    "directory": "/work/proj"
+  },
+  "data": {
+    "provider": "git",
+    "branch": {
+      "current": "main",
+      "default": "main"
+    }
+  }
+}

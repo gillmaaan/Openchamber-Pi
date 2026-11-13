@@ -1,0 +1,479 @@
+{
+ "name": "error-retry",
+ "description": "The provider drops the connection on every attempt (one retry configured).",
+ "cwd": "/work/project",
+ "header": {
+  "type": "session",
+  "version": 3,
+  "id": "ses_fixture_error_retry",
+  "timestamp": "2026-11-10T06:18:32.256Z",
+  "cwd": "/work/project"
+ },
+ "events": [
+  {
+   "type": "agent_start"
+  },
+  {
+   "type": "turn_start"
+  },
+  {
+   "type": "message_start",
+   "message": {
+    "role": "system",
+    "content": "",
+    "sections": {
+     "preamble": "trimmed"
+    },
+    "timestamp": 1794291512278
+   }
+  },
+  {
+   "type": "message_end",
+   "message": {
+    "role": "system",
+    "content": "",
+    "sections": {
+     "preamble": "trimmed"
+    },
+    "timestamp": 1794291512278
+   }
+  },
+  {
+   "type": "message_start",
+   "message": {
+    "role": "user",
+    "content": [
+     {
+      "type": "text",
+      "text": "RESET please"
+     }
+    ],
+    "timestamp": 1794291512277
+   }
+  },
+  {
+   "type": "message_end",
+   "message": {
+    "role": "user",
+    "content": [
+     {
+      "type": "text",
+      "text": "RESET please"
+     }
+    ],
+    "timestamp": 1794291512277
+   }
+  },
+  {
+   "type": "message_start",
+   "message": {
+    "role": "assistant",
+    "content": [],
+    "api": "openai-completions",
+    "provider": "mock",
+    "model": "mock-model",
+    "usage": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "totalTokens": 0,
+     "cost": {
+      "input": 0,
+      "output": 0,
+      "cacheRead": 0,
+      "cacheWrite": 0,
+      "total": 0
+     }
+    },
+    "stopReason": "error",
+    "timestamp": 1794291512286,
+    "errorMessage": "Connection error.",
+    "durationMs": 10,
+    "thinkingLevel": "low"
+   }
+  },
+  {
+   "type": "message_end",
+   "message": {
+    "role": "assistant",
+    "content": [],
+    "api": "openai-completions",
+    "provider": "mock",
+    "model": "mock-model",
+    "usage": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "totalTokens": 0,
+     "cost": {
+      "input": 0,
+      "output": 0,
+      "cacheRead": 0,
+      "cacheWrite": 0,
+      "total": 0
+     }
+    },
+    "stopReason": "error",
+    "timestamp": 1794291512286,
+    "errorMessage": "Connection error.",
+    "durationMs": 10,
+    "thinkingLevel": "low"
+   }
+  },
+  {
+   "type": "turn_end",
+   "message": {
+    "role": "assistant",
+    "content": [],
+    "api": "openai-completions",
+    "provider": "mock",
+    "model": "mock-model",
+    "usage": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "totalTokens": 0,
+     "cost": {
+      "input": 0,
+      "output": 0,
+      "cacheRead": 0,
+      "cacheWrite": 0,
+      "total": 0
+     }
+    },
+    "stopReason": "error",
+    "timestamp": 1794291512286,
+    "errorMessage": "Connection error.",
+    "durationMs": 10,
+    "thinkingLevel": "low"
+   },
+   "toolResults": []
+  },
+  {
+   "type": "agent_end",
+   "messages": [
+    {
+     "role": "system",
+     "content": "",
+     "sections": {
+      "preamble": "trimmed"
+     },
+     "timestamp": 1794291512278
+    },
+    {
+     "role": "user",
+     "content": [
+      {
+       "type": "text",
+       "text": "RESET please"
+      }
+     ],
+     "timestamp": 1794291512277
+    },
+    {
+     "role": "assistant",
+     "content": [],
+     "api": "openai-completions",
+     "provider": "mock",
+     "model": "mock-model",
+     "usage": {
+      "input": 0,
+      "output": 0,
+      "cacheRead": 0,
+      "cacheWrite": 0,
+      "totalTokens": 0,
+      "cost": {
+       "input": 0,
+       "output": 0,
+       "cacheRead": 0,
+       "cacheWrite": 0,
+       "total": 0
+      }
+     },
+     "stopReason": "error",
+     "timestamp": 1794291512286,
+     "errorMessage": "Connection error.",
+     "durationMs": 10,
+     "thinkingLevel": "low"
+    }
+   ],
+   "willRetry": true
+  },
+  {
+   "type": "auto_retry_start",
+   "attempt": 1,
+   "maxAttempts": 1,
+   "delayMs": 50,
+   "errorMessage": "Connection error."
+  },
+  {
+   "type": "entry_appended",
+   "entry": {
+    "type": "context_edit",
+    "id": "2248054e",
+    "parentId": "f4e323bd",
+    "timestamp": "2026-11-10T06:18:32.298Z",
+    "targetId": "f4e323bd",
+    "replacement": null
+   }
+  },
+  {
+   "type": "agent_start"
+  },
+  {
+   "type": "turn_start"
+  },
+  {
+   "type": "message_start",
+   "message": {
+    "role": "assistant",
+    "content": [],
+    "api": "openai-completions",
+    "provider": "mock",
+    "model": "mock-model",
+    "usage": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "totalTokens": 0,
+     "cost": {
+      "input": 0,
+      "output": 0,
+      "cacheRead": 0,
+      "cacheWrite": 0,
+      "total": 0
+     }
+    },
+    "stopReason": "error",
+    "timestamp": 1794291512350,
+    "errorMessage": "Connection error.",
+    "durationMs": 2,
+    "thinkingLevel": "low"
+   }
+  },
+  {
+   "type": "message_end",
+   "message": {
+    "role": "assistant",
+    "content": [],
+    "api": "openai-completions",
+    "provider": "mock",
+    "model": "mock-model",
+    "usage": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "totalTokens": 0,
+     "cost": {
+      "input": 0,
+      "output": 0,
+      "cacheRead": 0,
+      "cacheWrite": 0,
+      "total": 0
+     }
+    },
+    "stopReason": "error",
+    "timestamp": 1794291512350,
+    "errorMessage": "Connection error.",
+    "durationMs": 2,
+    "thinkingLevel": "low"
+   }
+  },
+  {
+   "type": "turn_end",
+   "message": {
+    "role": "assistant",
+    "content": [],
+    "api": "openai-completions",
+    "provider": "mock",
+    "model": "mock-model",
+    "usage": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "totalTokens": 0,
+     "cost": {
+      "input": 0,
+      "output": 0,
+      "cacheRead": 0,
+      "cacheWrite": 0,
+      "total": 0
+     }
+    },
+    "stopReason": "error",
+    "timestamp": 1794291512350,
+    "errorMessage": "Connection error.",
+    "durationMs": 2,
+    "thinkingLevel": "low"
+   },
+   "toolResults": []
+  },
+  {
+   "type": "agent_end",
+   "messages": [
+    {
+     "role": "assistant",
+     "content": [],
+     "api": "openai-completions",
+     "provider": "mock",
+     "model": "mock-model",
+     "usage": {
+      "input": 0,
+      "output": 0,
+      "cacheRead": 0,
+      "cacheWrite": 0,
+      "totalTokens": 0,
+      "cost": {
+       "input": 0,
+       "output": 0,
+       "cacheRead": 0,
+       "cacheWrite": 0,
+       "total": 0
+      }
+     },
+     "stopReason": "error",
+     "timestamp": 1794291512350,
+     "errorMessage": "Connection error.",
+     "durationMs": 2,
+     "thinkingLevel": "low"
+    }
+   ],
+   "willRetry": false
+  },
+  {
+   "type": "auto_retry_end",
+   "success": false,
+   "attempt": 1,
+   "finalError": "Connection error."
+  },
+  {
+   "type": "agent_settled",
+   "aborted": false
+  }
+ ],
+ "entries": [
+  {
+   "type": "model_change",
+   "id": "c6aa7ea3",
+   "parentId": null,
+   "timestamp": "2026-11-10T06:18:32.274Z",
+   "provider": "mock",
+   "modelId": "mock-model"
+  },
+  {
+   "type": "thinking_level_change",
+   "id": "b4567469",
+   "parentId": "c6aa7ea3",
+   "timestamp": "2026-11-10T06:18:32.274Z",
+   "thinkingLevel": "low"
+  },
+  {
+   "type": "message",
+   "id": "bf522c96",
+   "parentId": "b4567469",
+   "timestamp": "2026-11-10T06:18:32.278Z",
+   "message": {
+    "role": "system",
+    "content": "",
+    "sections": {
+     "preamble": "trimmed"
+    },
+    "timestamp": 1794291512278
+   }
+  },
+  {
+   "type": "message",
+   "id": "f335b9cd",
+   "parentId": "bf522c96",
+   "timestamp": "2026-11-10T06:18:32.278Z",
+   "message": {
+    "role": "user",
+    "content": [
+     {
+      "type": "text",
+      "text": "RESET please"
+     }
+    ],
+    "timestamp": 1794291512277
+   }
+  },
+  {
+   "type": "message",
+   "id": "f4e323bd",
+   "parentId": "f335b9cd",
+   "timestamp": "2026-11-10T06:18:32.296Z",
+   "message": {
+    "role": "assistant",
+    "content": [],
+    "api": "openai-completions",
+    "provider": "mock",
+    "model": "mock-model",
+    "usage": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "totalTokens": 0,
+     "cost": {
+      "input": 0,
+      "output": 0,
+      "cacheRead": 0,
+      "cacheWrite": 0,
+      "total": 0
+     }
+    },
+    "stopReason": "error",
+    "timestamp": 1794291512286,
+    "errorMessage": "Connection error.",
+    "durationMs": 10,
+    "thinkingLevel": "low"
+   }
+  },
+  {
+   "type": "context_edit",
+   "id": "2248054e",
+   "parentId": "f4e323bd",
+   "timestamp": "2026-11-10T06:18:32.298Z",
+   "targetId": "f4e323bd",
+   "replacement": null
+  },
+  {
+   "type": "message",
+   "id": "5fce300c",
+   "parentId": "2248054e",
+   "timestamp": "2026-11-10T06:18:32.351Z",
+   "message": {
+    "role": "assistant",
+    "content": [],
+    "api": "openai-completions",
+    "provider": "mock",
+    "model": "mock-model",
+    "usage": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "totalTokens": 0,
+     "cost": {
+      "input": 0,
+      "output": 0,
+      "cacheRead": 0,
+      "cacheWrite": 0,
+      "total": 0
+     }
+    },
+    "stopReason": "error",
+    "timestamp": 1794291512350,
+    "errorMessage": "Connection error.",
+    "durationMs": 2,
+    "thinkingLevel": "low"
+   }
+  }
+ ]
+}

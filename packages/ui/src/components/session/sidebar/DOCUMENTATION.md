@@ -170,12 +170,12 @@ no Shift.
   branch" and Reorder projects. Chats
   shows while the per-surface show-chats setting is on, which Settings owns
   (#5354); the header's New chat starts a chat, so Chats has no "+" of its own.
-  More holds the pages the list opens, as the desktop header's: Overview,
+  More holds the pages the list opens: Overview,
   Issues and PRs, Scheduled tasks, Archive, Stats. The footer has the
   connected instance on the left (the app), a pending web update and
   Settings, the one filled button, on the right (maintainer, 2026-10-29:
   the phone follows the desktop's sidebar). The iPad's sidebar keeps the search field behind
-  a toggle at the header's leading edge, as the desktop does; closing it
+  a toggle at the header's leading edge; closing it
   clears the query. The phone's drawer shows the field at once.
 - What a pointer does on hover or with a right click, a thumb does with a
   swipe (`MobileSwipeActionsRow`, one row out at a time,
@@ -524,7 +524,8 @@ and lists the user's sections as toggles too; it has no manager. It ends with
 the same Mark all as read.
 
 - Chats rows are one line with the tree's slot (`'tree-chat'`). Chats open
-  with a reveal of 3 and 7 more per Show more; pinned chats are always shown
+  with a reveal of 3 and 7 more per Show more, and 10 and 10 more in the
+  sidebar's Cowork mode, which lists nothing else; pinned chats are always shown
   and never spend that limit. Pinned sessions under a project do spend its
   limit, so a project or worktree list never opens with more than 7.
   Collapsing a zone header resets its Show more state.
@@ -840,6 +841,62 @@ load. The phone's display menu has both toggles. VS Code
 shows no section toggles, so it has no Pinned zone and its In work rows stay on
 one line.
 
+## Modes
+
+The web and desktop sidebar has two modes, Cowork and Code, switched by the
+segmented control that opens the header. Cowork lists the standalone chats (the
+Chats section); its stored value and every identifier in code stay `chat`. Code lists everything else: Pinned, In work, Projects and the
+user's own sections. `sectionsForSidebarMode` (`sections/sectionMembership.ts`)
+filters the visible sections once, after `resolveVisibleSidebarSections`, so
+the row model, search and the manager see one list per mode. Search filters
+the list the mode shows: in Code a query finds no chats, in Cowork no projects.
+
+- The mode and the menu rows are device-local (`useSessionDisplayStore`:
+  `sidebarMode`, `sidebarNav`), validated in `merge`. They are not settings and
+  do not sync.
+- The mode follows the session that opens: once per opened session id, from
+  whether its directory is a chats directory (`isChatDirectoryPath`). A switch
+  the user makes while a session is open stays; the next session that opens
+  sets the mode again.
+- Where there are no modes the sidebar is unchanged: VS Code, and the phone and
+  iPad drawer (`mobileVariant`, `phone`). `SessionSidebar` passes no mode there,
+  so the list is unfiltered. Turning the Chats section off hides the switch and
+  resolves to Code (`resolveSidebarMode`).
+- The first line is the mode switch alone, as wide as a row's highlight in the
+  list below at every sidebar width (the header's padding less 4px at the end,
+  because the list also ends before its 8px padding and the 6px scrollbar
+  gutter), each option led by an icon: `list-check-2` for Cowork, `code-sslash`
+  for Code (Phosphor's list-checks and code). Below it the
+  header is labelled rows, 4px apart, with 17px icons. First the mode's action:
+  New in Cowork (opens a chat draft with `CHAT_DRAFT_PROJECT_ID` and no
+  directory, the same target as the Chats zone's own plus), Add project in
+  Code. Then Search, which becomes the field in place while it is open. Then
+  the mode's pages as rows. No row shows a shortcut; the More menu still
+  does. Then a More row whose menu
+  holds the pages this mode does not show, and in Code last the Customize row,
+  which opens the display menu. Cowork has no such row: its display menu opens
+  from an icon (`equalizer-2`) at the end of the Chats caption in the list, with
+  the caption's new chat button on hover beside it (`renderDisplayMenu`, from
+  `SessionSidebar`; `SidebarDisplayMenu` is the one menu both open). The rows
+  end with 12px of extra space, and the switch
+  has as much room below it, so the first row and the list sit at the same
+  distance from what is above them, in both modes. A page row is
+  pressed while its page is open; the next pick closes it.
+- `shell/useSidebarPages.tsx` builds the pages: Overview, Issues and PRs,
+  Scheduled tasks, Archive, Stats, Integrations catalog (not in enterprise
+  mode) and the extensions' pages (`guest:<id>`).
+- `lib/sidebarNav.ts` holds each mode's arrangement: the ids shown as rows, in
+  order. Everything not listed is under More, so a page a new version or a new
+  extension adds is reachable before anyone arranges it. Defaults: Chat shows
+  Scheduled tasks and Archive; Code shows Overview, Issues and PRs, Scheduled
+  tasks and Archive. The ids of a page that is not available now stay stored,
+  so an extension that is off keeps its place.
+- The arrangement is edited in the Customize sidebar popover, the first item of
+  the Customize menu (`sections/DOCUMENTATION.md`). The display menu's project
+  controls (grouping, sort, project display, detailed rows, worktree naming)
+  show only in Code; Select sessions, Collapse all, Expand all and Mark all as
+  read show in both.
+
 ## Search
 
 Dedicated search fields in the sidebar, mobile session list, and archive submit
@@ -861,16 +918,9 @@ is mounted only while open and keyed by its open count, so every open, including
 a handover while it is already on screen, starts with the query it was given
 (empty for a plain open) and no directory filter.
 
-The desktop header row holds the list's own controls (Search, Add project,
-Display mode) and, last, one More menu with the pages the sidebar opens:
-Overview, Issues and PRs, Scheduled tasks, Archive, Stats, Integrations
-catalog, then extension pages. Shortcuts and About are not pages of the list:
-they stay on their keyboard shortcut, the command palette and the app menu,
-and About is a Settings page. A row of icons for every
-page said nothing without hovering and was the first thing on screen
-(maintainer, 2026-10-28). Each page item is a toggle: it carries a check while
-its page is open and the next pick closes it; the More trigger turns to the
-text colour while any of its pages is open. The footer keeps Settings, an
+The desktop header is described under *Modes*. Shortcuts and About are not
+pages of the list: they stay on their keyboard shortcut, the command palette and
+the app menu, and About is a Settings page. The footer keeps Settings, an
 available update and the instance switcher.
 
 Sidebar queries beginning with `ses_` match only the full session ID,
@@ -1131,6 +1181,37 @@ indicators. Indicators stay inside the existing row/header action-padding bounda
 hover, keyboard focus, and always-visible action buttons move them left without hiding them.
 
 ## Decisions
+
+### Why the pages are labelled rows again and not icons plus More
+
+On 2026-10-28 the pages moved from a row of icons into one More menu, because
+icons that said nothing without a hover were the first thing on screen. Decided
+2026-11-10: the sidebar reads empty that way, so each page is a labelled row
+and each mode arranges its own. The display menu is a row as well (2026-11-11),
+named Customize, so the header has no icon-only control left. In Cowork the row
+went (2026-11-11): the menu is an icon at the end of the Chats caption, where
+the list it customizes starts, and the header keeps only what starts something,
+searches or opens a page. The icon stays visible at rest because it is the way
+into the sidebar's layout and selection; the new chat button beside it still
+shows on hover. Where the Chats caption is absent (no chats folder known yet, a
+search with no chat matching) there is no menu in Cowork until it returns. The rest budget stays kept by the defaults (two
+or four rows per mode) and by the user hiding rows; whatever is hidden stays
+one pick away under More. The phone drawer keeps icons plus More.
+
+### Why the first mode is called Cowork and still stored as chat
+
+The label is the maintainer's choice (2026-11-11), the same in every language
+because it is a name. The stored value `sidebarMode: 'chat'`, `SidebarMode`, the
+`sessions.sidebar.mode.chat` key and the Chats section keep the old word:
+renaming them would change a persisted value and touch every consumer for no
+visible gain.
+
+### Why the mode filters sections and not the data
+
+Chat and Code are two views of one session store and one row model. A second
+list or a second store for chats would need its own loading, search and
+selection rules; filtering the visible sections reuses all of them. The price
+is that a search in one mode never shows the other mode's sessions.
 
 ### Why merged cleanup asks the host whether a worktree is busy
 

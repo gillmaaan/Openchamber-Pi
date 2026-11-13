@@ -18,6 +18,7 @@
  *   only ever lived in the local store are in `LOCAL_DEVICE_KEYS`.
  */
 import type { ProjectEntry, TerminalShell } from '@/lib/api/types';
+import { DESKTOP_SIDEBAR_OPACITY_MAX, DESKTOP_SIDEBAR_OPACITY_MIN } from '@/lib/desktop';
 import type { DesktopWindowControlsPosition, DesktopWindowControlsStyle } from '@/lib/desktop';
 import { getDirectoryShowHidden, setDirectoryShowHidden } from '@/lib/directoryShowHidden';
 import type { DraftStarterRef } from '@/lib/draftStarters';
@@ -687,6 +688,18 @@ export const SETTINGS_REGISTRY = {
     parse: parseOneOf(['classic', 'traffic-lights']),
     ui: uiStore('desktopWindowControlsStyle', (v) => useUIStore.getState().setDesktopWindowControlsStyle(v)),
   }),
+  desktopSidebarTranslucent: field({
+    scope: 'device',
+    surfaces: ['desktop'],
+    parse: parseBoolean,
+    ui: uiStore('desktopSidebarTranslucent', (v) => useUIStore.getState().setDesktopSidebarTranslucent(v)),
+  }),
+  desktopSidebarOpacity: field({
+    scope: 'device',
+    surfaces: ['desktop'],
+    parse: parseIntegerInRange(DESKTOP_SIDEBAR_OPACITY_MIN, DESKTOP_SIDEBAR_OPACITY_MAX),
+    ui: uiStore('desktopSidebarOpacity', (v) => useUIStore.getState().setDesktopSidebarOpacity(v)),
+  }),
   inputBarOffset: field({ scope: 'device', surfaces: ['mobile', 'web'], parse: parseFiniteNumber, ui: uiStore('inputBarOffset', (v) => useUIStore.getState().setInputBarOffset(v)) }),
 } as const;
 
@@ -747,9 +760,12 @@ export const LOCAL_DEVICE_KEYS = [
  * and never accepts them from a client; no client reads them.
  * `desktopSplashColors` arrives over the window-theme IPC and replaces the
  * flat `splash*` keys older builds wrote through the settings document.
+ * `desktopSidebarVibrancy` arrives over `desktop_set_sidebar_vibrancy`, so
+ * the next window starts with the macOS material behind a translucent sidebar.
  */
 export const DESKTOP_SHELL_KEYS = [
   'desktopSplashColors',
+  'desktopSidebarVibrancy',
   'desktopHosts',
   'desktopDefaultHostId',
   'desktopInstallId',

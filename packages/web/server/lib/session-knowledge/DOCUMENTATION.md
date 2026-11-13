@@ -120,10 +120,12 @@ tool, so it never linked anything. It goes into `openchamber.guidance`.
 
 The same sessions are told how to hand work to another session
 (`DISPATCH_GUIDANCE`). Every guidance line that names an action of the
-`openchamber` tool writes the call path out as `tools.openchamber` inside
-`execute`. Told only "the openchamber tool", an agent looked for a direct tool
-of that name, found `openchamber_secret` and `openchamber_render`, and called
-those again and again (#6608). The guidance also sends part of the
+`openchamber` tool names it, as "the openchamber tool". While that tool sat
+behind Code Mode the lines wrote the call path out as `tools.openchamber` inside
+`execute`, because an agent told only "the openchamber tool" looked for a direct
+tool of that name, found `openchamber_secret` and `openchamber_render`, and
+called those again and again (#6608). Every managed tool is direct now, so the
+plain name is the call path. The guidance also sends part of the
 agent's own task to its subagent tool, so a dispatch stays something the user
 asked for.
 
@@ -226,11 +228,11 @@ it says so and offers one. Small tasks never get one.
 
 ## Where the tools are called
 
-The tools whose call the chat draws (`openchamber_render`,
-`openchamber_secret`, `openchamber_workflow`) are direct tools; the rest sit
-behind Code Mode (`../agent-tool/DOCUMENTATION.md`). A session that has any of
-the direct ones is told, by name, that they are called directly and never from
-inside a Code Mode `execute` script (`directToolsGuidance`). OpenCode's Code
+Every managed tool is direct (`../agent-tool/DOCUMENTATION.md`). A session that
+has one of the tools whose call the chat draws (`openchamber_render`,
+`openchamber_secret`, `openchamber_workflow`) is told, by name, that it is called
+directly and never from inside a Code Mode `execute` script
+(`directToolsGuidance`); the other managed tools are not named there. OpenCode's Code
 Mode teaches the model that tools live in `execute`'s catalog: a model that
 called one of our direct tools from a script was answered "Unknown tool" and
 concluded the tool did not exist.

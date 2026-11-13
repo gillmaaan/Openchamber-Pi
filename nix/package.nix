@@ -15,16 +15,14 @@
   coreutils,
   gnutar,
   bzip2,
-  opencodeCli,
   self,
   version,
 }:
 
 let
-  # Runtime PATH parity with the Docker image (Dockerfile lines 29-58):
-  # the server spawns opencode, git, ssh, python3, and cloudflared. opencode
-  # comes from upstream's flake, pinned to the 2.x version OpenChamber
-  # requires (nixpkgs' opencode package is the older 1.x line).
+  # Runtime PATH parity with the Docker image: the server spawns git, ssh,
+  # python3, and cloudflared, and runs the Pi coding agent on Node (22.19 or
+  # newer) from its own dependency.
   runtimePath = lib.makeBinPath [
     bun
     nodejs
@@ -39,7 +37,6 @@ let
     # model extraction (a .tar.bz2 unpacked via tar, #2887).
     gnutar
     bzip2
-    opencodeCli
   ];
 
   src = lib.cleanSourceWith {
@@ -175,7 +172,7 @@ stdenv.mkDerivation {
   };
 
   meta = {
-    description = "Web UI and server for OpenCode sessions";
+    description = "Web UI and server for Pi coding agent sessions";
     homepage = "https://github.com/openchamber/openchamber";
     license = lib.licenses.mit;
     mainProgram = "openchamber";

@@ -1,18 +1,10 @@
 {
-  description = "OpenChamber — web UI for OpenCode sessions";
+  description = "OpenChamber — web UI for Pi coding agent sessions";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     bun2nix.url = "github:nix-community/bun2nix";
     bun2nix.inputs.nixpkgs.follows = "nixpkgs";
-    # OpenCode CLI, pinned to the tag matching OpenChamber's OpenCode 2.x
-    # requirement. Keep in sync with packages/electron/package.json
-    # (opencodeCli.version) and the @opencode/client pin. Bump all together.
-    # OpenCode 2.2.6 targets Bun 1.4.4. Built with nixpkgs' Bun 1.4.2 it
-    # compiles, then exits on start with "Export named 'extension' not found
-    # in module 'ws'" (its ws workaround, anomalyco/opencode#61518), so keep
-    # nixpkgs on Bun 1.4.4 or newer.
-    opencode.url = "github:anomalyco/opencode/v2.2.6";
   };
 
   outputs =
@@ -20,7 +12,6 @@
       self,
       nixpkgs,
       bun2nix,
-      opencode,
     }:
     let
       systems = [
@@ -29,10 +20,6 @@
         "aarch64-darwin"
       ];
       version = (builtins.fromJSON (builtins.readFile ./package.json)).version;
-      opencodeCliVersion =
-        (builtins.fromJSON (builtins.readFile ./packages/electron/package.json)).opencodeCli.version;
-      opencodeTag =
-        ((builtins.fromJSON (builtins.readFile ./flake.lock)).nodes.opencode).original.ref or "no-tag";
     in
     {
       overlays.default = final: _prev: {
@@ -44,8 +31,7 @@
         let
           pkgs = nixpkgs.legacyPackages.${system};
           # The desktop's Electron: the major is read from packages/electron
-          # devDependencies ("electron": "^45.0.0") at eval time, the same
-          # file that pins the bundled CLI, so an upstream bump fails
+          # devDependencies ("electron": "^45.0.0") at eval time, so an upstream bump fails
           # evaluation with the next step named instead of reaching the
           # runtime as a startup crash (2.4.0 shipped while the flake still
           # built electron_43, and every desktop launch died on "setZoomMode
@@ -59,55 +45,14 @@
           electron =
             pkgs.${"electron_${electronMajor}"}
               or (throw "packages/electron pins electron ${electronSpec}, but nixpkgs has no electron_${electronMajor}. Pin an older electron in packages/electron or wait for nixpkgs-unstable to carry the major.");
-          opencode-cli =
-            nixpkgs.lib.throwIf (opencodeTag != "v${opencodeCliVersion}")
-              "flake pins opencode ${opencodeTag}, but packages/electron pins opencode CLI ${opencodeCliVersion}; update the opencode input URL and run nix flake update opencode"
-              (
-                (pkgs.callPackage "${opencode}/nix/opencode.nix" {
-                  node_modules = pkgs.callPackage "${opencode}/nix/node_modules.nix" {
-                    rev = opencode.rev or "dirty";
-                    # A tag can carry stale hashes: OpenCode's bot refreshes
-                    # nix/hashes.json on dev after the release, and v2.2.5 and
-                    # v2.2.6 both changed dependencies after the last refresh.
-                    # Keyed by tag, so a bump falls back to upstream's. The
-                    # hash also follows nixpkgs' Bun, so a nixpkgs update in
-                    # flake.lock can change it.
-                    hash =
-                      {
-                        "v2.2.6" = {
-                          "x86_64-linux" = "sha256-O2hF8pGUSArKgYBeP99oOW3iXVVZl5bV5WPTp3E7JIA=";
-                          "aarch64-linux" = "sha256-CCUNtPLO2d6FdWPMUOgkz/tsT/Mju+vRk5PY06gJ3TE=";
-                          "aarch64-darwin" = "sha256-J0mGbOwVOjpN3nEZKzKamRPdVj0RJbo0TcghvP9NrP8=";
-                        };
-                      }.${opencodeTag}.${system}
-                        or (builtins.fromJSON (builtins.readFile "${opencode}/nix/hashes.json")).nodeModules.${system};
-                  };
-                }).overrideAttrs
-                  (old: {
-                    # 2.0.28: build.ts imports NativeArch from the monorepo root,
-                    # which their src fileset omits. Upstream fix:
-                    # anomalyco/opencode#55494 — droppable once a tag ships it.
-                    preBuild = "cp -R ${opencode}/script ./script";
-                    postInstall = "";
-                    # A Nix-built binary cannot self-update; disable upstream's
-                    # auto-updater so it never fights the read-only store.
-                    # Upstream fix: anomalyco/opencode#54641 — droppable once a
-                    # tag ships it.
-                    postFixup = ''
-                      wrapProgram "$out/bin/opencode" --set OPENCODE_DISABLE_AUTOUPDATE 1
-                    '';
-                  })
-              );
         in
         (rec {
           openchamber = pkgs.callPackage ./nix/package.nix {
             inherit self version;
             bun2nix = bun2nix.packages.${system}.default;
-            opencodeCli = opencode-cli;
           };
           openchamber-desktop = pkgs.callPackage ./nix/gui.nix {
             inherit self version;
-            opencodeCli = opencode-cli;
             src = openchamber.passthru.src;
             openchamberCore = openchamber.passthru.core;
             inherit electron;
@@ -115,11 +60,6 @@
           gui = openchamber-desktop;
           default = openchamber;
         })
-        // {
-          # The pinned OpenCode CLI that OpenChamber bundles, exposed on its
-          # own so hosts can use the same 2.x build as the system opencode.
-          opencode-cli = opencode-cli;
-        }
       );
 
       apps = nixpkgs.lib.genAttrs systems (system: rec {

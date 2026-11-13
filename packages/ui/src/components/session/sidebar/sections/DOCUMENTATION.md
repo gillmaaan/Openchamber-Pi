@@ -18,7 +18,10 @@ with its named pin lists. How the rows are drawn stays with the row model
 - `sectionActions.ts`: the editor's device-only state (`useSidebarSectionsUiStore`)
   and every write of sections, visibility and pin lists.
 - `SidebarSectionsManager.tsx`: the manager and the editor, a popover beside the
-  sidebar opened from the display menu. It loads on its first open. Its rows
+  sidebar opened from the Customize menu ("Customize sidebar"). It has its own
+  Cowork or Code switch. For each mode it arranges the menu rows (`lib/sidebarNav.ts`:
+  show or hide a page, drag to reorder; hidden pages stay under More); in Code
+  it also holds the sections below. It loads on its first open. Its rows
   drag anywhere but their controls, as the sidebar's do (`../rowDrag.ts`); in
   the sidebar a section drags by its caption
   (`projects/SortableSidebarSection.tsx`), and both write the same order.

@@ -12,6 +12,7 @@ import React from 'react';
 
 import { Icon } from '@/components/icon/Icon';
 import { StopIcon } from '@/components/icons/StopIcon';
+import { buttonVariants } from '@/components/ui/button-variants';
 import { useI18n } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 import { useMessageQueueStore } from '@/stores/messageQueueStore';
@@ -36,6 +37,8 @@ type ComposerActionButtonsProps = {
     sendLabel?: string;
     /** A double Escape in this composer stops the run (useKeyboardShortcuts), so the Stop tooltip names it. */
     escapeStops?: boolean;
+    /** Desktop and VS Code: the controls are filled circles of this size. Mobile keeps the bare icons. */
+    roundSizeClass?: string;
 };
 
 export const ComposerActionButtons = React.memo(function ComposerActionButtons(props: ComposerActionButtonsProps) {
@@ -53,6 +56,7 @@ export const ComposerActionButtons = React.memo(function ComposerActionButtons(p
         onAbort,
         sendLabel,
         escapeStops = false,
+        roundSizeClass,
     } = props;
     const { t } = useI18n();
     const shortcutOverrides = useUIStore((state) => state.shortcutOverrides);
@@ -61,11 +65,17 @@ export const ComposerActionButtons = React.memo(function ComposerActionButtons(p
     const escapeKey = escapeStops ? formatShortcutForDisplay(getEffectiveShortcutCombo('abort_run', shortcutOverrides), '') : '';
     const abortShortcut = escapeKey ? `${escapeKey} ${escapeKey}` : undefined;
 
+    // Round: the app's filled button as a circle. Bare: the tinted icon alone.
+    const buttonClass = (variant: 'default' | 'destructive', bareClass: string | false, extra?: string) => roundSizeClass
+        ? cn(buttonVariants({ variant, size: 'icon' }), 'rounded-full', roundSizeClass, extra)
+        : cn(footerIconButtonClass, bareClass, extra);
+
     const sendText = sendLabel ?? t('chat.chatInput.actions.sendMessageAria');
+    const sendEnabled = canSend && (Boolean(currentSessionId) || newSessionDraftOpen);
     const sendButton = (
         <button
             type={isMobile ? 'button' : 'submit'}
-            disabled={!canSend || (!currentSessionId && !newSessionDraftOpen)}
+            disabled={!sendEnabled}
             onClick={(event) => {
                 if (!isMobile) {
                     return;
@@ -74,12 +84,7 @@ export const ComposerActionButtons = React.memo(function ComposerActionButtons(p
                 event.preventDefault();
                 onPrimaryAction();
             }}
-            className={cn(
-                footerIconButtonClass,
-                canSend && (currentSessionId || newSessionDraftOpen)
-                    ? 'text-primary hover:text-primary'
-                    : 'opacity-30'
-            )}
+            className={buttonClass('default', sendEnabled ? 'text-primary hover:text-primary' : 'opacity-30')}
             aria-label={sendText}
         >
             <Icon name="send-plane-2" className={cn(sendIconSizeClass)} />
@@ -115,10 +120,10 @@ export const ComposerActionButtons = React.memo(function ComposerActionButtons(p
                         }
                         onPrimaryAction();
                     }}
-                    className={cn(
-                        footerIconButtonClass,
+                    className={buttonClass(
+                        'default',
+                        currentSessionId ? 'text-primary hover:text-primary' : 'opacity-30',
                         'absolute z-20 bottom-full left-1/2 -translate-x-1/2 mb-1',
-                        currentSessionId ? 'text-primary hover:text-primary' : 'opacity-30'
                     )}
                     aria-label={followUpLabel}
                 >
@@ -133,13 +138,10 @@ export const ComposerActionButtons = React.memo(function ComposerActionButtons(p
             <button
                 type="button"
                 onClick={onAbort}
-                className={cn(
-                    footerIconButtonClass,
-                    'text-[var(--status-error)] hover:text-[var(--status-error)]'
-                )}
+                className={buttonClass('destructive', 'text-[var(--status-error)] hover:text-[var(--status-error)]')}
                 aria-label={t('chat.chatInput.actions.stopGeneratingAria')}
             >
-                <StopIcon className={cn(stopIconSizeClass)} />
+                <StopIcon className={roundSizeClass ? 'size-3.5' : stopIconSizeClass} />
             </button>
             </TooltipTrigger>
             <TooltipContent side="top" sideOffset={8}><TooltipLabelWithShortcut label={t('chat.chatInput.actions.stopGeneratingAria')} shortcut={abortShortcut} /></TooltipContent>
@@ -160,4 +162,5 @@ export const ComposerActionButtons = React.memo(function ComposerActionButtons(p
     && prev.onAbort === next.onAbort
     && prev.sendLabel === next.sendLabel
     && prev.escapeStops === next.escapeStops
+    && prev.roundSizeClass === next.roundSizeClass
 ));

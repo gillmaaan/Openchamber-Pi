@@ -1,0 +1,534 @@
+{
+ "name": "reasoning",
+ "description": "Reasoning, then a text answer.",
+ "cwd": "/work/project",
+ "header": {
+  "type": "session",
+  "version": 3,
+  "id": "ses_fixture_reasoning",
+  "timestamp": "2026-11-10T06:18:29.804Z",
+  "cwd": "/work/project"
+ },
+ "events": [
+  {
+   "type": "agent_start"
+  },
+  {
+   "type": "turn_start"
+  },
+  {
+   "type": "message_start",
+   "message": {
+    "role": "system",
+    "content": "",
+    "sections": {
+     "preamble": "trimmed"
+    },
+    "timestamp": 1794291509826
+   }
+  },
+  {
+   "type": "message_end",
+   "message": {
+    "role": "system",
+    "content": "",
+    "sections": {
+     "preamble": "trimmed"
+    },
+    "timestamp": 1794291509826
+   }
+  },
+  {
+   "type": "message_start",
+   "message": {
+    "role": "user",
+    "content": [
+     {
+      "type": "text",
+      "text": "REASON please"
+     }
+    ],
+    "timestamp": 1794291509826
+   }
+  },
+  {
+   "type": "message_end",
+   "message": {
+    "role": "user",
+    "content": [
+     {
+      "type": "text",
+      "text": "REASON please"
+     }
+    ],
+    "timestamp": 1794291509826
+   }
+  },
+  {
+   "type": "message_start",
+   "message": {
+    "role": "assistant",
+    "content": [
+     {
+      "type": "thinking",
+      "thinking": "Let me think. ",
+      "thinkingSignature": "reasoning_content"
+     }
+    ],
+    "api": "openai-completions",
+    "provider": "mock",
+    "model": "mock-model",
+    "usage": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "totalTokens": 0,
+     "cost": {
+      "input": 0,
+      "output": 0,
+      "cacheRead": 0,
+      "cacheWrite": 0,
+      "total": 0
+     }
+    },
+    "stopReason": "pending",
+    "timestamp": 1794291509836
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 90,
+    "output": 14,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "reasoning": 6,
+    "totalTokens": 104,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "thinking_start",
+    "contentIndex": 0
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 90,
+    "output": 14,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "reasoning": 6,
+    "totalTokens": 104,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "thinking_delta",
+    "contentIndex": 0,
+    "delta": "Let me think. "
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 90,
+    "output": 14,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "reasoning": 6,
+    "totalTokens": 104,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "thinking_delta",
+    "contentIndex": 0,
+    "delta": "The answer is simple."
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 90,
+    "output": 14,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "reasoning": 6,
+    "totalTokens": 104,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "text_start",
+    "contentIndex": 1
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 90,
+    "output": 14,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "reasoning": 6,
+    "totalTokens": 104,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "text_delta",
+    "contentIndex": 1,
+    "delta": "Here is "
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 90,
+    "output": 14,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "reasoning": 6,
+    "totalTokens": 104,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "text_delta",
+    "contentIndex": 1,
+    "delta": "the answer."
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 90,
+    "output": 14,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "reasoning": 6,
+    "totalTokens": 104,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "thinking_end",
+    "contentIndex": 0,
+    "content": "Let me think. The answer is simple."
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 90,
+    "output": 14,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "reasoning": 6,
+    "totalTokens": 104,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "text_end",
+    "contentIndex": 1,
+    "content": "Here is the answer."
+   }
+  },
+  {
+   "type": "message_end",
+   "message": {
+    "role": "assistant",
+    "content": [
+     {
+      "type": "thinking",
+      "thinking": "Let me think. The answer is simple.",
+      "thinkingSignature": "reasoning_content"
+     },
+     {
+      "type": "text",
+      "text": "Here is the answer."
+     }
+    ],
+    "api": "openai-completions",
+    "provider": "mock",
+    "model": "mock-model",
+    "usage": {
+     "input": 90,
+     "output": 14,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "reasoning": 6,
+     "totalTokens": 104,
+     "cost": {
+      "input": 0,
+      "output": 0,
+      "cacheRead": 0,
+      "cacheWrite": 0,
+      "total": 0,
+      "totalFromProvider": false
+     }
+    },
+    "stopReason": "stop",
+    "timestamp": 1794291509836,
+    "responseId": "mock-1",
+    "rawStopReason": "stop",
+    "durationMs": 12,
+    "thinkingLevel": "low"
+   }
+  },
+  {
+   "type": "turn_end",
+   "message": {
+    "role": "assistant",
+    "content": [
+     {
+      "type": "thinking",
+      "thinking": "Let me think. The answer is simple.",
+      "thinkingSignature": "reasoning_content"
+     },
+     {
+      "type": "text",
+      "text": "Here is the answer."
+     }
+    ],
+    "api": "openai-completions",
+    "provider": "mock",
+    "model": "mock-model",
+    "usage": {
+     "input": 90,
+     "output": 14,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "reasoning": 6,
+     "totalTokens": 104,
+     "cost": {
+      "input": 0,
+      "output": 0,
+      "cacheRead": 0,
+      "cacheWrite": 0,
+      "total": 0,
+      "totalFromProvider": false
+     }
+    },
+    "stopReason": "stop",
+    "timestamp": 1794291509836,
+    "responseId": "mock-1",
+    "rawStopReason": "stop",
+    "durationMs": 12,
+    "thinkingLevel": "low"
+   },
+   "toolResults": []
+  },
+  {
+   "type": "agent_end",
+   "messages": [
+    {
+     "role": "system",
+     "content": "",
+     "sections": {
+      "preamble": "trimmed"
+     },
+     "timestamp": 1794291509826
+    },
+    {
+     "role": "user",
+     "content": [
+      {
+       "type": "text",
+       "text": "REASON please"
+      }
+     ],
+     "timestamp": 1794291509826
+    },
+    {
+     "role": "assistant",
+     "content": [
+      {
+       "type": "thinking",
+       "thinking": "Let me think. The answer is simple.",
+       "thinkingSignature": "reasoning_content"
+      },
+      {
+       "type": "text",
+       "text": "Here is the answer."
+      }
+     ],
+     "api": "openai-completions",
+     "provider": "mock",
+     "model": "mock-model",
+     "usage": {
+      "input": 90,
+      "output": 14,
+      "cacheRead": 0,
+      "cacheWrite": 0,
+      "reasoning": 6,
+      "totalTokens": 104,
+      "cost": {
+       "input": 0,
+       "output": 0,
+       "cacheRead": 0,
+       "cacheWrite": 0,
+       "total": 0,
+       "totalFromProvider": false
+      }
+     },
+     "stopReason": "stop",
+     "timestamp": 1794291509836,
+     "responseId": "mock-1",
+     "rawStopReason": "stop",
+     "durationMs": 12,
+     "thinkingLevel": "low"
+    }
+   ],
+   "willRetry": false
+  },
+  {
+   "type": "agent_settled",
+   "aborted": false
+  }
+ ],
+ "entries": [
+  {
+   "type": "model_change",
+   "id": "7487e204",
+   "parentId": null,
+   "timestamp": "2026-11-10T06:18:29.823Z",
+   "provider": "mock",
+   "modelId": "mock-model"
+  },
+  {
+   "type": "thinking_level_change",
+   "id": "fa42ca22",
+   "parentId": "7487e204",
+   "timestamp": "2026-11-10T06:18:29.823Z",
+   "thinkingLevel": "low"
+  },
+  {
+   "type": "message",
+   "id": "8257d3d7",
+   "parentId": "fa42ca22",
+   "timestamp": "2026-11-10T06:18:29.827Z",
+   "message": {
+    "role": "system",
+    "content": "",
+    "sections": {
+     "preamble": "trimmed"
+    },
+    "timestamp": 1794291509826
+   }
+  },
+  {
+   "type": "message",
+   "id": "52a46728",
+   "parentId": "8257d3d7",
+   "timestamp": "2026-11-10T06:18:29.827Z",
+   "message": {
+    "role": "user",
+    "content": [
+     {
+      "type": "text",
+      "text": "REASON please"
+     }
+    ],
+    "timestamp": 1794291509826
+   }
+  },
+  {
+   "type": "message",
+   "id": "be2f6429",
+   "parentId": "52a46728",
+   "timestamp": "2026-11-10T06:18:29.848Z",
+   "message": {
+    "role": "assistant",
+    "content": [
+     {
+      "type": "thinking",
+      "thinking": "Let me think. The answer is simple.",
+      "thinkingSignature": "reasoning_content"
+     },
+     {
+      "type": "text",
+      "text": "Here is the answer."
+     }
+    ],
+    "api": "openai-completions",
+    "provider": "mock",
+    "model": "mock-model",
+    "usage": {
+     "input": 90,
+     "output": 14,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "reasoning": 6,
+     "totalTokens": 104,
+     "cost": {
+      "input": 0,
+      "output": 0,
+      "cacheRead": 0,
+      "cacheWrite": 0,
+      "total": 0,
+      "totalFromProvider": false
+     }
+    },
+    "stopReason": "stop",
+    "timestamp": 1794291509836,
+    "responseId": "mock-1",
+    "rawStopReason": "stop",
+    "durationMs": 12,
+    "thinkingLevel": "low"
+   }
+  }
+ ]
+}

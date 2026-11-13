@@ -264,6 +264,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, isMobile, children, cl
                 />
             )}
             {isOpen && (
+                // The chat's shadow on the sidebar. It is a gradient over what
+                // the column shows, so a translucent sidebar keeps its material,
+                // and it sits above the sticky headers, whose opaque fill would
+                // otherwise cut it.
+                <div aria-hidden="true" className="oc-sidebar-cast pointer-events-none absolute inset-y-0 inset-e-0 z-20" />
+            )}
+            {isOpen && (
                 <div
                     className={cn(
                         'absolute inset-e-0 top-0 z-20 h-full w-[3px] cursor-col-resize hover:bg-[var(--interactive-border)]/80 transition-colors',

@@ -584,6 +584,8 @@ interface SettingsChipGroupProps<T extends string> {
   options: Array<SettingsChipOption<T>>;
   onChange: (value: T) => void;
   className?: string;
+  /** Added to every option, to give the options a shared width, say. */
+  chipClassName?: string;
   'aria-label'?: string;
 }
 
@@ -659,6 +661,7 @@ export function SettingsChipGroup<T extends string>({
   options,
   onChange,
   className,
+  chipClassName,
   'aria-label': ariaLabel,
 }: SettingsChipGroupProps<T>) {
   return (
@@ -682,6 +685,7 @@ export function SettingsChipGroup<T extends string>({
             aria-pressed={selected}
             className={cn(
               'rounded-md !font-normal',
+              chipClassName,
               selected
                 // Light themes paint elevated darker than the canvas, so the
                 // raised option takes the canvas colour there, like the tab pill.

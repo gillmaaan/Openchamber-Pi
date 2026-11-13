@@ -789,6 +789,21 @@ const SETTINGS_SEARCH_ITEMS: readonly SettingsSearchItem[] = [
     isAvailable: (ctx) => ctx.isDesktop && (ctx.isWindows || !ctx.isMac),
   },
   {
+    id: 'appearance.sidebar-translucent',
+    page: 'appearance',
+    titleKey: 'settings.openchamber.visual.field.sidebarTranslucent',
+    descriptionKey: 'settings.openchamber.visual.field.sidebarTranslucentHint',
+    keywords: ['sidebar', 'translucent', 'transparent', 'transparency', 'vibrancy', 'blur', 'glass', 'finder', 'macos', 'desktop'],
+    isAvailable: (ctx) => ctx.isDesktop && ctx.isMac,
+  },
+  {
+    id: 'appearance.sidebar-opacity',
+    page: 'appearance',
+    titleKey: 'settings.openchamber.visual.field.sidebarOpacity',
+    keywords: ['sidebar', 'opacity', 'transparency', 'translucent', 'vibrancy', 'blur', 'macos', 'desktop'],
+    isAvailable: (ctx) => ctx.isDesktop && ctx.isMac,
+  },
+  {
     id: 'sessions.desktop-mac-menu-bar',
     page: 'general',
     titleKey: 'settings.openchamber.desktopNetwork.field.macMenuBar',

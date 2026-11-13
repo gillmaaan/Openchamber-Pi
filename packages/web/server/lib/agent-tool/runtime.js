@@ -54,7 +54,7 @@ import {
 } from '../openchamber-control/secret-run.js';
 import { createCallbackAddress } from './callback-address.js';
 
-const TOOL_SCHEMA_VERSION = 1;
+export const TOOL_SCHEMA_VERSION = 1;
 const PLUGIN_ID = 'openchamber-agent-tool';
 // Everything either managed tool may ask for; the agent allowlist stays
 // narrower than the full control surface.
@@ -72,7 +72,7 @@ const ACTIONS = new Set([
   ...OPENCHAMBER_WORKFLOW_ACTIONS,
   ...OPENCHAMBER_WORKFLOW_ANSWER_ACTIONS,
 ]);
-const AGENT_TOOL_ACTION_TITLES = Object.fromEntries(
+export const AGENT_TOOL_ACTION_TITLES = Object.fromEntries(
   [
     ...OPENCHAMBER_AGENT_TOOL_ACTION_DEFINITIONS,
     ...OPENCHAMBER_SCHEDULE_ACTION_DEFINITIONS,
@@ -412,6 +412,7 @@ const SECRET_TOOL_DESCRIPTION = "Ask the user for secrets (API keys, tokens, pas
 // before a task otherwise polls it in a loop or trusts an old sample.
 const USAGE_TOOL_DESCRIPTION = "Provider usage limits as OpenChamber's Settings > Usage shows them: per provider, each window's used and remaining percent, its length and when it resets, plus plan, per-model windows and credit balances. "
   + "ok false with configured true is a failed read, not zero usage; notConfigured lists providers without a credential. "
+  + "Read it when the user asks about limits or usage, or when picking a model for work depends on them. "
   + "Every call asks each provider again, sometimes with several requests, so read once per decision and never poll in a loop. fetchedAt is when the result was built; a provider that is rate limiting answers with its last sample.";
 
 const WORKFLOW_TOOL_DESCRIPTION = 'Workflows: a script that fans a large task out to many agents, which OpenChamber runs in the background while you stay free. '
@@ -649,12 +650,53 @@ const SECRET_RUN_PERMISSION = String.raw`        if (args.action === "secret.run
         }
 `;
 
-const createToolEntry = ({ name, description, definitions, parameters, codeMode, answers = null, secretRun = false }) => {
-  const normalizeBooleans = booleanNormalizationBlock(parameters);
-  const reviveDependsOn = dependsOnRevivalBlock(parameters);
+const PARAMETERS_PROPERTY_DESCRIPTION = 'Inputs for the action; use an empty object when none are needed';
+
+const LINK_REVIVAL_BLOCK = String.raw`        // Nested object values can arrive JSON-stringified (issue #4591). Only
+        // 'link' is revived, once, and only into a plain object: free-form
+        // strings such as prompts and titles must stay text. The field belongs
+        // to session.link alone (its bare 'link' alias included), so this is
+        // field-scoped rather than a general coercion.
+        if (typeof args.link === 'string') {
+          try {
+            const revived = JSON.parse(args.link)
+            if (revived !== null && typeof revived === 'object' && !Array.isArray(revived)) args.link = revived
+          } catch {}
+        }
+`;
+
+/**
+ * How a tool's raw input becomes the action's input, as the source of code
+ * that rewrites `args` in place: `link` and `dependsOn` revival, the action
+ * normalization of the tool's schema, the bare `run` of the secret tool, and
+ * the boolean spellings. Shared by every generator of managed tools (the
+ * OpenCode plugin here and the Pi extension in ./pi-extension.js), so the
+ * input a model sends means the same in both.
+ */
+export const toolInputPreparation = ({ parameters, definitions, secretRun = false }) => {
   const actionSchema = definitions.length === 1 ? singleActionSchema(definitions[0]) : multiActionSchema(definitions);
   // The bare name the server would resolve too, so the permission check sees it.
   const secretRunNormalize = secretRun ? '        if (args.action === "run") args.action = "secret.run"\n' : '';
+  return {
+    actionSchema,
+    // The input schema of a tool: models routinely put the inputs next to the
+    // action, so the root lets them reach `execute` instead of rejecting the
+    // call, while the declared inputs sit only inside `parameters`.
+    inputSchema: {
+      type: 'object',
+      properties: {
+        action: actionSchema.property,
+        parameters: { type: 'object', properties: parameters, additionalProperties: false, description: PARAMETERS_PROPERTY_DESCRIPTION },
+      },
+      required: actionSchema.required,
+      additionalProperties: true,
+    },
+    prepareSource: `${LINK_REVIVAL_BLOCK}${dependsOnRevivalBlock(parameters)}${actionSchema.normalize}${secretRunNormalize}${booleanNormalizationBlock(parameters)}`,
+  };
+};
+
+const createToolEntry = ({ name, description, definitions, parameters, codeMode, answers = null, secretRun = false }) => {
+  const { actionSchema, prepareSource } = toolInputPreparation({ parameters, definitions, secretRun });
   return String.raw`    tools.add({
       name: ${JSON.stringify(name)},
       description: ${JSON.stringify(description)},
@@ -663,7 +705,7 @@ const createToolEntry = ({ name, description, definitions, parameters, codeMode,
         type: "object",
         properties: {
           action: ${JSON.stringify(actionSchema.property)},
-          parameters: { type: "object", properties: ${JSON.stringify(parameters)}, additionalProperties: false, description: "Inputs for the action; use an empty object when none are needed" },
+          parameters: { type: "object", properties: ${JSON.stringify(parameters)}, additionalProperties: false, description: ${JSON.stringify(PARAMETERS_PROPERTY_DESCRIPTION)} },
         },
         required: ${JSON.stringify(actionSchema.required)},
         // Models routinely put the inputs next to the action; the schema has to
@@ -677,18 +719,7 @@ const createToolEntry = ({ name, description, definitions, parameters, codeMode,
         // shapes are accepted; an explicit parameters object wins on a conflict.
         const { action: requestedAction, parameters, ...flattened } = input ?? {}
         const args = { ...flattened, ...(parameters ?? {}), action: requestedAction }
-        // Nested object values can arrive JSON-stringified (issue #4591). Only
-        // 'link' is revived, once, and only into a plain object: free-form
-        // strings such as prompts and titles must stay text. The field belongs
-        // to session.link alone (its bare 'link' alias included), so this is
-        // field-scoped rather than a general coercion.
-        if (typeof args.link === 'string') {
-          try {
-            const revived = JSON.parse(args.link)
-            if (revived !== null && typeof revived === 'object' && !Array.isArray(revived)) args.link = revived
-          } catch {}
-        }
-${reviveDependsOn}${actionSchema.normalize}${secretRunNormalize}${normalizeBooleans}        const actionTitles = ${JSON.stringify(AGENT_TOOL_ACTION_TITLES)}
+${prepareSource}        const actionTitles = ${JSON.stringify(AGENT_TOOL_ACTION_TITLES)}
         const title = Object.hasOwn(actionTitles, args.action) ? actionTitles[args.action] : args.action
         const progress = (extra) => context.progress({
           ${name}: {
@@ -742,12 +773,12 @@ ${secretRun ? SECRET_RUN_PERMISSION : ''}${answers ? answerWaitSetup(answers.wai
 };
 
 /**
- * The control, schedule, browser, memory, knowledge and notify tools always
- * sit behind OpenCode's Code Mode `execute` tool. Measured on
- * scripts/tool-use-bench with three models, that cut the first request of a
- * session by about 30% with the same or better use of the tools, and one
- * provider's tool-call streaming stalled on their direct schemas. The tools
- * whose call the chat draws (render, secret, image, workflow) stay direct.
+ * Every managed tool is direct (`codeMode: false` in `managedToolSpecs`). The
+ * Code Mode path stays for a spec that sets `codeMode: true`: the tool is then
+ * registered behind OpenCode's `execute` tool, and the catalog line below is its
+ * namespace description. It cut the first request of a session by about 30% on
+ * scripts/tool-use-bench with three models, and one provider's tool-call
+ * streaming stalled on the direct schemas; the maintainer chose direct anyway.
  *
  * Behind Code Mode the catalog lists every namespace with its description, but
  * a tool only while its budget lasts, and with large MCP servers connected each
@@ -756,15 +787,11 @@ ${secretRun ? SECRET_RUN_PERMISSION : ''}${answers ? answerWaitSetup(answers.wai
  * they had no browser (scripts/tool-use-bench). So each Code Mode tool gets a
  * namespace of its own name, which OpenCode lets share the tool's path, and
  * the catalog row carries this line.
- *
- * Names and paths stay as they are: agents call `tools.openchamber(...)`
- * straight from the session guidance, and both a renamed control tool and one
- * with a namespace of other tools under it made them stop calling it.
  */
 // A use the session guidance does not state lives here, where it is always
 // seen, and not only in the tool description the agent reads once it has
 // already picked the tool.
-const CODE_MODE_CATALOG_LINES = {
+export const CODE_MODE_CATALOG_LINES = {
   openchamber: 'OpenChamber projects, sessions and worktrees: dispatch a session, link a PR, list models, move this session into a worktree (it can help when the checkout looks busy; ask unless the request already calls for separate work)',
   openchamber_schedule: 'Scheduled tasks: prompts OpenChamber runs on a schedule',
   openchamber_web: "OpenChamber's browser panel, to check your work by looking at it: open a page, read it, click and type",
@@ -786,161 +813,181 @@ const CODE_MODE_CATALOG_LINES = {
  */
 const OPENCODE_TOOLS_REPLACED_BY_CONTROL = ['opencode_worktree_create', 'opencode_models'];
 
-const createPluginSource = ({ includeControl, includeSchedule, includeWeb, includeMemory, includeKnowledge, includeNotify, includeRender, includeImage, includeSecret, includeUsage, includeWorkflow }) => {
+// The callback carries the per-child token over plain HTTP. With a proxy in
+// the child's environment, fetch would hand a non-loopback callback, token
+// included, to that proxy, and no per-request option turns that off. The
+// exemption is added inside the child because only there is the final
+// NO_PROXY, merged from the shell and server environments, visible.
+export const EXEMPT_CALLBACK_FROM_PROXY_SOURCE = String.raw`const exemptCallbackFromProxy = () => {
+  const endpoint = process.env.OPENCHAMBER_AGENT_TOOL_URL
+  if (!endpoint || !URL.canParse(endpoint)) return
+  const host = new URL(endpoint).hostname.replace(/^\[|\]$/g, "")
+  for (const key of ["NO_PROXY", "no_proxy"]) {
+    const entries = (process.env[key] || "").split(",").map((entry) => entry.trim()).filter(Boolean)
+    if (!entries.includes(host)) process.env[key] = [...entries, host].join(",")
+  }
+}
+`;
+
+// A generated tool checks a secret.run call and shows its command line with the
+// server's own functions, so the line the user approves is the one the card shows.
+export const SECRET_RUN_HELPERS_SOURCE = `const secretRunCommand = ${secretRunCommand.toString()}
+const secretRunCommandLine = ${secretRunCommandLine.toString()}
+
+`;
+
+/**
+ * The managed tools a generator declares for the enabled capabilities, in the
+ * order the agent sees them. The OpenCode plugin (`createPluginSource`) and the
+ * Pi extension (./pi-extension.js) both build from this list, so the names,
+ * descriptions, inputs and the Code Mode split cannot differ between them.
+ *
+ * `codeMode` marks a tool behind Code Mode; none is. Render, secret, image and
+ * workflow must stay out of it, because the chat draws a page, a card, images or
+ * a run card from the tool's own call, and inside a script that call is only an
+ * entry in the script's list (a render page never showed, an answer had no call
+ * to reach). Web is direct for the same reading: its page actions show as the
+ * browser rows the call made. The rest are direct by the maintainer's choice.
+ * `answers` makes a call wait for the user: `waitsWhen` is the JS
+ * expression (over `args`) that says whether this call waits, `closedInChatNote`
+ * what the agent reads when the user wrote in the chat instead.
+ */
+export const managedToolSpecs = ({ includeControl, includeSchedule, includeWeb, includeMemory, includeKnowledge, includeNotify, includeRender, includeImage, includeSecret, includeUsage, includeWorkflow }) => {
+  const specs = [];
+  if (includeControl) {
+    specs.push({
+      name: 'openchamber',
+      description: CONTROL_TOOL_DESCRIPTION,
+      definitions: OPENCHAMBER_AGENT_TOOL_ACTION_DEFINITIONS,
+      parameters: CONTROL_PARAMETER_PROPERTIES,
+      codeMode: false,
+    });
+  }
+  if (includeSchedule) {
+    specs.push({
+      name: 'openchamber_schedule',
+      description: SCHEDULE_TOOL_DESCRIPTION,
+      definitions: OPENCHAMBER_SCHEDULE_ACTION_DEFINITIONS,
+      parameters: SCHEDULE_PARAMETER_PROPERTIES,
+      codeMode: false,
+    });
+  }
+  if (includeWeb) {
+    specs.push({
+      name: 'openchamber_web',
+      description: WEB_TOOL_DESCRIPTION,
+      definitions: OPENCHAMBER_WEB_ACTION_DEFINITIONS,
+      parameters: WEB_PARAMETER_PROPERTIES,
+      // Direct: a page action is the call the model makes, not an entry in a
+      // script. The browser panel's rows read the tool call itself.
+      codeMode: false,
+    });
+  }
+  if (includeMemory) {
+    specs.push({
+      name: 'openchamber_memory',
+      description: MEMORY_TOOL_DESCRIPTION,
+      definitions: OPENCHAMBER_MEMORY_ACTION_DEFINITIONS,
+      parameters: MEMORY_PARAMETER_PROPERTIES,
+      codeMode: false,
+    });
+  }
+  if (includeKnowledge) {
+    specs.push({
+      name: 'openchamber_knowledge',
+      description: KNOWLEDGE_TOOL_DESCRIPTION,
+      definitions: OPENCHAMBER_KNOWLEDGE_ACTION_DEFINITIONS,
+      parameters: KNOWLEDGE_PARAMETER_PROPERTIES,
+      codeMode: false,
+    });
+  }
+  if (includeNotify) {
+    specs.push({
+      name: 'openchamber_notify',
+      description: NOTIFY_TOOL_DESCRIPTION,
+      definitions: OPENCHAMBER_NOTIFY_ACTION_DEFINITIONS,
+      parameters: NOTIFY_PARAMETER_PROPERTIES,
+      codeMode: false,
+    });
+  }
+  if (includeRender) {
+    specs.push({
+      name: 'openchamber_render',
+      description: RENDER_TOOL_DESCRIPTION,
+      definitions: OPENCHAMBER_RENDER_ACTION_DEFINITIONS,
+      parameters: RENDER_PARAMETER_PROPERTIES,
+      codeMode: false,
+      answers: { waitsWhen: 'args.awaitAnswer === true', closedInChatNote: RENDER_PAGE_CLOSED_IN_CHAT_NOTE },
+    });
+  }
+  if (includeSecret) {
+    specs.push({
+      name: 'openchamber_secret',
+      description: SECRET_TOOL_DESCRIPTION,
+      definitions: OPENCHAMBER_SECRET_ACTION_DEFINITIONS,
+      parameters: SECRET_PARAMETER_PROPERTIES,
+      codeMode: false,
+      // secret.forget answers at once; the other two wait on the card.
+      answers: { waitsWhen: 'args.action !== "secret.forget" && args.action !== "forget"', closedInChatNote: SECRET_REQUEST_CLOSED_IN_CHAT_NOTE },
+      secretRun: true,
+    });
+  }
+  if (includeImage) {
+    specs.push({
+      name: 'openchamber_image',
+      description: IMAGE_TOOL_DESCRIPTION,
+      definitions: OPENCHAMBER_IMAGE_ACTION_DEFINITIONS,
+      parameters: IMAGE_PARAMETER_PROPERTIES,
+      codeMode: false,
+    });
+  }
+  if (includeUsage) {
+    specs.push({
+      name: 'openchamber_usage',
+      description: USAGE_TOOL_DESCRIPTION,
+      definitions: OPENCHAMBER_USAGE_ACTION_DEFINITIONS,
+      parameters: USAGE_PARAMETER_PROPERTIES,
+      codeMode: false,
+    });
+  }
+  if (includeWorkflow) {
+    specs.push({
+      name: 'openchamber_workflow',
+      description: WORKFLOW_TOOL_DESCRIPTION,
+      definitions: OPENCHAMBER_WORKFLOW_ACTION_DEFINITIONS,
+      parameters: WORKFLOW_PARAMETER_PROPERTIES,
+      codeMode: false,
+    });
+    // Direct: only the sessions that allow it see it, and the prompt that
+    // asks for it names it.
+    specs.push({
+      name: WORKFLOW_ANSWER_TOOL,
+      description: WORKFLOW_ANSWER_TOOL_DESCRIPTION,
+      definitions: OPENCHAMBER_WORKFLOW_ANSWER_ACTION_DEFINITIONS,
+      parameters: WORKFLOW_ANSWER_PARAMETER_PROPERTIES,
+      codeMode: false,
+    });
+  }
+  return specs;
+};
+
+const createPluginSource = (flags) => {
+  const { includeControl, includeRender, includeSecret } = flags;
   const entries = [];
-  const included = { openchamber: includeControl, openchamber_schedule: includeSchedule, openchamber_web: includeWeb, openchamber_memory: includeMemory, openchamber_knowledge: includeKnowledge, openchamber_notify: includeNotify, openchamber_usage: includeUsage };
-  for (const [name, description] of Object.entries(CODE_MODE_CATALOG_LINES)) {
-    if (included[name]) entries.push(`    tools.namespace(${JSON.stringify({ name, description })})
+  // Only a tool behind Code Mode gets a namespace: a direct tool is declared
+  // under its own name, so the catalog line would be a second entry for it.
+  for (const spec of managedToolSpecs(flags)) {
+    const description = spec.codeMode ? CODE_MODE_CATALOG_LINES[spec.name] : undefined;
+    if (description) entries.push(`    tools.namespace(${JSON.stringify({ name: spec.name, description })})
 `);
   }
   if (includeControl) {
     entries.push(`    for (const id of ${JSON.stringify(OPENCODE_TOOLS_REPLACED_BY_CONTROL)}) tools.remove(id)
 `);
   }
-  if (includeControl) {
-    entries.push(createToolEntry({
-      name: 'openchamber',
-      description: CONTROL_TOOL_DESCRIPTION,
-      definitions: OPENCHAMBER_AGENT_TOOL_ACTION_DEFINITIONS,
-      parameters: CONTROL_PARAMETER_PROPERTIES,
-      codeMode: true,
-    }));
-  }
-  if (includeSchedule) {
-    entries.push(createToolEntry({
-      name: 'openchamber_schedule',
-      description: SCHEDULE_TOOL_DESCRIPTION,
-      definitions: OPENCHAMBER_SCHEDULE_ACTION_DEFINITIONS,
-      parameters: SCHEDULE_PARAMETER_PROPERTIES,
-      codeMode: true,
-    }));
-  }
-  if (includeWeb) {
-    entries.push(createToolEntry({
-      name: 'openchamber_web',
-      description: WEB_TOOL_DESCRIPTION,
-      definitions: OPENCHAMBER_WEB_ACTION_DEFINITIONS,
-      parameters: WEB_PARAMETER_PROPERTIES,
-      codeMode: true,
-    }));
-  }
-  if (includeMemory) {
-    entries.push(createToolEntry({
-      name: 'openchamber_memory',
-      description: MEMORY_TOOL_DESCRIPTION,
-      definitions: OPENCHAMBER_MEMORY_ACTION_DEFINITIONS,
-      parameters: MEMORY_PARAMETER_PROPERTIES,
-      codeMode: true,
-    }));
-  }
-  if (includeKnowledge) {
-    entries.push(createToolEntry({
-      name: 'openchamber_knowledge',
-      description: KNOWLEDGE_TOOL_DESCRIPTION,
-      definitions: OPENCHAMBER_KNOWLEDGE_ACTION_DEFINITIONS,
-      parameters: KNOWLEDGE_PARAMETER_PROPERTIES,
-      codeMode: true,
-    }));
-  }
-  if (includeNotify) {
-    entries.push(createToolEntry({
-      name: 'openchamber_notify',
-      description: NOTIFY_TOOL_DESCRIPTION,
-      definitions: OPENCHAMBER_NOTIFY_ACTION_DEFINITIONS,
-      parameters: NOTIFY_PARAMETER_PROPERTIES,
-      codeMode: true,
-    }));
-  }
-  if (includeRender) {
-    entries.push(createToolEntry({
-      name: 'openchamber_render',
-      description: RENDER_TOOL_DESCRIPTION,
-      definitions: OPENCHAMBER_RENDER_ACTION_DEFINITIONS,
-      parameters: RENDER_PARAMETER_PROPERTIES,
-      // Never behind Code Mode: the chat draws the page from this tool's own
-      // call, its input and the result it stores. Called from an execute
-      // script, the call is only an entry in execute's list, so the page
-      // never showed and an answer had no call to reach.
-      codeMode: false,
-      answers: { waitsWhen: 'args.awaitAnswer === true', closedInChatNote: RENDER_PAGE_CLOSED_IN_CHAT_NOTE },
-    }));
-  }
-  if (includeSecret) {
-    entries.push(createToolEntry({
-      name: 'openchamber_secret',
-      description: SECRET_TOOL_DESCRIPTION,
-      definitions: OPENCHAMBER_SECRET_ACTION_DEFINITIONS,
-      parameters: SECRET_PARAMETER_PROPERTIES,
-      // Never behind Code Mode, like render: the chat draws the card from
-      // this tool's own call, and the answer has to reach that call.
-      codeMode: false,
-      // secret.forget answers at once; the other two wait on the card.
-      answers: { waitsWhen: 'args.action !== "secret.forget" && args.action !== "forget"', closedInChatNote: SECRET_REQUEST_CLOSED_IN_CHAT_NOTE },
-      secretRun: true,
-    }));
-  }
-  if (includeImage) {
-    entries.push(createToolEntry({
-      name: 'openchamber_image',
-      description: IMAGE_TOOL_DESCRIPTION,
-      definitions: OPENCHAMBER_IMAGE_ACTION_DEFINITIONS,
-      parameters: IMAGE_PARAMETER_PROPERTIES,
-      // Never behind Code Mode, like render: the chat draws the images from
-      // this tool's own call, which an execute script would hide.
-      codeMode: false,
-    }));
-  }
-  if (includeUsage) {
-    entries.push(createToolEntry({
-      name: 'openchamber_usage',
-      description: USAGE_TOOL_DESCRIPTION,
-      definitions: OPENCHAMBER_USAGE_ACTION_DEFINITIONS,
-      parameters: USAGE_PARAMETER_PROPERTIES,
-      codeMode: true,
-    }));
-  }
-  if (includeWorkflow) {
-    entries.push(createToolEntry({
-      name: 'openchamber_workflow',
-      description: WORKFLOW_TOOL_DESCRIPTION,
-      definitions: OPENCHAMBER_WORKFLOW_ACTION_DEFINITIONS,
-      parameters: WORKFLOW_PARAMETER_PROPERTIES,
-      // Never behind Code Mode, like render: the chat draws the run's card
-      // from this tool's own call, which an execute script would hide.
-      codeMode: false,
-    }));
-    entries.push(createToolEntry({
-      name: WORKFLOW_ANSWER_TOOL,
-      description: WORKFLOW_ANSWER_TOOL_DESCRIPTION,
-      definitions: OPENCHAMBER_WORKFLOW_ANSWER_ACTION_DEFINITIONS,
-      parameters: WORKFLOW_ANSWER_PARAMETER_PROPERTIES,
-      // Direct: only the sessions that allow it see it, and the prompt that
-      // asks for it names it.
-      codeMode: false,
-    }));
-  }
+  for (const spec of managedToolSpecs(flags)) entries.push(createToolEntry(spec));
 
-  // The callback carries the per-child token over plain HTTP. With a proxy in
-  // the child's environment, fetch would hand a non-loopback callback, token
-  // included, to that proxy, and no per-request option turns that off. The
-  // exemption is added inside the child because only there is the final
-  // NO_PROXY, merged from the shell and server environments, visible.
-  // The plugin checks a secret.run call and shows its command line with the
-  // server's own functions, so the line the user approves is the one the card shows.
-  const secretRunHelpers = includeSecret ? `const secretRunCommand = ${secretRunCommand.toString()}
-const secretRunCommandLine = ${secretRunCommandLine.toString()}
-
-` : '';
-  return `${secretRunHelpers}const exemptCallbackFromProxy = () => {
-  const endpoint = process.env.OPENCHAMBER_AGENT_TOOL_URL
-  if (!endpoint || !URL.canParse(endpoint)) return
-  const host = new URL(endpoint).hostname.replace(/^\\[|\\]$/g, "")
-  for (const key of ["NO_PROXY", "no_proxy"]) {
-    const entries = (process.env[key] || "").split(",").map((entry) => entry.trim()).filter(Boolean)
-    if (!entries.includes(host)) process.env[key] = [...entries, host].join(",")
-  }
-}
-
+  return `${includeSecret ? SECRET_RUN_HELPERS_SOURCE : ''}${EXEMPT_CALLBACK_FROM_PROXY_SOURCE}
 // Session id -> abort controllers of the calls that wait for the user's answer
 // (a page, or a secret card).
 const pagesWaitingForChat = new Map()

@@ -23,6 +23,7 @@ import { DiffWorkerProvider } from '@/contexts/DiffWorkerProvider';
 import { ProjectActionsProvider } from './ProjectActionsProvider';
 import { RunAutoFusion } from '@/lib/multirun/autoFusion';
 
+import { useDesktopSidebarVibrancy } from '@/hooks/useDesktopSidebarVibrancy';
 import { useUIStore } from '@/stores/useUIStore';
 import { useSessionUIStore } from '@/sync/session-ui-store';
 import { useSpacesStore } from '@/lib/spaces/spaces-store';
@@ -108,6 +109,7 @@ LeftSidebar.displayName = 'LeftSidebar';
  */
 export const MainLayout: React.FC = () => {
     useSessionListSync({ isVSCode: false });
+    useDesktopSidebarVibrancy();
     usePaletteShortcuts();
     useTerminalSessionKeepalive();
     // The grant dialog of isolated spaces; the main layout is never VS Code's (decision 16).

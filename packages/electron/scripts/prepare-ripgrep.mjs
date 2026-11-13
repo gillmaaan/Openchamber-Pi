@@ -17,8 +17,7 @@ const require = createRequire(import.meta.url);
  * Find in files runs ripgrep. `@vscode/ripgrep` publishes the binary in a
  * platform package (`@vscode/ripgrep-<os>-<arch>`) that npm and Bun install
  * for the build host, which is the wrong one for a cross-built desktop app.
- * This downloads the target architecture's package from npm, the way
- * `prepare-opencode-cli.mjs` does for OpenCode, and stages its `rg` under
+ * This downloads the target architecture's package from npm and stages its `rg` under
  * `resources/ripgrep`, which `extraResources` ships as `Resources/ripgrep`.
  * The server looks there first (`packages/web/server/lib/fs/ripgrep.js`).
  */

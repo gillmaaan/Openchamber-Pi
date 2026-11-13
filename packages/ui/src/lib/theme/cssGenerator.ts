@@ -289,7 +289,17 @@ const sidebarBaseRgb = hexToRgb(theme.colors.surface.muted);
       `  --chat-user-message-bg: ${colors.chat?.userMessageBackground ?? colors.surface.elevated};`,
       `  --chat-divider: ${colors.chat?.divider ?? colors.interactive.border};`,
       ...this.generateToolColors(colors.tools, theme),
+      ...this.generateEdgeColors(colors.edges),
     ];
+  }
+
+  /** Authored edge colors only: design-system.css holds the default of each. */
+  private generateEdgeColors(edges: Theme['colors']['edges']): string[] {
+    const vars: string[] = [];
+    if (edges?.control) vars.push(`  --edge-control: ${edges.control};`);
+    if (edges?.controlFocus) vars.push(`  --edge-control-focus: ${edges.controlFocus};`);
+    if (edges?.surface) vars.push(`  --edge-surface: ${edges.surface};`);
+    return vars;
   }
 
   private generateMarkdownColors(markdown: Record<string, string>, theme: Theme): string[] {

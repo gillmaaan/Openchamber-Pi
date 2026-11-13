@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'bun:test';
 import { EMPTY_SIDEBAR_SECTION_FILTER, type CustomSidebarSection, type SidebarWorkFacts } from '@/lib/sidebarSections';
 import type { SidebarWorkRef } from '../works/sidebarWorks';
-import { resolveSidebarSectionMembership, resolveVisibleSidebarSections, type VisibleSidebarSection } from './sectionMembership';
+import { resolveSidebarSectionMembership, resolveVisibleSidebarSections, sectionsForSidebarMode, type VisibleSidebarSection } from './sectionMembership';
 
 const ref = (id: string, projectId = 'p1'): SidebarWorkRef => ({ kind: 'session', key: `session:${id}`, projectId, rootSessionId: id });
 
@@ -113,5 +113,31 @@ describe('resolveVisibleSidebarSections', () => {
       hiddenSections: [], draft: null, draftIsNew: false, show, keepWorkInPlace: false, customSections: false,
     });
     expect(visible).toEqual([{ kind: 'projects' }]);
+  });
+});
+
+describe('sectionsForSidebarMode', () => {
+  const all: VisibleSidebarSection[] = [
+    { kind: 'chats' },
+    { kind: 'pinned' },
+    { kind: 'work', claims: true },
+    custom(section('mine')),
+    { kind: 'projects' },
+  ];
+
+  test('Chat lists the Chats section alone', () => {
+    expect(sectionsForSidebarMode(all, 'chat')).toEqual([{ kind: 'chats' }]);
+  });
+
+  test('Code lists every section but Chats, in the same order', () => {
+    expect(sectionsForSidebarMode(all, 'code').map((entry) => entry.kind)).toEqual(['pinned', 'work', 'custom', 'projects']);
+  });
+
+  test('without a mode the sections stay as they are', () => {
+    expect(sectionsForSidebarMode(all, undefined)).toBe(all);
+  });
+
+  test('Chat with the Chats section off lists nothing rather than falling back to projects', () => {
+    expect(sectionsForSidebarMode(all.filter((entry) => entry.kind !== 'chats'), 'chat')).toEqual([]);
   });
 });

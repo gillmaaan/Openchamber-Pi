@@ -115,6 +115,11 @@ export interface Theme {
       description?: string;
       edit?: Record<string, string>;
     };
+    edges?: {
+      control?: string;
+      controlFocus?: string;
+      surface?: string;
+    };
   };
 
   config?: {

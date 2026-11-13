@@ -11,6 +11,12 @@ import { Icon } from "@/components/icon/Icon";
 <Icon name="loader-4" className="size-4 animate-spin" />
 ```
 
+## Glyph Source
+
+A name is drawn by the Phosphor glyph that `scripts/icons/phosphor-map.mjs` assigns to it (Phosphor Icons, MIT, weight in `scripts/icons/phosphor-glyphs.mjs`). A name without an entry keeps its Remix Icon drawing, as do the logos of programs and services and the custom product glyphs. Names stay the Remixicon ones everywhere, so extension manifests and stored settings need no change.
+
+To change a drawing or the weight, edit the map or run `node scripts/icons/import-phosphor.mjs <Phosphor SVGs folder> [thin|light|regular|bold]` (default `regular`), then `bun run icons:generate`. The importer accepts only plain shapes and a short list of attributes, because the sprite is inserted into the page as HTML.
+
 ## Icon Names
 
 Icons use kebab-case names based on Remixicon. To find an icon name:

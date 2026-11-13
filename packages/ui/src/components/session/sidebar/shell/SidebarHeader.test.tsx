@@ -11,9 +11,11 @@ const baseProps = {
   showProjectDisplayControls: true,
   showSectionControls: true,
   handleOpenDirectoryDialog: () => undefined,
+  onNewChat: () => undefined,
+  sidebarMode: 'code' as const,
+  showModeSwitch: true,
+  onSidebarModeChange: () => undefined,
   showSourceBoard: true,
-  headerActionIconClass: 'h-4.5 w-4.5',
-  headerActionButtonClass: 'inline-flex h-6 w-6 cursor-pointer items-center justify-center rounded-md leading-none text-foreground hover:bg-interactive-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 disabled:cursor-not-allowed',
   isSessionSearchOpen: false,
   openSessionSearch: () => undefined,
   closeSessionSearch: () => undefined,
@@ -98,7 +100,7 @@ describe('SidebarHeader', () => {
 
     expect(document.querySelector('[aria-label="Search sessions"]')).toBeNull();
     expect(document.querySelector('[aria-label="Add project"]')).toBeNull();
-    expect(document.querySelector('[aria-label="Display mode"]')).toBeNull();
+    expect(document.querySelector('[aria-label="Customize"]')).toBeNull();
   });
 
   test('compact variant clears the search query with the clear button', async () => {
@@ -143,50 +145,78 @@ describe('SidebarHeader', () => {
     expect(submitted).toEqual(['abc']);
   });
 
-  test('full variant renders directory controls and hides the search input until opened', async () => {
-    await act(async () => root.render(
-      <I18nProvider>
-        <TooltipProvider>
-          <SidebarHeader {...baseProps} />
-        </TooltipProvider>
-      </I18nProvider>,
-    ));
+  const renderFull = (props: Partial<React.ComponentProps<typeof SidebarHeader>> = {}) => act(async () => root.render(
+    <I18nProvider>
+      <TooltipProvider>
+        <SidebarHeader {...baseProps} {...props} />
+      </TooltipProvider>
+    </I18nProvider>,
+  ));
+  const rowLabels = () => [...document.querySelectorAll('button')]
+    .filter((button) => button.querySelector('span.flex-1'))
+    .map((button) => button.querySelector('span.flex-1')?.textContent);
+  const rowButton = (label: string) => [...document.querySelectorAll('button')].find((button) => button.querySelector('span.flex-1')?.textContent === label);
+
+  test('full variant has the mode switch, the display menu and labelled rows, and hides the search input until opened', async () => {
+    await renderFull();
 
     expect(document.querySelector('input')).toBeNull();
-    expect(document.querySelector('[aria-label="Search sessions"]')).not.toBeNull();
-    expect(document.querySelector('[aria-label="Add project"]')).not.toBeNull();
-    expect(document.querySelector('[aria-label="Display mode"]')).not.toBeNull();
+    expect(document.querySelector('[aria-label="Sidebar mode"]')).not.toBeNull();
+    expect(rowButton('Customize')).toBeDefined();
+    expect(rowButton('Search sessions')?.textContent).toBe('Search sessions');
+    expect(rowButton('Add project')).toBeDefined();
   });
 
-  test('the row holds the list controls and one More menu, and no page buttons', async () => {
-    await act(async () => root.render(
-      <I18nProvider>
-        <TooltipProvider>
-          <SidebarHeader {...baseProps} />
-        </TooltipProvider>
-      </I18nProvider>,
-    ));
-    const labels = [...document.querySelectorAll('button')].map((button) => button.getAttribute('aria-label'));
-    expect(labels).toEqual(['Search sessions', 'Add project', 'Display mode', 'More']);
+  test('Code lists Add project, Search and the pages it shows as rows, with the rest under one More row', async () => {
+    await renderFull();
+    expect(rowLabels()).toEqual(['Add project', 'Search sessions', 'Issues and PRs', 'Scheduled tasks', 'Archive', 'More', 'Customize']);
   });
 
-  test('the search button opens the field and, once open, closes it', async () => {
+  test('Cowork (the chats) starts with New, then Search and its own pages, and has no Customize row', async () => {
+    await renderFull({ sidebarMode: 'chat' });
+    // The display menu opens from the Chats caption's icon in this mode.
+    expect(rowLabels()).toEqual(['New', 'Search sessions', 'Scheduled tasks', 'Archive', 'More']);
+    expect(rowButton('Add project')).toBeUndefined();
+  });
+
+  test('New starts a chat and Add project opens the directory dialog', async () => {
+    let chats = 0;
+    let directories = 0;
+    await renderFull({ sidebarMode: 'chat', onNewChat: () => { chats += 1; } });
+    await act(async () => rowButton('New')!.click());
+    expect([chats, directories]).toEqual([1, 0]);
+    await renderFull({ handleOpenDirectoryDialog: () => { directories += 1; } });
+    await act(async () => rowButton('Add project')!.click());
+    expect([chats, directories]).toEqual([1, 1]);
+  });
+
+  test('the mode switch reports the other mode and marks the current one', async () => {
+    const chosen: string[] = [];
+    await renderFull({ onSidebarModeChange: (mode) => { chosen.push(mode); } });
+    const group = document.querySelector('[aria-label="Sidebar mode"]')!;
+    const [chat, code] = [...group.querySelectorAll('button')];
+    expect(chat.textContent).toBe('Cowork');
+    expect(code.getAttribute('aria-pressed')).toBe('true');
+    await act(async () => chat.click());
+    expect(chosen).toEqual(['chat']);
+  });
+
+  test('without Chats there is no switch', async () => {
+    await renderFull({ showModeSwitch: false });
+    expect(document.querySelector('[aria-label="Sidebar mode"]')).toBeNull();
+  });
+
+  test('the Search row opens the field in its place, and the field closes itself on Escape', async () => {
     let opened = 0;
     let closed = 0;
-    const render = (isSessionSearchOpen: boolean) => act(async () => root.render(
-      <I18nProvider>
-        <TooltipProvider>
-          <SidebarHeader {...baseProps} isSessionSearchOpen={isSessionSearchOpen} openSessionSearch={() => { opened += 1; }} closeSessionSearch={() => { closed += 1; }} />
-        </TooltipProvider>
-      </I18nProvider>,
-    ));
-    const button = () => document.querySelector<HTMLButtonElement>('[aria-label="Search sessions"]')!;
+    const render = (isSessionSearchOpen: boolean) => renderFull({ isSessionSearchOpen, openSessionSearch: () => { opened += 1; }, closeSessionSearch: () => { closed += 1; } });
     await render(false);
-    await act(async () => button().click());
+    await act(async () => rowButton('Search sessions')!.click());
     expect([opened, closed]).toEqual([1, 0]);
     await render(true);
-    expect(button().getAttribute('aria-expanded')).toBe('true');
-    await act(async () => button().click());
+    expect(rowButton('Search sessions')).toBeUndefined();
+    const input = document.querySelector<HTMLInputElement>('input')!;
+    await act(async () => { input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })); });
     expect([opened, closed]).toEqual([1, 1]);
   });
 });

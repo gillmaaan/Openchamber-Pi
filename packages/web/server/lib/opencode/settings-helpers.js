@@ -434,6 +434,12 @@ export const createSettingsHelpers = (dependencies) => {
         result.desktopWindowControlsStyle = style;
       }
     }
+    if (typeof candidate.desktopSidebarTranslucent === 'boolean') {
+      result.desktopSidebarTranslucent = candidate.desktopSidebarTranslucent;
+    }
+    if (Number.isInteger(candidate.desktopSidebarOpacity) && candidate.desktopSidebarOpacity >= 10 && candidate.desktopSidebarOpacity <= 100) {
+      result.desktopSidebarOpacity = candidate.desktopSidebarOpacity;
+    }
     if (candidate.permissionAutoAccept && typeof candidate.permissionAutoAccept === 'object' && !Array.isArray(candidate.permissionAutoAccept)) {
       const sessions = {};
       const sourceSessions = candidate.permissionAutoAccept.sessions;

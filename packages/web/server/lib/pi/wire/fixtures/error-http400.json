@@ -1,0 +1,289 @@
+{
+ "name": "error-http400",
+ "description": "HTTP 400 on every attempt.",
+ "cwd": "/work/project",
+ "header": {
+  "type": "session",
+  "version": 3,
+  "id": "ses_fixture_error_http400",
+  "timestamp": "2026-11-10T06:18:34.552Z",
+  "cwd": "/work/project"
+ },
+ "events": [
+  {
+   "type": "agent_start"
+  },
+  {
+   "type": "turn_start"
+  },
+  {
+   "type": "message_start",
+   "message": {
+    "role": "system",
+    "content": "",
+    "sections": {
+     "preamble": "trimmed"
+    },
+    "timestamp": 1794291514575
+   }
+  },
+  {
+   "type": "message_end",
+   "message": {
+    "role": "system",
+    "content": "",
+    "sections": {
+     "preamble": "trimmed"
+    },
+    "timestamp": 1794291514575
+   }
+  },
+  {
+   "type": "message_start",
+   "message": {
+    "role": "user",
+    "content": [
+     {
+      "type": "text",
+      "text": "HTTP400 please"
+     }
+    ],
+    "timestamp": 1794291514575
+   }
+  },
+  {
+   "type": "message_end",
+   "message": {
+    "role": "user",
+    "content": [
+     {
+      "type": "text",
+      "text": "HTTP400 please"
+     }
+    ],
+    "timestamp": 1794291514575
+   }
+  },
+  {
+   "type": "message_start",
+   "message": {
+    "role": "assistant",
+    "content": [],
+    "api": "openai-completions",
+    "provider": "mock",
+    "model": "mock-model",
+    "usage": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "totalTokens": 0,
+     "cost": {
+      "input": 0,
+      "output": 0,
+      "cacheRead": 0,
+      "cacheWrite": 0,
+      "total": 0
+     }
+    },
+    "stopReason": "error",
+    "timestamp": 1794291514583,
+    "errorMessage": "400: {\"message\":\"mock bad request\",\"type\":\"invalid_request_error\"}",
+    "durationMs": 10,
+    "thinkingLevel": "low"
+   }
+  },
+  {
+   "type": "message_end",
+   "message": {
+    "role": "assistant",
+    "content": [],
+    "api": "openai-completions",
+    "provider": "mock",
+    "model": "mock-model",
+    "usage": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "totalTokens": 0,
+     "cost": {
+      "input": 0,
+      "output": 0,
+      "cacheRead": 0,
+      "cacheWrite": 0,
+      "total": 0
+     }
+    },
+    "stopReason": "error",
+    "timestamp": 1794291514583,
+    "errorMessage": "400: {\"message\":\"mock bad request\",\"type\":\"invalid_request_error\"}",
+    "durationMs": 10,
+    "thinkingLevel": "low"
+   }
+  },
+  {
+   "type": "turn_end",
+   "message": {
+    "role": "assistant",
+    "content": [],
+    "api": "openai-completions",
+    "provider": "mock",
+    "model": "mock-model",
+    "usage": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "totalTokens": 0,
+     "cost": {
+      "input": 0,
+      "output": 0,
+      "cacheRead": 0,
+      "cacheWrite": 0,
+      "total": 0
+     }
+    },
+    "stopReason": "error",
+    "timestamp": 1794291514583,
+    "errorMessage": "400: {\"message\":\"mock bad request\",\"type\":\"invalid_request_error\"}",
+    "durationMs": 10,
+    "thinkingLevel": "low"
+   },
+   "toolResults": []
+  },
+  {
+   "type": "agent_end",
+   "messages": [
+    {
+     "role": "system",
+     "content": "",
+     "sections": {
+      "preamble": "trimmed"
+     },
+     "timestamp": 1794291514575
+    },
+    {
+     "role": "user",
+     "content": [
+      {
+       "type": "text",
+       "text": "HTTP400 please"
+      }
+     ],
+     "timestamp": 1794291514575
+    },
+    {
+     "role": "assistant",
+     "content": [],
+     "api": "openai-completions",
+     "provider": "mock",
+     "model": "mock-model",
+     "usage": {
+      "input": 0,
+      "output": 0,
+      "cacheRead": 0,
+      "cacheWrite": 0,
+      "totalTokens": 0,
+      "cost": {
+       "input": 0,
+       "output": 0,
+       "cacheRead": 0,
+       "cacheWrite": 0,
+       "total": 0
+      }
+     },
+     "stopReason": "error",
+     "timestamp": 1794291514583,
+     "errorMessage": "400: {\"message\":\"mock bad request\",\"type\":\"invalid_request_error\"}",
+     "durationMs": 10,
+     "thinkingLevel": "low"
+    }
+   ],
+   "willRetry": false
+  },
+  {
+   "type": "agent_settled",
+   "aborted": false
+  }
+ ],
+ "entries": [
+  {
+   "type": "model_change",
+   "id": "ab2a7f7e",
+   "parentId": null,
+   "timestamp": "2026-11-10T06:18:34.571Z",
+   "provider": "mock",
+   "modelId": "mock-model"
+  },
+  {
+   "type": "thinking_level_change",
+   "id": "d9913df7",
+   "parentId": "ab2a7f7e",
+   "timestamp": "2026-11-10T06:18:34.571Z",
+   "thinkingLevel": "low"
+  },
+  {
+   "type": "message",
+   "id": "3d1b4c20",
+   "parentId": "d9913df7",
+   "timestamp": "2026-11-10T06:18:34.575Z",
+   "message": {
+    "role": "system",
+    "content": "",
+    "sections": {
+     "preamble": "trimmed"
+    },
+    "timestamp": 1794291514575
+   }
+  },
+  {
+   "type": "message",
+   "id": "8ac291ec",
+   "parentId": "3d1b4c20",
+   "timestamp": "2026-11-10T06:18:34.575Z",
+   "message": {
+    "role": "user",
+    "content": [
+     {
+      "type": "text",
+      "text": "HTTP400 please"
+     }
+    ],
+    "timestamp": 1794291514575
+   }
+  },
+  {
+   "type": "message",
+   "id": "cadf9df9",
+   "parentId": "8ac291ec",
+   "timestamp": "2026-11-10T06:18:34.593Z",
+   "message": {
+    "role": "assistant",
+    "content": [],
+    "api": "openai-completions",
+    "provider": "mock",
+    "model": "mock-model",
+    "usage": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "totalTokens": 0,
+     "cost": {
+      "input": 0,
+      "output": 0,
+      "cacheRead": 0,
+      "cacheWrite": 0,
+      "total": 0
+     }
+    },
+    "stopReason": "error",
+    "timestamp": 1794291514583,
+    "errorMessage": "400: {\"message\":\"mock bad request\",\"type\":\"invalid_request_error\"}",
+    "durationMs": 10,
+    "thinkingLevel": "low"
+   }
+  }
+ ]
+}

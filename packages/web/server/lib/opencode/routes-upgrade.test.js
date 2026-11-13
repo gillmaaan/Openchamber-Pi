@@ -36,43 +36,25 @@ const createApp = (overrides = {}) => {
 };
 
 describe('OpenCode upgrade routes', () => {
-  it.each([
-    ['/api/opencode/upgrade-status', 'available'],
-    ['/api/opencode/version', 'version'],
-  ])('answers %s when OpenCode accepts the request but never responds', async (route, field) => {
-    globalThis.fetch = vi.fn((url, init) => {
-      if (!String(url).endsWith('/api/info')) return Promise.resolve(jsonResponse({ version: '2.0.22' }));
-      return new Promise((_resolve, reject) => {
-        init.signal?.addEventListener('abort', () => reject(init.signal.reason), { once: true });
-      });
+  it('reports the version of the bundled agent and never asks a registry for a newer one', async () => {
+    globalThis.fetch = vi.fn();
+    const { app } = createApp({ getOpenCodeCompatibility: async () => ({ state: 'compatible', version: '1.5.0' }) });
+
+    const status = await request(app).get('/api/opencode/upgrade-status').expect(200);
+    expect(status.body).toEqual({
+      available: false,
+      currentVersion: '1.5.0',
+      latestVersion: '1.5.0',
+      upgrade: { supported: false, manager: 'openchamber', reason: 'bundled' },
     });
-    const { app } = createApp();
-
-    const response = await request(app).get(route).timeout({ deadline: 5_000 }).expect(500);
-
-    expect(response.body).toEqual({ [field]: null, error: expect.any(String) });
-    expect(response.body.error).not.toBe('');
+    expect((await request(app).get('/api/opencode/version').expect(200)).body).toEqual({ version: '1.5.0' });
+    expect(globalThis.fetch).not.toHaveBeenCalled();
   });
 
-  it('uses the configured registry for the v2 package version without exposing URL credentials', async () => {
-    const previousRegistry = process.env.npm_config_registry;
-    const previousUserConfig = process.env.npm_config_userconfig;
-    process.env.npm_config_userconfig = `${import.meta.dirname}/missing-test.npmrc`;
-    process.env.npm_config_registry = 'https://user:p%40ss@mirror.example.com/npm/';
-    globalThis.fetch = vi.fn(async (input) => jsonResponse({ version: String(input).endsWith('/api/info') ? '2.0.21' : '2.0.22' }));
-    const { app } = createApp({ getOpenCodeUpgradeCapability: () => supportedCapability });
-    try {
-      const response = await request(app).get('/api/opencode/upgrade-status').expect(200);
-      expect(response.body).toMatchObject({ available: true, currentVersion: '2.0.21', latestVersion: '2.0.22' });
-      const call = globalThis.fetch.mock.calls.find(([url]) => String(url).includes('mirror.example.com'));
-      expect(String(call[0])).toBe('https://mirror.example.com/npm/@opencode%2Fcli/latest');
-      expect(new Headers(call[1].headers).get('Authorization')).toBe(`Basic ${Buffer.from('user:p@ss').toString('base64')}`);
-    } finally {
-      if (previousRegistry === undefined) delete process.env.npm_config_registry;
-      else process.env.npm_config_registry = previousRegistry;
-      if (previousUserConfig === undefined) delete process.env.npm_config_userconfig;
-      else process.env.npm_config_userconfig = previousUserConfig;
-    }
+  it.each(['/api/opencode/upgrade-status', '/api/opencode/version'])('answers %s with an error when the version cannot be read', async (route) => {
+    const { app } = createApp({ getOpenCodeCompatibility: async () => { throw new Error('unreadable'); } });
+    const response = await request(app).get(route).expect(500);
+    expect(response.body.error).toBe('unreadable');
   });
 
   it('fails closed without contacting the bundled OpenCode updater', async () => {
@@ -89,30 +71,6 @@ describe('OpenCode upgrade routes', () => {
       });
 
     expect(globalThis.fetch).not.toHaveBeenCalled();
-  });
-
-  it('never announces a newer version for a bundled binary: it updates with the desktop app', async () => {
-    globalThis.fetch = vi.fn(async (url) => {
-      if (String(url).includes('registry.npmjs.org')) return jsonResponse({ version: '2.0.3' });
-      if (String(url).includes('api.github.com')) return jsonResponse({ tag_name: 'v2.0.3' });
-      return jsonResponse({ version: '1.18.8', pid: 1, urls: [], paths: { tmp: '/tmp' } });
-    });
-    const { app } = createApp();
-
-    const response = await request(app)
-      .get('/api/opencode/upgrade-status')
-      .expect(200);
-
-    expect(response.body).toEqual({
-      available: false,
-      currentVersion: '1.18.8',
-      latestVersion: '2.0.3',
-      upgrade: {
-        supported: false,
-        manager: 'openchamber',
-        reason: 'bundled',
-      },
-    });
   });
 
   it('runs the managed CLI and leaves restart to the existing Reload action', async () => {

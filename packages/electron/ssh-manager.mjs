@@ -19,18 +19,23 @@ const REMOTE_BUN_CANDIDATE = '"${BUN_INSTALL:-$HOME/.bun}/bin/bun"';
 // login shell never runs. Use its newest installed node; with no nvm the path
 // does not exist and every probe skips it.
 const REMOTE_NVM_BIN = '${NVM_DIR:-$HOME/.nvm}/versions/node/v$(ls -1 "${NVM_DIR:-$HOME/.nvm}/versions/node" 2>/dev/null | sed "s/^v//" | sort -t. -k1,1n -k2,2n -k3,3n | tail -n 1)/bin';
-// The opencode CLI usually installs into the user's home, which an SSH login
-// shell does not have on PATH. The remote server only looks at OPENCODE_BINARY
-// and PATH, so resolve the CLI here and hand it over explicitly.
-const REMOTE_OPENCODE_CANDIDATES = [
-  '"$HOME/.opencode/bin/opencode"',
-  '"${BUN_INSTALL:-$HOME/.bun}/bin/opencode"',
-  '"${XDG_CACHE_HOME:-$HOME/.cache}/.bun/bin/opencode"',
-  '"$HOME/.local/bin/opencode"',
-  '"$HOME/.openchamber/npm-global/bin/opencode"',
-  `"${REMOTE_NVM_BIN}/opencode"`,
-];
-const REMOTE_PATH_PREFIX = `$HOME/.opencode/bin:\${BUN_INSTALL:-$HOME/.bun}/bin:\${XDG_CACHE_HOME:-$HOME/.cache}/.bun/bin:$HOME/.local/bin:$HOME/.openchamber/npm-global/bin:${REMOTE_NVM_BIN}`;
+// What an SSH login shell has on PATH is poorer than the user's own shell:
+// bun, node (nvm) and the home-owned npm prefix are added so the remote server
+// and the Pi coding agent it starts find their runtime.
+const REMOTE_PATH_PREFIX = `\${BUN_INSTALL:-$HOME/.bun}/bin:\${XDG_CACHE_HOME:-$HOME/.cache}/.bun/bin:$HOME/.local/bin:$HOME/.openchamber/npm-global/bin:${REMOTE_NVM_BIN}`;
+// The Pi coding agent runs on Node and needs this release or a newer one.
+const REMOTE_NODE_MINIMUM = [22, 19, 0];
+const parseNodeVersion = (output) => {
+  const match = /v?(\d+)\.(\d+)\.(\d+)/.exec(String(output ?? '').trim().split('\n').at(-1) ?? '');
+  return match ? match.slice(1, 4).map(Number) : null;
+};
+const isNodeVersionSupported = (version) => {
+  if (!version) return false;
+  for (let index = 0; index < 3; index += 1) {
+    if (version[index] !== REMOTE_NODE_MINIMUM[index]) return version[index] > REMOTE_NODE_MINIMUM[index];
+  }
+  return true;
+};
 const REMOTE_BIN_CANDIDATES = [
   '"$HOME/.openchamber/npm-global/bin/openchamber"',
   '"${BUN_INSTALL:-$HOME/.bun}/bin/openchamber"',
@@ -419,6 +424,10 @@ export class ElectronSshManager {
     this.emit = options.emit;
     this.platform = options.platform || process.platform;
     this.spawnProcess = options.spawn || spawn;
+    // Packs this app's own @openchamber/web for a remote install; absent in
+    // tests and in builds that cannot stage one, which then use the registry.
+    this.createBundledWebTarball = options.createBundledWebTarball || null;
+    this.bundledWebTarballPromise = null;
     this.logs = new Map();
     this.statuses = new Map();
     this.sessions = new Map();
@@ -1103,6 +1112,108 @@ export class ElectronSshManager {
     return candidates;
   }
 
+  /** The bundled package, staged once per app run; null when this build has none. */
+  async bundledWebPackage() {
+    if (!this.createBundledWebTarball) return null;
+    this.bundledWebTarballPromise ??= Promise.resolve()
+      .then(() => this.createBundledWebTarball())
+      .catch((error) => {
+        this.appendLogWithLevel('ssh', 'WARN', `Could not stage this app's own web package for a remote install: ${error instanceof Error ? error.message : String(error)}`);
+        return null;
+      });
+    return await this.bundledWebTarballPromise;
+  }
+
+  /** Copies one local file to a remote path through the open SSH connection. */
+  async uploadFileOverSsh(parsed, controlPath, localPath, remotePath, timeoutSec = DEFAULT_CONNECTION_TIMEOUT_SEC) {
+    const connectionArgs = this.usesControlMaster()
+      ? ['-o', 'ControlMaster=no', '-o', `ControlPath=${controlPath}`]
+      : this.independentConnectionArgs();
+    await new Promise((resolve, reject) => {
+      // The remote path may carry `$HOME`; double quotes expand it, and the
+      // caller builds it from constants only.
+      const quoted = `"${String(remotePath).replace(/"/g, '\\"')}"`;
+      const child = this.trackSshProcess(this.spawnProcess('ssh', buildSshArgs(parsed, [
+        ...connectionArgs,
+        '-o', `ConnectTimeout=${timeoutSec}`,
+        '-T',
+      ], `mkdir -p "$(dirname ${quoted})" && cat > ${quoted}`), {
+        stdio: ['pipe', 'ignore', 'pipe'],
+        ...this.hiddenSpawnOptions(),
+        env: this.authEnvironment(parsed),
+      }), parsed);
+      let stderr = '';
+      child.stderr?.on('data', (chunk) => {
+        stderr = `${stderr}${chunk.toString()}`.slice(-MAX_PROCESS_ERROR_CAPTURE_CHARS);
+      });
+      child.on('error', () => reject(new Error(this.processErrorDetail(child, 'Failed to start SSH upload'))));
+      child.on('close', (code) => {
+        const auth = this.sshAuth.get(parsed);
+        if (code === 0) return resolve();
+        reject(new Error(sanitizeProcessDiagnostic(stderr, auth?.sshPassword) || `SSH upload failed (${code})`));
+      });
+      const source = fs.createReadStream(localPath);
+      source.on('error', (error) => reject(error));
+      source.pipe(child.stdin);
+    });
+  }
+
+  /**
+   * Installs the app's own web package on the remote host, unless the marker
+   * file says the same build is already there. The registry copy is not a
+   * substitute: it can be a build that expects another agent runtime, which is
+   * exactly what a remote instance must not get. `reinstalled` tells the caller
+   * that code changed on disk, so a server started from the earlier build is
+   * stale even when its version string is the same.
+   */
+  async ensureBundledWebInstall(parsed, controlPath) {
+    const bundle = await this.bundledWebPackage();
+    if (!bundle) return null;
+    // The remote home is read once: every later command receives absolute
+    // paths, and the binary path is used as a program name elsewhere, where a
+    // quoted `$HOME` would never expand.
+    const home = (await this.runRemoteCommand(parsed, controlPath, 'printf %s "$HOME"')).trim();
+    if (!home) throw new Error('Could not read the remote home directory');
+    const prefix = `${home}/.openchamber/npm-global`;
+    const markerPath = `${prefix}/share/openchamber/bundled-web.json`;
+    const binPath = `${prefix}/bin/openchamber`;
+    let marker = null;
+    try {
+      const output = await this.runRemoteCommand(parsed, controlPath, `cat ${shellQuote(markerPath)} 2>/dev/null || true`);
+      marker = output.trim() ? JSON.parse(output) : null;
+    } catch {
+      marker = null;
+    }
+    const upToDate = marker?.buildId === bundle.buildId && marker?.version === bundle.version;
+    if (upToDate) {
+      const present = await this.runRemoteCommand(parsed, controlPath, `[ -x ${shellQuote(binPath)} ] && printf yes || printf no`).catch(() => 'no');
+      if (present.trim() === 'yes') return { binPath, reinstalled: false };
+    }
+
+    const npmPath = await this.resolveRemoteTool(parsed, controlPath, 'npm', [`"${REMOTE_NVM_BIN}/npm"`]);
+    if (!npmPath) throw new Error('Remote host has no npm, which the bundled OpenChamber install needs');
+
+    const staging = `${prefix}/.bundled-web-${bundle.buildId}`;
+    const tarballRemote = `${staging}/openchamber-web-${bundle.buildId}.tgz`;
+    await this.runRemoteCommand(parsed, controlPath, `mkdir -p ${shellQuote(`${staging}/vendor`)}`);
+    await this.uploadFileOverSsh(parsed, controlPath, bundle.tarballPath, tarballRemote);
+    await this.uploadFileOverSsh(parsed, controlPath, bundle.vendorPath, `${staging}/vendor/openchamber-sdk.tgz`);
+    const install = [
+      `mkdir -p ${shellQuote(prefix)}`,
+      `PATH="$(dirname ${shellQuote(npmPath)}):$PATH" ${shellQuote(npmPath)} install -g --prefix ${shellQuote(prefix)} ${shellQuote(tarballRemote)}`,
+      `mkdir -p $(dirname ${shellQuote(markerPath)})`,
+      `printf '%s' ${shellQuote(JSON.stringify({ version: bundle.version, buildId: bundle.buildId }))} > ${shellQuote(markerPath)}`,
+      `rm -rf ${shellQuote(staging)}`,
+    ].join(' && ');
+    try {
+      await this.runRemoteCommand(parsed, controlPath, install, DEFAULT_CONNECTION_TIMEOUT_SEC * 10);
+    } catch (error) {
+      await this.runRemoteCommand(parsed, controlPath, `rm -rf ${shellQuote(staging)}`).catch(() => {});
+      throw new Error(`Installing this app's OpenChamber on the remote host failed: ${error instanceof Error ? error.message : String(error)}`);
+    }
+    return { binPath, reinstalled: true };
+  }
+
   async installOpenChamberManaged(parsed, controlPath, version, preferred) {
     const bunPath = await this.resolveRemoteTool(parsed, controlPath, 'bun', [
       REMOTE_BUN_CANDIDATE,
@@ -1200,11 +1311,25 @@ export class ElectronSshManager {
     }
   }
 
-  async startRemoteServerManaged(parsed, controlPath, instance, desiredPort, binPath) {
-    const opencodePath = await this.resolveRemoteTool(parsed, controlPath, 'opencode', REMOTE_OPENCODE_CANDIDATES);
-    if (!opencodePath) {
-      throw new Error('The opencode CLI is not installed on the remote machine. Install it there, then connect again');
+  // The server starts the Pi coding agent as a Node process, so the remote
+  // machine needs Node 22.19 or newer. Said here in one sentence, not at the
+  // first prompt as a stack trace.
+  async ensureRemoteNode(parsed, controlPath) {
+    let output = '';
+    try {
+      output = await this.runRemoteCommand(parsed, controlPath, `PATH="${REMOTE_PATH_PREFIX}:$PATH" node --version`);
+    } catch {
+      output = '';
     }
+    if (isNodeVersionSupported(parseNodeVersion(output))) return;
+    const found = parseNodeVersion(output);
+    throw new Error(found
+      ? `The remote machine has Node ${found.join('.')}, but the Pi coding agent needs Node ${REMOTE_NODE_MINIMUM.join('.')} or newer. Install it there, then connect again`
+      : `Node is not installed on the remote machine. The Pi coding agent needs Node ${REMOTE_NODE_MINIMUM.join('.')} or newer. Install it there, then connect again`);
+  }
+
+  async startRemoteServerManaged(parsed, controlPath, instance, desiredPort, binPath) {
+    await this.ensureRemoteNode(parsed, controlPath);
 
     const secret = this.configuredOpenChamberPassword(instance);
     const remoteBindHost = instance.remoteOpenchamber?.bindHost === '0.0.0.0' ? '0.0.0.0' : '127.0.0.1';
@@ -1214,7 +1339,7 @@ export class ElectronSshManager {
       throw new Error('Exposing the remote server to its network requires a UI password');
     }
 
-    let envPrefix = `PATH="${REMOTE_PATH_PREFIX}:$PATH" OPENCODE_BINARY=${shellQuote(opencodePath)} OPENCHAMBER_RUNTIME=ssh-remote`;
+    let envPrefix = `PATH="${REMOTE_PATH_PREFIX}:$PATH" OPENCHAMBER_RUNTIME=ssh-remote`;
     if (secret) {
       envPrefix += ` OPENCHAMBER_UI_PASSWORD=${shellQuote(secret)}`;
     }
@@ -1300,11 +1425,11 @@ export class ElectronSshManager {
 
   // A managed server outlives the SSH session on purpose, so every connect has
   // to look for it before starting another: each server also supervises its own
-  // opencode, and servers nobody reconnects to pile up until the host runs out
+  // agent processes, and servers nobody reconnects to pile up until the host runs out
   // of memory. Returns the server to reuse, or null when a new one is needed.
   // `daemon` marks a server the remote CLI started in the background, the only
   // kind this manager may stop.
-  async adoptRunningRemoteServer(instance, parsed, controlPath, binPath) {
+  async adoptRunningRemoteServer(instance, parsed, controlPath, binPath, { replaceDaemons = false } = {}) {
     const password = this.configuredOpenChamberPassword(instance);
     const preferredPort = instance.remoteOpenchamber.preferredPort || null;
     const wantsNetwork = instance.remoteOpenchamber.bindHost === '0.0.0.0';
@@ -1350,7 +1475,10 @@ export class ElectronSshManager {
       // Both directions count: a server left on 0.0.0.0 would keep an instance
       // published after the user turned that off.
       const bindFits = !server.bindHost || (wantsNetwork ? server.bindHost === '0.0.0.0' : ['127.0.0.1', '::1', 'localhost'].includes(server.bindHost));
-      if (!otherVersion && bindFits) {
+      // A build of this app installed just now replaces a daemon started from
+      // the one before it, which reports the same version.
+      const staleBuild = replaceDaemons && adopted.daemon;
+      if (!otherVersion && !staleBuild && bindFits) {
         return adopted;
       }
       // Only a daemon the CLI started is ours to replace; a foreground server
@@ -1360,7 +1488,7 @@ export class ElectronSshManager {
         this.appendLogWithLevel(instance.id, 'INFO', `Not reusing the server on remote port ${server.port}: it runs in the foreground with another version or bind address and is left to its process manager`);
         continue;
       }
-      this.appendLogWithLevel(instance.id, 'INFO', `Replacing the managed server on remote port ${server.port}: ${otherVersion ? `it runs OpenChamber ${runningVersion}` : `it is bound to ${server.bindHost}`}`);
+      this.appendLogWithLevel(instance.id, 'INFO', `Replacing the managed server on remote port ${server.port}: ${otherVersion ? `it runs OpenChamber ${runningVersion}` : (staleBuild && bindFits ? 'it runs the previous build of this app' : `it is bound to ${server.bindHost}`)}`);
       await this.stopRemoteServerBestEffort(parsed, controlPath, server.port, binPath);
       if (await this.remoteServerRunning(parsed, controlPath, server.port, password)) {
         this.appendLogWithLevel(instance.id, 'WARN', `The managed server on remote port ${server.port} did not stop and keeps running`);
@@ -1383,27 +1511,33 @@ export class ElectronSshManager {
     }
 
     this.setStatus(instance.id, 'remote_probe', 'Checking remote OpenChamber installation');
-    const installed = await this.remoteOpenChamberCandidates(parsed, controlPath);
-    let binary = installed.find((candidate) => candidate.version === this.appVersion) || null;
+    // This app's own server first: a registry build can be one that expects a
+    // different agent runtime, and a remote instance must match this app.
+    const bundled = await this.ensureBundledWebInstall(parsed, controlPath);
+    let binary = bundled ? { binPath: bundled.binPath, version: this.appVersion } : null;
 
     if (!binary) {
-      const existing = installed[0] || null;
-      if (existing) {
-        this.setStatus(instance.id, 'updating', `Updating remote OpenChamber from ${existing.version || 'unknown'} to ${this.appVersion}`);
-      } else {
-        this.setStatus(instance.id, 'installing', 'Installing OpenChamber on remote host');
-      }
-      await this.installOpenChamberManaged(parsed, controlPath, this.appVersion, instance.remoteOpenchamber.installMethod);
-
-      const afterInstall = await this.remoteOpenChamberCandidates(parsed, controlPath);
-      binary = afterInstall.find((candidate) => candidate.version === this.appVersion) || afterInstall[0] || existing;
+      const installed = await this.remoteOpenChamberCandidates(parsed, controlPath);
+      binary = installed.find((candidate) => candidate.version === this.appVersion) || null;
       if (!binary) {
-        throw new Error('OpenChamber was installed on the remote host but no openchamber binary could be found');
+        const existing = installed[0] || null;
+        if (existing) {
+          this.setStatus(instance.id, 'updating', `Updating remote OpenChamber from ${existing.version || 'unknown'} to ${this.appVersion}`);
+        } else {
+          this.setStatus(instance.id, 'installing', 'Installing OpenChamber on remote host');
+        }
+        await this.installOpenChamberManaged(parsed, controlPath, this.appVersion, instance.remoteOpenchamber.installMethod);
+
+        const afterInstall = await this.remoteOpenChamberCandidates(parsed, controlPath);
+        binary = afterInstall.find((candidate) => candidate.version === this.appVersion) || afterInstall[0] || existing;
+        if (!binary) {
+          throw new Error('OpenChamber was installed on the remote host but no openchamber binary could be found');
+        }
       }
     }
 
     this.setStatus(instance.id, 'server_detecting', 'Detecting managed OpenChamber server');
-    const adopted = await this.adoptRunningRemoteServer(instance, parsed, controlPath, binary.binPath);
+    const adopted = await this.adoptRunningRemoteServer(instance, parsed, controlPath, binary.binPath, { replaceDaemons: bundled?.reinstalled === true });
     let remotePort = adopted?.port || null;
     let startedByUs = false;
     if (!remotePort) {

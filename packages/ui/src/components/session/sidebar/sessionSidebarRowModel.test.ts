@@ -85,6 +85,19 @@ const args = (sections: ProjectSection[]): SessionSidebarRowModelArgs => ({
 });
 
 describe('buildSessionSidebarRowModel', () => {
+  test('Chats open with 3 sessions, and with 10 in the sidebar\'s Cowork mode', () => {
+    const chats = Array.from({ length: 14 }, (_, index) => node(`chat-${index}`));
+    const shown = (mode?: 'chat' | 'code') => {
+      const input = args([]);
+      input.chatGroup = group(chats, { id: 'managed-chats', draftTarget: 'chat' });
+      input.sidebarMode = mode;
+      return buildSessionSidebarRowModel(input).rows.filter((row) => row.kind === 'session').length;
+    };
+    expect(shown()).toBe(3);
+    expect(shown('code')).toBe(3);
+    expect(shown('chat')).toBe(10);
+  });
+
   test('a Chats-only sidebar exposes an archived bucket with restore semantics and distinct row keys', () => {
     const active = node('active-chat');
     const archived = node('archived-chat');

@@ -16,8 +16,8 @@ describe('guardOpenCodeFetch', () => {
   beforeEach(async () => {
     root = await realpath(await mkdtemp(path.join(os.tmpdir(), 'opencode-trust-fetch-')));
     repo = path.join(root, 'repo');
-    await mkdir(path.join(repo, '.opencode', 'plugins'), { recursive: true });
-    await writeFile(path.join(repo, '.opencode', 'plugins', 'probe.js'), 'export default {}');
+    await mkdir(path.join(repo, '.pi', 'extensions'), { recursive: true });
+    await writeFile(path.join(repo, '.pi', 'extensions', 'probe.js'), 'export default {}');
     plain = path.join(root, 'plain');
     await mkdir(plain);
     sent = [];
@@ -71,8 +71,8 @@ describe('guardOpenCodeFetch', () => {
 
   it('resolves a relative move against where the session is now', async () => {
     const next = path.join(root, 'next');
-    await mkdir(path.join(next, 'evil', '.opencode', 'plugins'), { recursive: true });
-    await writeFile(path.join(next, 'evil', '.opencode', 'plugins', 'probe.js'), 'export default {}');
+    await mkdir(path.join(next, 'evil', '.pi', 'extensions'), { recursive: true });
+    await writeFile(path.join(next, 'evil', '.pi', 'extensions', 'probe.js'), 'export default {}');
     let location = plain;
     const moving = guardOpenCodeFetch({
       fetchImpl: async (input, init) => {

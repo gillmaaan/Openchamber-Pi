@@ -22,11 +22,14 @@ export const SessionSidebarActivityHeader: React.FC<{
   collapsed: boolean;
   forceExpanded: boolean;
   alwaysShowActions: boolean;
+  /** Cowork mode: opens the display menu from an icon at the end of the Chats row. */
+  renderDisplayMenu?: (trigger: React.ReactElement) => React.ReactNode;
   onToggle: () => void;
   onNewChat: () => void;
-}> = ({ activityKey, label, preview = false, collapsed, forceExpanded, alwaysShowActions, onToggle, onNewChat }) => {
+}> = ({ activityKey, label, preview = false, collapsed, forceExpanded, alwaysShowActions, renderDisplayMenu, onToggle, onNewChat }) => {
   const { t } = useI18n();
   const chats = activityKey === 'chats';
+  const displayMenu = chats ? renderDisplayMenu : undefined;
   // One header for every zone, so zones line up with the project headers.
   return <div className="relative group/chats -ms-2.5 -me-2">
     <button
@@ -35,7 +38,7 @@ export const SessionSidebarActivityHeader: React.FC<{
       disabled={forceExpanded}
       // The caption's own toggle: pressing it can lift the section (`rowDrag`).
       data-row-drag=""
-      className={cn('group flex w-full items-center gap-1 py-1 ps-4 text-start focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50', chats ? 'pe-10' : 'pe-3.5')}
+      className={cn('group flex w-full items-center gap-1 py-1 ps-4 text-start focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50', !chats ? 'pe-3.5' : displayMenu ? 'pe-[4.5rem]' : 'pe-10')}
       aria-expanded={!collapsed}
     >
       {/* A zone's label is a bare muted word with room above it, so it reads
@@ -56,10 +59,23 @@ export const SessionSidebarActivityHeader: React.FC<{
         />
       ) : null}
     </button>
+    {displayMenu ? displayMenu(
+      // Always there, since it is the way into the sidebar's layout and
+      // selection; the new chat button beside it shows on hover.
+      <button
+        type="button"
+        onClick={(event) => event.stopPropagation()}
+        className="absolute inset-e-0.5 top-1/2 z-10 inline-flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground hover:text-foreground data-[popup-open]:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+        aria-label={t('sessions.sidebar.header.displayMode.label')}
+        title={t('sessions.sidebar.header.displayMode.label')}
+      >
+        <Icon name="equalizer-2" className="h-4 w-4" />
+      </button>,
+    ) : null}
     {chats ? <button
       type="button"
       onClick={(event) => { event.stopPropagation(); onNewChat(); }}
-      className={cn('absolute inset-e-0.5 top-1/2 z-10 inline-flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50', alwaysShowActions ? 'opacity-100' : 'opacity-0 pointer-events-none group-hover/chats:opacity-100 group-hover/chats:pointer-events-auto group-has-[:focus-visible]/chats:opacity-100 group-has-[:focus-visible]/chats:pointer-events-auto')}
+      className={cn('absolute top-1/2 z-10 inline-flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50', displayMenu ? 'inset-e-7' : 'inset-e-0.5', alwaysShowActions ? 'opacity-100' : 'opacity-0 pointer-events-none group-hover/chats:opacity-100 group-hover/chats:pointer-events-auto group-has-[:focus-visible]/chats:opacity-100 group-has-[:focus-visible]/chats:pointer-events-auto')}
       aria-label={t('sessions.sidebar.header.actions.newSession')}
     >
       <Icon name="add" className="h-4 w-4" />

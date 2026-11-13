@@ -5,6 +5,7 @@ import log from 'electron-log/main.js';
 import dgram from 'node:dgram';
 import fs from 'node:fs';
 import fsp from 'node:fs/promises';
+import { createBundledWebTarball } from './bundled-web-package.mjs';
 import net from 'node:net';
 import os from 'node:os';
 import path from 'node:path';
@@ -36,6 +37,8 @@ import {
   MIN_WINDOW_WIDTH,
   UI_PROTOCOL,
   buildMainWindowOptions,
+  CLEAR_WINDOW_BACKGROUND,
+  SIDEBAR_VIBRANCY,
   buildRendererAdditionalArguments,
   buildStartupSplashUrl,
   isStartupSplashUrl,
@@ -687,10 +690,23 @@ const refreshQuitRiskFlags = async () => {
   }
 };
 
+// A remote instance runs this app's own server, packed here: a registry build
+// can be one that expects a different agent runtime.
+const bundledWebTarball = async () => {
+  const webPackageDir = path.dirname(fileURLToPath(import.meta.resolve('@openchamber/web/package.json')));
+  return createBundledWebTarball({
+    webPackageDir,
+    sdkPackageDir: path.join(path.dirname(webPackageDir), 'sdk'),
+    distDir: resolveWebDistDir(),
+    workDir: fs.mkdtempSync(path.join(os.tmpdir(), 'openchamber-bundled-web-')),
+  });
+};
+
 const sshManager = new ElectronSshManager({
   settingsFilePath: settingsFilePath(),
   appVersion: APP_VERSION,
   emit: (event, detail) => emitToAllWindows(event, detail),
+  createBundledWebTarball: bundledWebTarball,
 });
 
 const writeJsonFile = async (filePath, data) => {
@@ -5125,6 +5141,20 @@ const handleInvoke = async (browserWindow, command, args = {}) => {
         });
       }
       return null;
+    }
+
+    case 'desktop_set_sidebar_vibrancy': {
+      // The window shows the macOS material only while the sidebar is the one
+      // surface that lets it through; the reply says what the window now does,
+      // so the page makes its sidebar translucent only when this holds.
+      if (process.platform !== 'darwin' || !browserWindow || browserWindow.isDestroyed()) return { vibrancy: false };
+      const enabled = args.enabled === true;
+      browserWindow.setVibrancy(enabled ? SIDEBAR_VIBRANCY : null);
+      browserWindow.setBackgroundColor(enabled ? CLEAR_WINDOW_BACKGROUND : resolveSplashBackgroundColor());
+      if ((readSettingsRoot().desktopSidebarVibrancy === true) !== enabled) {
+        void mutateSettingsRoot((root) => ({ ...root, desktopSidebarVibrancy: enabled }));
+      }
+      return { vibrancy: enabled };
     }
 
     case 'desktop_get_update_channel': {

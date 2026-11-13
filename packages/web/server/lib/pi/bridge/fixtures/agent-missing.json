@@ -1,0 +1,5 @@
+{
+  "_tag": "AgentNotFoundError",
+  "agentID": "nope",
+  "message": "Agent not found: nope"
+}

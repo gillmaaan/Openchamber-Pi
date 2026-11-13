@@ -22,6 +22,33 @@ as a reference. Their background-to-background contrast stays at or below 1.10;
 this is a surface distinction budget, not a text contrast target. Custom themes
 retain their exact authored background. Bodies and gutters use the same fill.
 
+`colors.edges` holds the half-pixel outlines a theme may set: `control` (buttons,
+text fields, the chosen option of a segmented choice), `controlFocus` (a focused
+text field) and `surface` (the ring around the composer, panels and menus).
+`cssGenerator.ts` emits `--edge-control`, `--edge-control-focus` and
+`--edge-surface` only for authored values, and `design-system.css` reads each as
+the first argument of `var()`, with the former hard-coded outline as fallback. A
+theme without `edges` therefore renders as before, and `compactTheme` and the
+resolver pass the group through untouched. The VS Code adapter does not set it.
+
+### Why edges are theme values with CSS fallbacks, and not resolved defaults
+
+Resolving every edge into each theme would write the same derived tint into all
+built-in files and fix it at the theme's text color, while the app computes the
+default per surface from that surface's own foreground (elevated text inside a
+popup, canvas text outside). Leaving the default in CSS keeps that per-surface
+behavior and keeps every existing palette pixel-identical. The cost is that
+`resolveTheme` does not show the final edge colors; they exist only in the
+generated style.
+
+### Why one `surface` edge and not one per surface
+
+The composer, panels and menus share one ring token (`--oc-elevation-ring`) so
+the three elevation levels stay one visual language. A per-surface color would
+let a theme give the composer a different outline from the panel beside it, which
+needs its own box-shadow stack for each level and has no use so far. Add a second
+role only when a theme needs those surfaces to differ.
+
 `color.ts` owns alpha composition and readable text selection. A solid status foreground is not the text for a tinted alert. `readableColors.ts` computes the palette used by both `cssGenerator.ts` and the extension host snapshot, including the corrected selection foreground. The SDK receives the computed text colors as required fields and applies them directly, without a second color algorithm. Color calculations run when the theme changes, not on each button render or session update.
 
 For authoring and supported fields, see `docs/CUSTOM_THEMES.md`. Surface semantics belong to `.agents/skills/theme-system/references/tokens-and-examples.md`.

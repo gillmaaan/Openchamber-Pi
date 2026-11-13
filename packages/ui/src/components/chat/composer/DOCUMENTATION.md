@@ -301,7 +301,12 @@ leaving move nothing (maintainer, 2026-10-29); a composer grown into the gap
 would cover it.
 The transcript's end fade is a band in the chat background over the
 scroller's end (`.chat-scroll-fade--end` in `index.css`; a mask on the
-scroller made the GPU recomposite the whole transcript every frame). It reads
+scroller made the GPU recomposite the whole transcript every frame). The band
+is a solid fill with its alpha ramp as a mask, never a gradient from
+`transparent` to the background colour: that gradient's dithered alpha left
+rows one colour step off the background over empty transcript, which shows as
+full-width stripes (measured on the 1x display: 93 of 165 rows in the end band,
+none with the mask). The top band is built the same way. It reads
 `--chat-composer-inset` (plus the floating-panel clearance and, while the
 session works, the status row's height) through
 `--scroll-shadow-end-inset`, so a row that
@@ -1022,6 +1027,58 @@ few words (#6160). The `/` list reads the `@` list's width constant
 (`MENTION_LIST_WIDTH` in `state/useAutocompletePosition.ts`, with the matching
 `max-w` class cap), so the two stay equal if either changes; a narrower
 composer still narrows both.
+
+## Desktop footer
+
+The footer row (`ui/ComposerFooter.tsx`) reads left to right: attach, auto-accept
+and goal on the left; agent, model with its effort, dictation and send on the
+right. The attach control and the send, stop and queue controls are circles of
+`size-7` (`size-6` in VS Code): attach is the raised outline button, send and
+queue the primary tint, stop the destructive tint (`ComposerAttachmentControls`
+and `ComposerActionButtons`, driven by `roundSizeClass`). The agent is a 6px dot
+in its colour and its name in muted text. A missing agent swaps the dot for the
+warning mark. The model is its name alone: the provider logo is not drawn in the
+desktop trigger, and the model's tooltip names the provider. The mobile footer
+keeps its bare icons and never passes `roundSizeClass`.
+
+The model, the slash and the effort sit 2px apart. The effort icon that stands in
+for them on a narrow row keeps a 2px margin so it is still 4px from the model.
+The gap between agent, model, dictation and send is 14px box to box (8px in
+VS Code, where there is no dictation). Measured between the visible glyphs it is
+15px for all three: agent to model, effort to dictation, dictation to send. The
+dictation glyph is 10px wide inside a 24px button, so the button takes
+`-ms-[calc(7px*var(--padding-scale,1))] -me-1.5` (`triggerClassName` on
+`ComposerDictation`, which leaves the overlay's buttons alone); without it the
+glyph sat 6 to 7px further out. The margins follow the density setting
+(`--padding-scale`) like the button, the glyph and the gaps do. Only the spacing
+steps in `design-system.css` scale, and it has no 1.75, hence the `calc`.
+Check a change here by scanning the pixels of a 2x screenshot of the footer row
+for runs of ink, not by reading element boxes: the glyph and the letters carry
+air that the boxes do not show.
+
+When the row narrows (`index.css`, `@container model-controls`), only the effort
+collapses, to its icon. The agent and model names shorten and stay, because
+neither has an icon to fall back to: the agent to 5rem and then 3rem (3.5rem in
+VS Code), the model to 4rem below 10rem. Around a 280px composer both names
+truncate; the footer never hides either of them.
+
+### Why the agent is a dot and a name, and sits before the model
+
+The agent used to be an icon in its colour followed by its name, after the
+model. The icon was the only thing left when a narrow row hid the label, and
+the row showed two coloured marks next to each other. Now the dot carries the
+colour, as it does in the agent menu rows, and the name stays visible at every
+width, so the agent is never reduced to an unlabelled mark. The agent leads so
+the model and its effort sit beside the send button, and the name is muted so
+the model reads first. Rejected: moving the agent into its own control on the
+left. `ModelControls` holds the agent and model state in one instance, and two
+instances would run its selection effects twice.
+
+### Why send is a circle on desktop and a bare icon on mobile
+
+A tinted circle states "this is the primary action" without a label and bookends
+the row with the attach circle. The mobile footer is a thumb-reach row of
+equal 32px icon buttons; changing them is a mobile design question of its own.
 
 ## Effort label color
 

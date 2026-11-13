@@ -872,6 +872,18 @@
         "desktop"
       ]
     },
+    "desktopSidebarTranslucent": {
+      "scope": "device",
+      "surfaces": [
+        "desktop"
+      ]
+    },
+    "desktopSidebarOpacity": {
+      "scope": "device",
+      "surfaces": [
+        "desktop"
+      ]
+    },
     "inputBarOffset": {
       "scope": "device",
       "surfaces": [
@@ -1020,6 +1032,13 @@
       "local": true
     },
     "desktopSplashColors": {
+      "scope": "instance",
+      "owner": "desktop-shell",
+      "surfaces": [
+        "desktop"
+      ]
+    },
+    "desktopSidebarVibrancy": {
       "scope": "instance",
       "owner": "desktop-shell",
       "surfaces": [

@@ -16,7 +16,7 @@ import type { PermissionMode } from './utils/permissionAutoAccept';
 import { directoryMayHaveActiveProjectAction, useTerminalStore } from '@/stores/useTerminalStore';
 import { useFilesViewTabsStore } from './useFilesViewTabsStore';
 import { rebaseMovedPath } from '@/lib/filePathMoves';
-import { isVSCodeRuntime } from '@/lib/desktop';
+import { clampDesktopSidebarOpacity, DESKTOP_SIDEBAR_OPACITY_DEFAULT, isVSCodeRuntime } from '@/lib/desktop';
 import { noteBrowserTabOpenedWithAddress, requestBrowserTabLoad } from '@/lib/browser/devServerWait';
 import { clampLiveBrowserTabs, LIVE_BROWSER_TABS_DEFAULT } from '@/lib/browser/liveTabs';
 import { isContextPanelMode, type ContextPanelMode } from '@/lib/surfaces/modes';
@@ -1220,6 +1220,10 @@ interface UIStore {
   weekStartPreference: WeekStartPreference;
   desktopWindowControlsPosition: DesktopWindowControlsPosition;
   desktopWindowControlsStyle: DesktopWindowControlsStyle;
+  /** macOS desktop only: the sessions sidebar shows the window's vibrancy material through it. */
+  desktopSidebarTranslucent: boolean;
+  /** How much of the sidebar's own colour stays over the material, in percent. */
+  desktopSidebarOpacity: number;
   mermaidRenderingMode: MermaidRenderingMode;
   userMessageRenderingMode: UserMessageRenderingMode;
   collapsibleUserMessages: boolean;
@@ -1505,6 +1509,8 @@ interface UIStore {
   setWeekStartPreference: (value: WeekStartPreference) => void;
   setDesktopWindowControlsPosition: (value: DesktopWindowControlsPosition) => void;
   setDesktopWindowControlsStyle: (value: DesktopWindowControlsStyle) => void;
+  setDesktopSidebarTranslucent: (value: boolean) => void;
+  setDesktopSidebarOpacity: (value: number) => void;
   setMermaidRenderingMode: (value: MermaidRenderingMode) => void;
   setUserMessageRenderingMode: (value: UserMessageRenderingMode) => void;
   setCollapsibleUserMessages: (value: boolean) => void;
@@ -1762,6 +1768,8 @@ export const useUIStore = create<UIStore>()(
         weekStartPreference: 'auto',
         desktopWindowControlsPosition: 'right',
         desktopWindowControlsStyle: 'classic',
+        desktopSidebarTranslucent: false,
+        desktopSidebarOpacity: DESKTOP_SIDEBAR_OPACITY_DEFAULT,
         mermaidRenderingMode: 'svg',
         userMessageRenderingMode: 'markdown',
         collapsibleUserMessages: true,
@@ -3523,6 +3531,12 @@ export const useUIStore = create<UIStore>()(
         setDesktopWindowControlsStyle: (value) => {
           set({ desktopWindowControlsStyle: value === 'traffic-lights' ? 'traffic-lights' : 'classic' });
         },
+        setDesktopSidebarTranslucent: (value) => {
+          set({ desktopSidebarTranslucent: value === true });
+        },
+        setDesktopSidebarOpacity: (value) => {
+          set({ desktopSidebarOpacity: clampDesktopSidebarOpacity(value) });
+        },
         setMermaidRenderingMode: (value) => {
           set({ mermaidRenderingMode: value });
         },
@@ -4024,6 +4038,8 @@ export const useUIStore = create<UIStore>()(
           weekStartPreference: state.weekStartPreference,
           desktopWindowControlsPosition: state.desktopWindowControlsPosition,
           desktopWindowControlsStyle: state.desktopWindowControlsStyle,
+          desktopSidebarTranslucent: state.desktopSidebarTranslucent,
+          desktopSidebarOpacity: state.desktopSidebarOpacity,
           inputBarOffset: state.inputBarOffset,
           mermaidRenderingMode: state.mermaidRenderingMode,
           userMessageRenderingMode: state.userMessageRenderingMode,

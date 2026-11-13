@@ -15,6 +15,7 @@ import { EMPTY_MULTI_RUN_INDEX, type MultiRunIndex, type MultiRunSummary } from 
 import { isGroupWork, worktreeFolderMemberId } from './works/sidebarWorks';
 import type { SessionDraft } from '@/stores/useSessionDraftsStore';
 import type { DirectoryOwner } from './sessions/sessionOwnership';
+import type { SidebarMode } from '@/lib/sidebarNav';
 
 export type SessionSidebarActivityItem = {
   node: SessionNode;
@@ -217,6 +218,8 @@ export type SessionSidebarRowModelArgs = {
   singleProjectId: string | null;
   showOnlyMainWorkspace: boolean;
   hideDirectoryControls: boolean;
+  /** The sidebar's mode on the web and desktop: Cowork (`chat`) opens a longer page of chats. */
+  sidebarMode?: SidebarMode;
   /** A "Projects" caption over the project headers when something lists above them (the desktop's zones). */
   projectsCaption?: boolean;
   /**
@@ -308,9 +311,12 @@ const TIMELINE_SESSION_ESTIMATE = 52;
 const estimateSessionRow = (context: SessionSidebarRenderContext): number => (
   isMultiLineTimelineContext(context) ? TIMELINE_SESSION_ESTIMATE : SESSION_ESTIMATE
 );
-// Chats open on a short page, with pinned chats on top of it.
+// Chats open on a short page, with pinned chats on top of it. The sidebar's
+// Cowork mode lists nothing else, so its page is the recent chats.
 const CHATS_INITIAL_LIMIT = 3;
 const CHATS_INCREMENT = 7;
+const COWORK_CHATS_INITIAL_LIMIT = 10;
+const COWORK_CHATS_INCREMENT = 10;
 // Project and worktree lists reveal 7 sessions per page.
 const SESSIONS_INITIAL_LIMIT = 7;
 const SESSIONS_INCREMENT = 7;
@@ -1015,8 +1021,11 @@ export const buildSessionSidebarRowModel = (args: SessionSidebarRowModelArgs): S
     if (collapsed) return;
     // Chats are one-line rows with the tree's state slot, on a short page
     // that pinned chats do not spend.
+    const coworkMode = args.sidebarMode === 'chat';
     appendGroup(args.chatGroup, 'activity:chats', null, true, {
-      initial: CHATS_INITIAL_LIMIT, increment: CHATS_INCREMENT, pinnedAlwaysVisible: true,
+      initial: coworkMode ? COWORK_CHATS_INITIAL_LIMIT : CHATS_INITIAL_LIMIT,
+      increment: coworkMode ? COWORK_CHATS_INCREMENT : CHATS_INCREMENT,
+      pinnedAlwaysVisible: true,
       renderContext: 'tree-chat',
     });
     if (args.archivedChatGroup) {

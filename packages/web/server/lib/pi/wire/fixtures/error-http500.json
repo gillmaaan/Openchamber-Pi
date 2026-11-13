@@ -1,0 +1,479 @@
+{
+ "name": "error-http500",
+ "description": "HTTP 500 on every attempt.",
+ "cwd": "/work/project",
+ "header": {
+  "type": "session",
+  "version": 3,
+  "id": "ses_fixture_error_http500",
+  "timestamp": "2026-11-10T06:18:33.422Z",
+  "cwd": "/work/project"
+ },
+ "events": [
+  {
+   "type": "agent_start"
+  },
+  {
+   "type": "turn_start"
+  },
+  {
+   "type": "message_start",
+   "message": {
+    "role": "system",
+    "content": "",
+    "sections": {
+     "preamble": "trimmed"
+    },
+    "timestamp": 1794291513445
+   }
+  },
+  {
+   "type": "message_end",
+   "message": {
+    "role": "system",
+    "content": "",
+    "sections": {
+     "preamble": "trimmed"
+    },
+    "timestamp": 1794291513445
+   }
+  },
+  {
+   "type": "message_start",
+   "message": {
+    "role": "user",
+    "content": [
+     {
+      "type": "text",
+      "text": "HTTP500 please"
+     }
+    ],
+    "timestamp": 1794291513444
+   }
+  },
+  {
+   "type": "message_end",
+   "message": {
+    "role": "user",
+    "content": [
+     {
+      "type": "text",
+      "text": "HTTP500 please"
+     }
+    ],
+    "timestamp": 1794291513444
+   }
+  },
+  {
+   "type": "message_start",
+   "message": {
+    "role": "assistant",
+    "content": [],
+    "api": "openai-completions",
+    "provider": "mock",
+    "model": "mock-model",
+    "usage": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "totalTokens": 0,
+     "cost": {
+      "input": 0,
+      "output": 0,
+      "cacheRead": 0,
+      "cacheWrite": 0,
+      "total": 0
+     }
+    },
+    "stopReason": "error",
+    "timestamp": 1794291513453,
+    "errorMessage": "500: {\"message\":\"mock upstream exploded\",\"type\":\"server_error\"}",
+    "durationMs": 18,
+    "thinkingLevel": "low"
+   }
+  },
+  {
+   "type": "message_end",
+   "message": {
+    "role": "assistant",
+    "content": [],
+    "api": "openai-completions",
+    "provider": "mock",
+    "model": "mock-model",
+    "usage": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "totalTokens": 0,
+     "cost": {
+      "input": 0,
+      "output": 0,
+      "cacheRead": 0,
+      "cacheWrite": 0,
+      "total": 0
+     }
+    },
+    "stopReason": "error",
+    "timestamp": 1794291513453,
+    "errorMessage": "500: {\"message\":\"mock upstream exploded\",\"type\":\"server_error\"}",
+    "durationMs": 18,
+    "thinkingLevel": "low"
+   }
+  },
+  {
+   "type": "turn_end",
+   "message": {
+    "role": "assistant",
+    "content": [],
+    "api": "openai-completions",
+    "provider": "mock",
+    "model": "mock-model",
+    "usage": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "totalTokens": 0,
+     "cost": {
+      "input": 0,
+      "output": 0,
+      "cacheRead": 0,
+      "cacheWrite": 0,
+      "total": 0
+     }
+    },
+    "stopReason": "error",
+    "timestamp": 1794291513453,
+    "errorMessage": "500: {\"message\":\"mock upstream exploded\",\"type\":\"server_error\"}",
+    "durationMs": 18,
+    "thinkingLevel": "low"
+   },
+   "toolResults": []
+  },
+  {
+   "type": "agent_end",
+   "messages": [
+    {
+     "role": "system",
+     "content": "",
+     "sections": {
+      "preamble": "trimmed"
+     },
+     "timestamp": 1794291513445
+    },
+    {
+     "role": "user",
+     "content": [
+      {
+       "type": "text",
+       "text": "HTTP500 please"
+      }
+     ],
+     "timestamp": 1794291513444
+    },
+    {
+     "role": "assistant",
+     "content": [],
+     "api": "openai-completions",
+     "provider": "mock",
+     "model": "mock-model",
+     "usage": {
+      "input": 0,
+      "output": 0,
+      "cacheRead": 0,
+      "cacheWrite": 0,
+      "totalTokens": 0,
+      "cost": {
+       "input": 0,
+       "output": 0,
+       "cacheRead": 0,
+       "cacheWrite": 0,
+       "total": 0
+      }
+     },
+     "stopReason": "error",
+     "timestamp": 1794291513453,
+     "errorMessage": "500: {\"message\":\"mock upstream exploded\",\"type\":\"server_error\"}",
+     "durationMs": 18,
+     "thinkingLevel": "low"
+    }
+   ],
+   "willRetry": true
+  },
+  {
+   "type": "auto_retry_start",
+   "attempt": 1,
+   "maxAttempts": 1,
+   "delayMs": 50,
+   "errorMessage": "500: {\"message\":\"mock upstream exploded\",\"type\":\"server_error\"}"
+  },
+  {
+   "type": "entry_appended",
+   "entry": {
+    "type": "context_edit",
+    "id": "9945fe46",
+    "parentId": "35d91605",
+    "timestamp": "2026-11-10T06:18:33.476Z",
+    "targetId": "35d91605",
+    "replacement": null
+   }
+  },
+  {
+   "type": "agent_start"
+  },
+  {
+   "type": "turn_start"
+  },
+  {
+   "type": "message_start",
+   "message": {
+    "role": "assistant",
+    "content": [],
+    "api": "openai-completions",
+    "provider": "mock",
+    "model": "mock-model",
+    "usage": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "totalTokens": 0,
+     "cost": {
+      "input": 0,
+      "output": 0,
+      "cacheRead": 0,
+      "cacheWrite": 0,
+      "total": 0
+     }
+    },
+    "stopReason": "error",
+    "timestamp": 1794291513528,
+    "errorMessage": "500: {\"message\":\"mock upstream exploded\",\"type\":\"server_error\"}",
+    "durationMs": 2,
+    "thinkingLevel": "low"
+   }
+  },
+  {
+   "type": "message_end",
+   "message": {
+    "role": "assistant",
+    "content": [],
+    "api": "openai-completions",
+    "provider": "mock",
+    "model": "mock-model",
+    "usage": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "totalTokens": 0,
+     "cost": {
+      "input": 0,
+      "output": 0,
+      "cacheRead": 0,
+      "cacheWrite": 0,
+      "total": 0
+     }
+    },
+    "stopReason": "error",
+    "timestamp": 1794291513528,
+    "errorMessage": "500: {\"message\":\"mock upstream exploded\",\"type\":\"server_error\"}",
+    "durationMs": 2,
+    "thinkingLevel": "low"
+   }
+  },
+  {
+   "type": "turn_end",
+   "message": {
+    "role": "assistant",
+    "content": [],
+    "api": "openai-completions",
+    "provider": "mock",
+    "model": "mock-model",
+    "usage": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "totalTokens": 0,
+     "cost": {
+      "input": 0,
+      "output": 0,
+      "cacheRead": 0,
+      "cacheWrite": 0,
+      "total": 0
+     }
+    },
+    "stopReason": "error",
+    "timestamp": 1794291513528,
+    "errorMessage": "500: {\"message\":\"mock upstream exploded\",\"type\":\"server_error\"}",
+    "durationMs": 2,
+    "thinkingLevel": "low"
+   },
+   "toolResults": []
+  },
+  {
+   "type": "agent_end",
+   "messages": [
+    {
+     "role": "assistant",
+     "content": [],
+     "api": "openai-completions",
+     "provider": "mock",
+     "model": "mock-model",
+     "usage": {
+      "input": 0,
+      "output": 0,
+      "cacheRead": 0,
+      "cacheWrite": 0,
+      "totalTokens": 0,
+      "cost": {
+       "input": 0,
+       "output": 0,
+       "cacheRead": 0,
+       "cacheWrite": 0,
+       "total": 0
+      }
+     },
+     "stopReason": "error",
+     "timestamp": 1794291513528,
+     "errorMessage": "500: {\"message\":\"mock upstream exploded\",\"type\":\"server_error\"}",
+     "durationMs": 2,
+     "thinkingLevel": "low"
+    }
+   ],
+   "willRetry": false
+  },
+  {
+   "type": "auto_retry_end",
+   "success": false,
+   "attempt": 1,
+   "finalError": "500: {\"message\":\"mock upstream exploded\",\"type\":\"server_error\"}"
+  },
+  {
+   "type": "agent_settled",
+   "aborted": false
+  }
+ ],
+ "entries": [
+  {
+   "type": "model_change",
+   "id": "7d74e6b2",
+   "parentId": null,
+   "timestamp": "2026-11-10T06:18:33.441Z",
+   "provider": "mock",
+   "modelId": "mock-model"
+  },
+  {
+   "type": "thinking_level_change",
+   "id": "1031036e",
+   "parentId": "7d74e6b2",
+   "timestamp": "2026-11-10T06:18:33.441Z",
+   "thinkingLevel": "low"
+  },
+  {
+   "type": "message",
+   "id": "1aea2f4e",
+   "parentId": "1031036e",
+   "timestamp": "2026-11-10T06:18:33.445Z",
+   "message": {
+    "role": "system",
+    "content": "",
+    "sections": {
+     "preamble": "trimmed"
+    },
+    "timestamp": 1794291513445
+   }
+  },
+  {
+   "type": "message",
+   "id": "34b456bf",
+   "parentId": "1aea2f4e",
+   "timestamp": "2026-11-10T06:18:33.445Z",
+   "message": {
+    "role": "user",
+    "content": [
+     {
+      "type": "text",
+      "text": "HTTP500 please"
+     }
+    ],
+    "timestamp": 1794291513444
+   }
+  },
+  {
+   "type": "message",
+   "id": "35d91605",
+   "parentId": "34b456bf",
+   "timestamp": "2026-11-10T06:18:33.472Z",
+   "message": {
+    "role": "assistant",
+    "content": [],
+    "api": "openai-completions",
+    "provider": "mock",
+    "model": "mock-model",
+    "usage": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "totalTokens": 0,
+     "cost": {
+      "input": 0,
+      "output": 0,
+      "cacheRead": 0,
+      "cacheWrite": 0,
+      "total": 0
+     }
+    },
+    "stopReason": "error",
+    "timestamp": 1794291513453,
+    "errorMessage": "500: {\"message\":\"mock upstream exploded\",\"type\":\"server_error\"}",
+    "durationMs": 18,
+    "thinkingLevel": "low"
+   }
+  },
+  {
+   "type": "context_edit",
+   "id": "9945fe46",
+   "parentId": "35d91605",
+   "timestamp": "2026-11-10T06:18:33.476Z",
+   "targetId": "35d91605",
+   "replacement": null
+  },
+  {
+   "type": "message",
+   "id": "240b31b2",
+   "parentId": "9945fe46",
+   "timestamp": "2026-11-10T06:18:33.529Z",
+   "message": {
+    "role": "assistant",
+    "content": [],
+    "api": "openai-completions",
+    "provider": "mock",
+    "model": "mock-model",
+    "usage": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "totalTokens": 0,
+     "cost": {
+      "input": 0,
+      "output": 0,
+      "cacheRead": 0,
+      "cacheWrite": 0,
+      "total": 0
+     }
+    },
+    "stopReason": "error",
+    "timestamp": 1794291513528,
+    "errorMessage": "500: {\"message\":\"mock upstream exploded\",\"type\":\"server_error\"}",
+    "durationMs": 2,
+    "thinkingLevel": "low"
+   }
+  }
+ ]
+}

@@ -31,8 +31,6 @@ export const createGracefulShutdownRuntime = (dependencies) => {
     getOpenCodePort,
     getOpenCodeProcess,
     setOpenCodeProcess,
-    killProcessOnPort,
-    waitForPortRelease,
     getServer,
     getUiAuthController,
     setUiAuthController,
@@ -146,26 +144,18 @@ export const createGracefulShutdownRuntime = (dependencies) => {
       }
     }
 
+    // The agent service lives in this process: closing it releases its port.
     if (!shouldSkipOpenCodeStop()) {
-      const portToKill = getOpenCodePort();
       const openCodeProcess = getOpenCodeProcess();
-
       if (openCodeProcess) {
-        console.log('Stopping OpenCode process...');
+        console.log('Stopping the agent service...');
         try {
           await openCodeProcess.close();
         } catch (error) {
-          console.warn('Error closing OpenCode process:', error);
+          console.warn('Error closing the agent service:', error);
         }
         setOpenCodeProcess(null);
       }
-
-      killProcessOnPort(portToKill);
-      if (!(await waitForPortRelease(portToKill, 5000))) {
-        console.warn(`Timed out waiting for OpenCode port ${portToKill} to be released during shutdown`);
-      }
-    } else {
-      console.log('Skipping OpenCode shutdown (external server)');
     }
 
     const server = getServer();

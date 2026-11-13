@@ -19,6 +19,9 @@ import {
     isVSCodeRuntime,
     isWebRuntime,
     usesFramelessElectronChrome,
+    supportsDesktopSidebarVibrancy,
+    DESKTOP_SIDEBAR_OPACITY_MAX,
+    DESKTOP_SIDEBAR_OPACITY_MIN,
     type DesktopWindowControlsPosition,
     type DesktopWindowControlsStyle,
 } from '@/lib/desktop';
@@ -130,7 +133,7 @@ const WEEK_START_OPTIONS: Option<'auto' | 'monday' | 'sunday'>[] = [
     },
 ];
 
-type VisibleSetting = 'theme' | 'windowControlsPosition' | 'pwaInstallName' | 'pwaOrientation' | 'mobileKeyboardMode' | 'timeFormat' | 'weekStart' | 'fontSize' | 'terminalFontSize' | 'editorFontSize' | 'spacing' | 'scrollbars' | 'inputBarOffset' | 'animatedActivityIndicators';
+type VisibleSetting = 'theme' | 'windowControlsPosition' | 'sidebarTranslucency' | 'pwaInstallName' | 'pwaOrientation' | 'mobileKeyboardMode' | 'timeFormat' | 'weekStart' | 'fontSize' | 'terminalFontSize' | 'editorFontSize' | 'spacing' | 'scrollbars' | 'inputBarOffset' | 'animatedActivityIndicators';
 
 const UI_FONT_WEIGHT_LABEL_KEYS = {
     regular: 'settings.openchamber.visual.option.uiFontWeight.regular',
@@ -147,6 +150,8 @@ const WINDOW_CONTROLS_STYLE_OPTIONS: Array<{ id: DesktopWindowControlsStyle; lab
     { id: 'classic', labelKey: 'settings.openchamber.desktopNetwork.option.windowControlsClassic' },
     { id: 'traffic-lights', labelKey: 'settings.openchamber.desktopNetwork.option.windowControlsTrafficLights' },
 ];
+
+const SIDEBAR_OPACITY_SLIDER_CLASS = 'w-40 flex-none h-1.5 bg-[var(--interactive-border)] rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[var(--primary-base)] disabled:opacity-50 disabled:cursor-default';
 
 interface OpenChamberVisualSettingsProps {
     /** Which settings to show. If undefined, shows all. */
@@ -198,6 +203,10 @@ export const OpenChamberVisualSettings: React.FC<OpenChamberVisualSettingsProps>
     const setDesktopWindowControlsPosition = useUIStore((state) => state.setDesktopWindowControlsPosition);
     const desktopWindowControlsStyle = useUIStore((state) => state.desktopWindowControlsStyle);
     const setDesktopWindowControlsStyle = useUIStore((state) => state.setDesktopWindowControlsStyle);
+    const desktopSidebarTranslucent = useUIStore((state) => state.desktopSidebarTranslucent);
+    const setDesktopSidebarTranslucent = useUIStore((state) => state.setDesktopSidebarTranslucent);
+    const desktopSidebarOpacity = useUIStore((state) => state.desktopSidebarOpacity);
+    const setDesktopSidebarOpacity = useUIStore((state) => state.setDesktopSidebarOpacity);
 
     // The server copy lets the language survive lost browser storage and reach
     // the other clients of this instance.
@@ -219,6 +228,16 @@ export const OpenChamberVisualSettings: React.FC<OpenChamberVisualSettingsProps>
     }, [setDesktopWindowControlsStyle]);
 
 
+    const handleSidebarTranslucentChange = React.useCallback((value: boolean) => {
+        setDesktopSidebarTranslucent(value);
+        void updateDesktopSettings({ desktopSidebarTranslucent: value });
+    }, [setDesktopSidebarTranslucent]);
+
+    const handleSidebarOpacityChange = React.useCallback((value: number) => {
+        setDesktopSidebarOpacity(value);
+        void updateDesktopSettings({ desktopSidebarOpacity: value });
+    }, [setDesktopSidebarOpacity]);
+
     const handleTimeFormatPreferenceChange = React.useCallback((value: 'auto' | '12h' | '24h') => {
         setTimeFormatPreference(value);
         void updateDesktopSettings({ timeFormatPreference: value });
@@ -237,10 +256,11 @@ export const OpenChamberVisualSettings: React.FC<OpenChamberVisualSettingsProps>
     const isVSCode = isVSCodeRuntime();
     const hasThemeSettings = shouldShow('theme') && !isVSCode;
     const showWindowControlsPositionSetting = shouldShow('windowControlsPosition') && showWindowControlsPosition;
+    const showSidebarTranslucencySetting = shouldShow('sidebarTranslucency') && supportsDesktopSidebarVibrancy();
     const hasLocalizationSettings = shouldShow('theme') || shouldShow('timeFormat') || shouldShow('weekStart');
     const hasAppearanceSettings = isVSCode
         ? hasLocalizationSettings
-        : (shouldShow('theme') || showWindowControlsPositionSetting || shouldShow('pwaInstallName') || shouldShow('pwaOrientation') || shouldShow('timeFormat') || shouldShow('weekStart'));
+        : (shouldShow('theme') || showWindowControlsPositionSetting || showSidebarTranslucencySetting || shouldShow('pwaInstallName') || shouldShow('pwaOrientation') || shouldShow('timeFormat') || shouldShow('weekStart'));
     const hasLayoutSettings = shouldShow('fontSize') || shouldShow('terminalFontSize') || shouldShow('editorFontSize') || shouldShow('spacing') || (shouldShow('scrollbars') && !hasThemeSettings) || (shouldShow('inputBarOffset') && isMobile);
     const showPwaInstallNameSetting = shouldShow('pwaInstallName') && isWebRuntime() && browserTab && !isDesktopShell() && !isVSCode;
     const showPwaOrientationSetting = shouldShow('pwaOrientation') && isWebRuntime() && !isDesktopShell() && !isVSCode;
@@ -419,6 +439,42 @@ export const OpenChamberVisualSettings: React.FC<OpenChamberVisualSettingsProps>
                                         />
                                     </SettingsStackedField>
                                 </SettingsTwoColumn>
+                            </SettingsSection>
+                        )}
+
+                        {showSidebarTranslucencySetting && (
+                            <SettingsSection
+                                title={t('settings.openchamber.visual.section.sidebar')}
+                                divider={hasThemeSettings || showWindowControlsPositionSetting}
+                            >
+                                <SettingsCheckboxRow
+                                    checked={desktopSidebarTranslucent}
+                                    onChange={handleSidebarTranslucentChange}
+                                    label={t('settings.openchamber.visual.field.sidebarTranslucent')}
+                                    info={t('settings.openchamber.visual.field.sidebarTranslucentHint')}
+                                    settingsItem="appearance.sidebar-translucent"
+                                />
+                                {/* Always drawn, dimmed while the switch is off: showing it
+                                    on demand would move the page under the pointer. */}
+                                <SettingsFieldRow
+                                    label={t('settings.openchamber.visual.field.sidebarOpacity')}
+                                    settingsItem="appearance.sidebar-opacity"
+                                >
+                                    <div className="flex h-8 items-center gap-2">
+                                        <input
+                                            type="range"
+                                            min={DESKTOP_SIDEBAR_OPACITY_MIN}
+                                            max={DESKTOP_SIDEBAR_OPACITY_MAX}
+                                            step={5}
+                                            value={desktopSidebarOpacity}
+                                            disabled={!desktopSidebarTranslucent}
+                                            onChange={(event) => handleSidebarOpacityChange(Number(event.target.value))}
+                                            className={SIDEBAR_OPACITY_SLIDER_CLASS}
+                                            aria-label={t('settings.openchamber.visual.field.sidebarOpacity')}
+                                        />
+                                        <span className="typography-ui-label w-12 shrink-0 text-end tabular-nums text-muted-foreground">{`${desktopSidebarOpacity}%`}</span>
+                                    </div>
+                                </SettingsFieldRow>
                             </SettingsSection>
                         )}
 

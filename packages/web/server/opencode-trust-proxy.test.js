@@ -27,8 +27,8 @@ describe('OpenCode proxy folder trust', () => {
   beforeEach(async () => {
     root = await realpath(await mkdtemp(path.join(os.tmpdir(), 'opencode-trust-proxy-')));
     repo = path.join(root, 'repo');
-    await mkdir(path.join(repo, '.opencode', 'plugins'), { recursive: true });
-    await writeFile(path.join(repo, '.opencode', 'plugins', 'probe.js'), 'export default {}');
+    await mkdir(path.join(repo, '.pi', 'extensions'), { recursive: true });
+    await writeFile(path.join(repo, '.pi', 'extensions', 'probe.js'), 'export default () => {}');
     plain = path.join(root, 'plain');
     await mkdir(path.join(plain, 'sub'), { recursive: true });
     upstreamHits = [];
@@ -84,7 +84,7 @@ describe('OpenCode proxy folder trust', () => {
     expect(upstreamHits).toEqual([]);
 
     const shown = await (await fetch(`${base}/api/opencode/trust?directory=${encodeURIComponent(repo)}`)).json();
-    expect(shown).toMatchObject({ trusted: false, items: [{ kind: 'plugin', source: '.opencode/plugins/probe.js' }] });
+    expect(shown).toMatchObject({ trusted: false, items: [{ kind: 'plugin', source: '.pi/extensions/probe.js' }] });
     const answered = await fetch(`${base}/api/opencode/trust`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },

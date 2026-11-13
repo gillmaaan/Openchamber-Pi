@@ -1,5 +1,3 @@
-import { installOpenCodeV2, supportsOpenCodeV2Install } from './lib/opencode/v2-install.js';
-import { describeOpenCodeCompatibility, readOpenCodeCliVersion, readExternalOpenCodeVersion } from './lib/opencode/compatibility.js';
 import 'reflect-metadata';
 import express from 'express';
 import { buildRestartNotification } from './lib/opencode/restart-notification.js';
@@ -81,13 +79,12 @@ import { createServerUtilsRuntime } from './lib/opencode/server-utils-runtime.js
 import { createMcpOAuthSignIn } from './lib/opencode/mcp-oauth.js';
 import { getMcpConfig, listMcpConfigs, updateMcpConfig } from './lib/opencode/mcp.js';
 import { createOpenCodeTrust } from './lib/opencode-trust/index.js';
+import { approvalFlagFor } from './lib/opencode-trust/approval.js';
 import { registerSessionProjectRoutes } from './lib/projects/session-directory.js';
 import { guardOpenCodeFetch } from './lib/opencode-trust/fetch-guard.js';
 import { createStaticRoutesRuntime } from './lib/opencode/static-routes-runtime.js';
 import { createSettingsRuntime } from './lib/opencode/settings-runtime.js';
-import { createOpenCodeResolutionRuntime } from './lib/opencode/opencode-resolution-runtime.js';
-import { runOpenCodeCliUpgrade } from './lib/opencode/cli-upgrade.js';
-import { resolveOpenCodeUpgradeCapability } from './lib/opencode/upgrade-capability.js';
+import { readPiVersion } from './lib/pi/launch.js';
 import { createBootstrapRuntime } from './lib/opencode/bootstrap-runtime.js';
 import { createSessionRuntime } from './lib/opencode/session-runtime.js';
 import { configureOpenCodeRuntimeProviders, resetOpenCodeRuntimeProviders } from './lib/small-model/client.js';
@@ -182,7 +179,14 @@ import { createBrowserControlRouter } from './lib/browser-control/provider.js';
 import { createDevServerScanner } from './lib/dev-servers/routes.js';
 import { createDevTunnelRuntime } from './lib/dev-tunnel/runtime.js';
 import { registerBrowserControlRoutes } from './lib/browser-control/routes.js';
-import { createManagedConfigRuntime } from './lib/opencode/managed-config-file.js';
+import { createPiBridge } from './lib/pi/bridge/index.js';
+import { createManagedPiRuntime } from './lib/pi/managed-runtime.js';
+import { createPiPackages } from './lib/pi/packages.js';
+import { createAgentStore } from './lib/pi/config-routes/agents.js';
+import { createCommandStore } from './lib/pi/config-routes/commands.js';
+import { createMcpStatusCache, createMcpStatusProvider, createMcpStore } from './lib/pi/config-routes/mcp.js';
+import { createCompactionSettings, createWebSearchChoiceStore } from './lib/pi/config-routes/settings.js';
+import { createSkillStore } from './lib/pi/config-routes/skills.js';
 import { openCodePluginDelivery } from './lib/guests/opencode-plugin.js';
 import { createLimitFailoverRuntime } from './lib/limit-failover/runtime.js';
 import { prepareInstanceDir } from './lib/opencode/instance-dir.js';
@@ -347,7 +351,6 @@ const normalizeManagedRemoteTunnelPresets = (...args) =>
   settingsNormalizationRuntime.normalizeManagedRemoteTunnelPresets(...args);
 const normalizeManagedRemoteTunnelPresetTokens = (...args) =>
   settingsNormalizationRuntime.normalizeManagedRemoteTunnelPresetTokens(...args);
-const isUnsafeSkillRelativePath = (...args) => settingsNormalizationRuntime.isUnsafeSkillRelativePath(...args);
 const normalizeStringArray = (...args) => settingsNormalizationRuntime.normalizeStringArray(...args);
 const sanitizeModelRefs = (...args) => settingsNormalizationRuntime.sanitizeModelRefs(...args);
 const sanitizeSkillCatalogs = (...args) => settingsNormalizationRuntime.sanitizeSkillCatalogs(...args);
@@ -388,7 +391,51 @@ const deleteImportedTheme = (...args) => themeRuntime.deleteImportedTheme(...arg
 let notificationTemplateRuntime = null;
 let agentToolRuntime = null;
 let limitFailoverRuntime = null;
-let managedConfigRuntime = null;
+let managedPiRuntime = null;
+let piBridge = null;
+
+const resolvePiAgentDir = () => process.env.PI_CODING_AGENT_DIR?.trim() || path.join(os.homedir(), '.pi', 'agent');
+
+/** Settings that shape a Pi process changed: rewrite the extension files and replace idle processes. */
+const refreshManagedPi = async () => {
+  await managedPiRuntime?.refresh();
+  await piBridge?.invalidateIdle();
+};
+
+/**
+ * Starts the Pi bridge where the lifecycle used to start `opencode serve`: an
+ * in-process listener on loopback, answered with the managed password.
+ */
+const createPiBridgeProcess = async ({ hostname, port, password, env }) => {
+  const bridge = await createPiBridge({
+    password,
+    dataDir: OPENCHAMBER_DATA_DIR,
+    agentDir: resolvePiAgentDir(),
+    getBaseEnv: () => env,
+    getDefaultDirectory: () => openCodeLifecycleRuntime.getDefaultOpenCodeDirectory(),
+    // A Pi child gets `--approve` only for a folder that runs nothing or whose configuration the user trusted.
+    isTrusted: async (directory) => (await approvalFlagFor(directory, openCodeTrust)) === '--approve',
+    managed: managedPiRuntime ?? undefined,
+    packages: piPackages,
+    agentStore: piAgentStore,
+    getMcpStatus: createMcpStatusProvider(piMcpStatusCache),
+    readSettings: () => readSettingsFromDiskMigrated(),
+    hostname,
+    port,
+  });
+  piBridge = bridge;
+  return {
+    url: bridge.url,
+    pid: null,
+    exitCode: null,
+    signalCode: null,
+    stderrTail: '',
+    close: async () => {
+      if (piBridge === bridge) piBridge = null;
+      await bridge.close();
+    },
+  };
+};
 let stopEnterprisePolicyWatch = () => {};
 
 const createTimeoutSignal = (...args) => notificationTemplateRuntime.createTimeoutSignal(...args);
@@ -412,11 +459,6 @@ const PUSH_SUBSCRIPTIONS_FILE_PATH = path.join(OPENCHAMBER_DATA_DIR, 'push-subsc
 const APNS_TOKENS_FILE_PATH = path.join(OPENCHAMBER_DATA_DIR, 'apns-tokens.json');
 const openCodeTrust = createOpenCodeTrust({
   storePath: path.join(OPENCHAMBER_DATA_DIR, 'opencode-trust.json'),
-  // Declared further down; first read on the first check, after startup.
-  listKnownDirectories: async () => {
-    const settings = await readSettingsFromDiskMigrated();
-    return sanitizeProjects(settings?.projects || []).map((project) => project.path);
-  },
 });
 // Server features reach OpenCode through clients of their own, with folders
 // the UI hands them. Every such request passes the same trust check as the
@@ -510,7 +552,7 @@ const settingsRuntime = createSettingsRuntime({
   syncManagedRemoteTunnelConfigWithPresets,
   upsertManagedRemoteTunnelToken,
   chatRoots: [path.join(OPENCHAMBER_USER_CONFIG_ROOT, 'chats'), OPENCHAMBER_CHATS_DIR],
-  onManagedPluginSettingsChanged: () => managedConfigRuntime?.refreshManagedConfigFile(),
+  onManagedPluginSettingsChanged: () => refreshManagedPi(),
   // Declared further down; settings are only saved once the server serves requests.
   onMessageSearchEnabledChanged: (enabled) => messageSearchRuntime.setEnabled(enabled),
   onMessageSearchReasoningChanged: (enabled) => messageSearchRuntime.setReasoningEnabled(enabled),
@@ -869,8 +911,9 @@ const {
   logger: console,
 });
 
-const ENV_SKIP_OPENCODE_START = process.env.OPENCODE_SKIP_START === 'true' ||
-                                    process.env.OPENCHAMBER_SKIP_OPENCODE_START === 'true';
+// The agent service is always OpenChamber's own in-process Pi bridge: there is
+// no external server to attach to and nothing to skip starting.
+const ENV_SKIP_OPENCODE_START = false;
 const ENV_DESKTOP_NOTIFY = (() => {
   if (process.env.OPENCHAMBER_DESKTOP_NOTIFY === 'true') {
     return true;
@@ -985,29 +1028,6 @@ const searchPathFor = (...args) => openCodeEnvRuntime.searchPathFor(...args);
 const resolveGitBinaryForSpawn = (...args) => openCodeEnvRuntime.resolveGitBinaryForSpawn(...args);
 const resolveManagedOpenCodeLaunchSpec = (...args) => openCodeEnvRuntime.resolveManagedOpenCodeLaunchSpec(...args);
 const clearResolvedOpenCodeBinary = (...args) => openCodeEnvRuntime.clearResolvedOpenCodeBinary(...args);
-const openCodeResolutionRuntime = createOpenCodeResolutionRuntime({
-  path,
-  resolveOpencodeCliPath,
-  applyOpencodeBinaryFromSettings,
-  ensureOpencodeCliEnv,
-  resolveManagedOpenCodeLaunchSpec,
-  getResolvedState: () => ({
-    resolvedOpencodeBinary,
-    resolvedOpencodeBinarySource,
-    useWslForOpencode,
-    resolvedWslBinary,
-    resolvedWslOpencodePath,
-    resolvedWslDistro,
-    resolvedNodeBinary,
-    resolvedBunBinary,
-  }),
-  setResolvedOpencodeBinarySource: (value) => {
-    resolvedOpencodeBinarySource = value;
-  },
-});
-const getOpenCodeResolutionSnapshot = (...args) =>
-  openCodeResolutionRuntime.getOpenCodeResolutionSnapshot(...args);
-
 applyLoginShellEnvSnapshot();
 
 notificationTemplateRuntime = createNotificationTemplateRuntime({
@@ -1699,7 +1719,68 @@ const clientPairingRuntime = createClientPairingRuntime({
   storePath: CLIENT_PAIRING_SESSIONS_FILE_PATH,
   remoteClientAuthRuntime,
 });
+// Pi packages and extensions, installed and removed through Pi's own CLI. A
+// project-scope change runs only for a folder OpenChamber's trust gate approved.
+const piPackages = createPiPackages({
+  getAgentDir: () => resolvePiAgentDir(),
+  isTrusted: async (directory) => (await approvalFlagFor(directory, openCodeTrust)) === '--approve',
+});
+const piAgentStore = createAgentStore({
+  getAgentDir: resolvePiAgentDir,
+  isProjectTrusted: async (directory) => (await approvalFlagFor(directory, openCodeTrust)) === '--approve',
+});
+const piCommandStore = createCommandStore({
+  getAgentDir: resolvePiAgentDir,
+  isProjectTrusted: async (directory) => (await approvalFlagFor(directory, openCodeTrust)) === '--approve',
+});
+// `pi mcp list` connects every enabled server, so its answer is cached per
+// folder and dropped when a server is edited. A change stops idle children so
+// the next prompt starts with the servers Pi now knows.
+const piMcpStatusCache = createMcpStatusCache({
+  getBaseEnv: () => ({ ...process.env, PI_CODING_AGENT_DIR: resolvePiAgentDir() }),
+});
+const piMcpStore = createMcpStore({
+  getAgentDir: resolvePiAgentDir,
+  isProjectTrusted: async (directory) => (await approvalFlagFor(directory, openCodeTrust)) === '--approve',
+  onChanged: ({ directory }) => {
+    piMcpStatusCache.invalidate(directory);
+    void piBridge?.invalidateIdle();
+  },
+});
+// Skills are Pi's own folders; an edit stops idle children so the next prompt
+// starts with what Pi now loads.
+const piSkillStore = createSkillStore({
+  getAgentDir: resolvePiAgentDir,
+  isProjectTrusted: async (directory) => (await approvalFlagFor(directory, openCodeTrust)) === '--approve',
+  onChanged: () => { void piBridge?.invalidateIdle(); },
+});
+const piCompactionSettings = createCompactionSettings({ getAgentDir: resolvePiAgentDir });
+const piWebSearchChoice = createWebSearchChoiceStore({ filePath: path.join(OPENCHAMBER_DATA_DIR, 'pi', 'websearch.json') });
 const featureRoutesRuntime = createFeatureRoutesRuntime({
+  piPackages,
+  piAgentStore,
+  onPiAgentsChanged: () => piBridge?.invalidateIdle(),
+  piCommandStore,
+  onPiCommandsChanged: () => piBridge?.invalidateIdle(),
+  piMcpStore,
+  piMcpStatusCache,
+  piSkillStore,
+  onPiSkillsChanged: () => { void piBridge?.invalidateIdle(); },
+  piCompactionSettings,
+  piWebSearchChoice,
+  // The recommended web-search package is Pi's own install; ask the inventory.
+  isPiWebAccessPackageInstalled: async () => {
+    try {
+      const { packages } = await piPackages.list({ directory: null });
+      return packages.some((entry) => `${entry.id ?? ''} ${entry.source ?? ''}`.includes('pi-web-access'));
+    } catch {
+      return false;
+    }
+  },
+  piAgentDir: resolvePiAgentDir,
+  getPiProviders: () => piBridge?.providers ?? null,
+  // Running processes keep what they loaded: stop the idle ones so the next prompt starts with the change.
+  onPiPackagesChanged: () => { void piBridge?.invalidateIdle(); },
   clientReloadDelayMs: CLIENT_RELOAD_DELAY_MS,
   trackers: trackerRegistry,
   trackerSessionStatus,
@@ -1708,9 +1789,9 @@ const featureRoutesRuntime = createFeatureRoutesRuntime({
   // Declared below. A user who sets OPENCODE_CONFIG owns that file, so the
   // managed runtime answers `updated: false` and the switch needs a restart.
   refreshPluginSwitches: async () => (
-    managedConfigRuntime
-      ? managedConfigRuntime.refreshManagedConfigFile()
-      : { updated: false, reason: 'no-managed-opencode' }
+    managedPiRuntime
+      ? refreshManagedPi().then(() => ({ updated: true }))
+      : { updated: false, reason: 'no-managed-agent' }
   ),
 });
 const bootstrapRuntime = createBootstrapRuntime({
@@ -1806,15 +1887,11 @@ const openCodeLifecycleRuntime = createOpenCodeLifecycleRuntime({
   buildOpenCodeUrl,
   waitForReady,
   normalizeApiPrefix,
-  applyOpencodeBinaryFromSettings,
-  ensureOpencodeCliEnv,
   ensureLocalOpenCodeServerPassword,
-  resolveManagedOpenCodeLaunchSpec,
   setOpenCodePort,
   setDetectedOpenCodeApiPrefix,
   setupProxy: (...args) => setupProxy(...args),
   ensureOpenCodeApiPrefix,
-  clearResolvedOpenCodeBinary,
   buildAugmentedPath,
   buildManagedOpenCodePath,
   getManagedOpenCodeShellEnvSnapshot: getLoginShellEnvSnapshot,
@@ -1850,9 +1927,8 @@ const openCodeLifecycleRuntime = createOpenCodeLifecycleRuntime({
     return existing.filter(Boolean);
   },
   noProjectDirectory: OPENCHAMBER_CHATS_DIR,
-  // A managed restart can move OpenCode to a NEW port (the old one may stay
-  // occupied if killProcessOnPort/waitForPortRelease didn't free it in time,
-  // on any platform). Rebind the message-stream upstream readers to the current port
+  // A restart moves the agent service to a new port. Rebind the
+  // message-stream upstream readers to the current port
   // so the UI keeps receiving events instead of staying pinned to the old
   // process (#2638). The runtime is created later by the startup pipeline;
   // by the time any restart runs, it is assigned.
@@ -1873,7 +1949,14 @@ const openCodeLifecycleRuntime = createOpenCodeLifecycleRuntime({
       console.warn('Failed to reconcile sessions after OpenCode restart:', error?.message ?? error);
     }
   },
-  getManagedOpenCodeEnv: async () => (managedConfigRuntime ? managedConfigRuntime.buildManagedChildEnv() : {}),
+  getManagedOpenCodeEnv: async () => {
+    if (!managedPiRuntime) return {};
+    await managedPiRuntime.refresh();
+    // The callback address and per-start token every managed tool uses.
+    return agentToolRuntime ? agentToolRuntime.createChildEnv() : {};
+  },
+  createServerProcess: createPiBridgeProcess,
+  refreshAgentConfig: async () => { await piBridge?.refreshConfig(); },
   getUserEnvironment: () => environmentRuntime.forOpenCode(),
 });
 
@@ -1889,32 +1972,40 @@ configureOpenCodeCredentials(openCodeCredentialSource({
 // A new worktree runs the start command OpenCode keeps on the project record.
 configureProjectStartCommandSource(openCodeProjectStartCommandSource({ buildOpenCodeUrl, getOpenCodeAuthHeaders }));
 
+// The agent is the Pi package OpenChamber ships with: there is no binary to
+// find, install or upgrade. These answer the routes the Settings page and the
+// startup check read, so they report what is true.
 const getOpenCodeCompatibility = async () => {
-  if (isExternalOpenCode || ENV_SKIP_OPENCODE_START) {
-    const base = ENV_CONFIGURED_OPENCODE_HOST?.origin || openCodeBaseUrl || `http://127.0.0.1:${openCodePort || ENV_EFFECTIVE_PORT}`;
-    const version = await readExternalOpenCodeVersion(base, getOpenCodeAuthHeaders()).catch(() => null);
-    return describeOpenCodeCompatibility(version, 'external', false);
-  }
-  const binary = ensureOpencodeCliEnv();
-  const installation = isBundledOpenCodeCliPath(binary) ? 'bundled' : 'managed';
-  const version = await readOpenCodeCliVersion(resolveManagedOpenCodeLaunchSpec(binary)).catch(() => null);
-  // A CLI pinned by the administrator is theirs to replace, never ours.
-  const pinnedByPolicy = Boolean(readEnterprisePolicy().opencodeBinary);
-  return describeOpenCodeCompatibility(version, installation, supportsOpenCodeV2Install() && !pinnedByPolicy, binary || null);
+  const version = readPiVersion();
+  return {
+    state: version === null ? 'unavailable' : 'compatible',
+    version,
+    installation: 'bundled',
+    binary: null,
+    minimumVersion: version,
+    canInstall: false,
+  };
 };
 
-const getOpenCodeUpgradeCapability = () => {
-  const activeBinary = lastOpenCodeLaunchDiagnostics?.sourceBinary
-    || lastOpenCodeLaunchDiagnostics?.binary
-    || resolvedOpencodeBinary;
-  return resolveOpenCodeUpgradeCapability({
-    isExternal: isExternalOpenCode,
-    hasManagedProcess: Boolean(openCodeProcess),
-    activeBinary,
-    isBundledBinary: isBundledOpenCodeCliPath,
-    pinnedByPolicy: Boolean(readEnterprisePolicy().opencodeBinary),
-  });
-};
+const getOpenCodeUpgradeCapability = () => ({ supported: false, manager: 'openchamber', reason: 'bundled' });
+
+const getOpenCodeResolutionSnapshot = async (settings) => ({
+  configured: typeof settings?.opencodeBinary === 'string' ? settings.opencodeBinary : null,
+  resolved: null,
+  resolvedDir: null,
+  source: 'bundled',
+  detectedNow: null,
+  detectedSourceNow: null,
+  launchBinary: null,
+  launchArgs: [],
+  launchWrapperType: null,
+  viaWsl: false,
+  wslBinary: null,
+  wslPath: null,
+  wslDistro: null,
+  node: resolvedNodeBinary || null,
+  bun: resolvedBunBinary || null,
+});
 
 const restartOpenCode = (...args) => openCodeLifecycleRuntime.restartOpenCode(...args);
 const waitForOpenCodeReady = (...args) => openCodeLifecycleRuntime.waitForOpenCodeReady(...args);
@@ -2349,8 +2440,6 @@ const finishOpenCodeBootstrap = () => {
     .then(() => openChamberSessionService.sessionArchive.migrateLegacy())
     .catch((error) => console.warn('[openchamber-sessions] session archive migration failed:', error?.message ?? error));
 };
-const killProcessOnPort = (...args) => openCodeLifecycleRuntime.killProcessOnPort(...args);
-const waitForPortRelease = (...args) => openCodeLifecycleRuntime.waitForPortRelease(...args);
 
 const setupProxy = (...args) => serverUtilsRuntime.setupProxy(...args);
 const gracefulShutdownRuntime = createGracefulShutdownRuntime({
@@ -2392,8 +2481,6 @@ const gracefulShutdownRuntime = createGracefulShutdownRuntime({
   setOpenCodeProcess: (value) => {
     openCodeProcess = value;
   },
-  killProcessOnPort,
-  waitForPortRelease,
   getServer: () => server,
   getUiAuthController: () => uiAuthController,
   setUiAuthController: (value) => {
@@ -2459,25 +2546,19 @@ async function main(options = {}) {
     authorizeRequest: (req) => agentToolRuntime.authorizeRequest(req),
     broadcastUiEvent: (event) => broadcastOpenChamberUiEvent(event),
   });
-  managedConfigRuntime = createManagedConfigRuntime({
+  managedPiRuntime = createManagedPiRuntime({
     fsPromises,
     path,
     instanceDir,
-    env: process.env,
-    agentToolRuntime,
-    limitFailoverRuntime,
     readSettings: () => readSettingsFromDiskMigrated(),
-    listExtensionSkillDirectories: guestAgentContext.skillDirectories,
-    listExtensionPluginDirectories: guestAgentContext.pluginDirectories,
-    openchamberVersion: OPENCHAMBER_VERSION,
-    readPluginDenials: () => pluginSwitchStore.denials(),
+    gateSourcePath: fileURLToPath(new URL('./lib/pi/extension/gui-gate.js', import.meta.url)),
   });
   // A policy that changes while the app runs: the managed file lists what the
   // catalog now refuses until it is rewritten, and every card re-reads the catalog.
   stopEnterprisePolicyWatch = watchEnterprisePolicy({
     onChange: () => {
-      managedConfigRuntime.refreshManagedConfigFile().catch((error) => {
-        console.warn('Failed to rewrite the managed OpenCode config after a policy change:', error?.message ?? error);
+      refreshManagedPi().catch((error) => {
+        console.warn('Failed to rewrite the managed agent extensions after a policy change:', error?.message ?? error);
       });
       broadcastOpenChamberUiEvent({ type: 'openchamber:guests-changed' });
     },
@@ -2784,9 +2865,7 @@ async function main(options = {}) {
     gracefulShutdown,
     readOpenCodeLoad: () => readOpenCodeLoad({ buildOpenCodeUrl, getOpenCodeAuthHeaders }),
     getHealthSnapshot: () => {
-      const launchSpec = resolvedOpencodeBinary && !useWslForOpencode
-        ? resolveManagedOpenCodeLaunchSpec(resolvedOpencodeBinary)
-        : null;
+      const launchSpec = null;
       return {
         openCodePort,
         openCodeRunning: Boolean(openCodePort && isOpenCodeReady && !isRestartingOpenCode),
@@ -3054,14 +3133,14 @@ async function main(options = {}) {
       await Promise.all([
         extensionSessionEvents.reconcile(),
         extensionServiceLifetime.reconcile(),
-        managedConfigRuntime?.refreshManagedConfigFile(),
+        managedPiRuntime ? refreshManagedPi() : undefined,
       ]);
     },
     // Lifecycle state that exists before OpenCode is up: the mode is the server's environment, not a probe.
     getOpenCodePluginDelivery: () => openCodePluginDelivery({
       external: isExternalOpenCode || ENV_SKIP_OPENCODE_START,
       origin: ENV_CONFIGURED_OPENCODE_HOST?.origin || openCodeBaseUrl || null,
-      ownsConfigFile: managedConfigRuntime?.ownsConfigFile() ?? true,
+      ownsConfigFile: true,
     }),
     extensionNotificationChannels,
     surfaceViewerHeaders: (guestId, viewerId) => guestSurfaceRuntime?.viewerHeaders(guestId, viewerId) ?? null,
@@ -3080,26 +3159,8 @@ async function main(options = {}) {
     getOpenCodeResolutionSnapshot,
     getOpenCodeUpgradeCapability,
     getOpenCodeCompatibility,
-    installOpenCodeV2: async () => {
-      const binary = await installOpenCodeV2({
-        env: { ...getLoginShellEnvSnapshot(), ...process.env, PATH: buildManagedOpenCodePath() },
-      });
-      await persistSettings({ opencodeBinary: binary });
-      await refreshOpenCodeAfterConfigChange('OpenCode v2 installation');
-      await waitForOpenCodeReady();
-    },
-    upgradeOpenCodeCli: () => {
-      const launch = resolveManagedOpenCodeLaunchSpec(lastOpenCodeLaunchDiagnostics?.sourceBinary || resolvedOpencodeBinary);
-      const upgrade = () => runOpenCodeCliUpgrade(launch, {
-        env: { ...getLoginShellEnvSnapshot(), ...process.env, PATH: buildManagedOpenCodePath() },
-        cwd: os.homedir(),
-      });
-      // Windows cannot replace an executable that is running. npm then leaves
-      // the package without opencode.exe, and the next start fails. The server
-      // stops for the install and comes back on the new version.
-      if (process.platform !== 'win32') return upgrade();
-      return restartOpenCode('opencode-upgrade', { whileStopped: upgrade });
-    },
+    installOpenCodeV2: async () => { throw new Error('The agent ships with OpenChamber and cannot be installed separately.'); },
+    upgradeOpenCodeCli: async () => { throw new Error('The agent updates with OpenChamber.'); },
     formatSettingsResponse,
     readSettingsFromDisk,
     readSettingsFromDiskMigrated,
@@ -3107,7 +3168,6 @@ async function main(options = {}) {
     persistResolvedSettings: (...args) => settingsRuntime.persistResolvedSettings(...args),
     sanitizeProjects,
     sanitizeSkillCatalogs,
-    isUnsafeSkillRelativePath,
     buildOpenCodeUrl,
     getOpenCodeAuthHeaders,
     getOpenCodePort: () => openCodePort,
@@ -3271,7 +3331,9 @@ async function main(options = {}) {
       scheduledTasks: scheduledTasksRuntime.getStatus(),
     }),
     isReady: () => isOpenCodeReady,
-    getManagedOpenCodePreflight: () => openCodeLifecycleRuntime.getManagedOpenCodePreflight(),
+    // The agent is Pi, bundled with OpenChamber: the embedded server needs no
+    // CLI preflight of its own, and an external server never gets this handle.
+    getManagedOpenCodePreflight: async () => true,
     restartOpenCode: () => restartOpenCode(),
     getOpenCodeProcessInfo: () => {
       const managed = Boolean((openCodeProcess || openCodePort) && !ENV_SKIP_OPENCODE_START && !isExternalOpenCode);

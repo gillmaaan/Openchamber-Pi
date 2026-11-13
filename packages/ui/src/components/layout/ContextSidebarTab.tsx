@@ -26,6 +26,7 @@ import { ContextPanelHeaderToolbar } from './contextPanelHeaderSlot';
 import { useInContextPanelHeader } from './contextPanelHeaderSlotContext';
 import { toolContentShellChars } from '@/lib/opencode/toolContentShells';
 import { composeContextBreakdown, type ContextBuckets } from './contextBreakdown';
+import { ContextCompositionSection } from './ContextCompositionSection';
 import { computeSessionTokenTotals } from '@/components/chat/work-status/contextUsage';
 
 type SessionMessage = { info: Message; parts: Part[] };
@@ -711,6 +712,11 @@ export const ContextPanelContent: React.FC = () => {
             })}
           </div>
         </div>
+
+        {/* ── What the agent sends before the conversation ── */}
+        {currentSessionId ? (
+          <ContextCompositionSection sessionId={currentSessionId} contextLimit={viewModel.contextLimit || null} />
+        ) : null}
 
         {/* ── Raw messages ── */}
         <div>

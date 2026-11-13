@@ -22,6 +22,7 @@ import { SettingsChipGroup } from '@/components/sections/shared/SettingsSection'
 import { useI18n, type I18nKey } from '@/lib/i18n';
 import { updateDesktopSettings } from '@/lib/persistence';
 import { projectPathFromId } from '@/lib/projectId';
+import { arrangeSidebarNav, reorderSidebarNav, type SidebarMode } from '@/lib/sidebarNav';
 import {
   createSidebarSectionFromTemplate,
   DEFAULT_PIN_LIST,
@@ -50,6 +51,8 @@ import { useUIStore } from '@/stores/useUIStore';
 import { useProjectsInSidebarOrder } from '../list/useProjectsInSidebarOrder';
 import { keepRowInList, ROW_DRAG_AUTO_SCROLL, ROW_SORT_TRANSITION, useRowDragSensors } from '../rowDrag';
 import { ScrollableOverlay } from '@/components/ui/ScrollableOverlay';
+import { SidebarModeSwitch } from '../shell/SidebarModeSwitch';
+import type { SidebarPage } from '../shell/useSidebarPages';
 import {
   canAddSidebarSection,
   closeSectionsManager,
@@ -121,11 +124,20 @@ const toggleIn = <T extends string>(list: readonly T[], value: T): T[] => (
 );
 
 /**
- * The sidebar's sections in the order the user arranges them, with their
- * visibility on this surface, and the editor of one section. It opens beside
- * the sidebar, so the section being edited shows in the list as it stands.
+ * What the sidebar shows, as this device arranges it: the menu rows of each
+ * mode, and the sections of the Code list with their visibility on this
+ * surface, and the editor of one section. It opens beside the sidebar, so the
+ * section being edited shows in the list as it stands.
  */
-export const SidebarSectionsManager: React.FC<{ anchor: React.RefObject<HTMLElement | null> }> = ({ anchor }) => {
+export const SidebarSectionsManager: React.FC<{
+  anchor: React.RefObject<HTMLElement | null>;
+  /** Every page the sidebar can open, as a row or under More. */
+  pages: readonly SidebarPage[];
+  /** The mode the sidebar is in, which the manager starts on. */
+  sidebarMode: SidebarMode;
+  /** Chat is offered only while the Chats section is on. */
+  showModeSwitch: boolean;
+}> = ({ anchor, pages, sidebarMode, showModeSwitch }) => {
   const { t } = useI18n();
   const open = useSidebarSectionsUiStore((state) => state.managerOpen);
   const draft = useSidebarSectionsUiStore((state) => state.draft);
@@ -148,13 +160,13 @@ export const SidebarSectionsManager: React.FC<{ anchor: React.RefObject<HTMLElem
       <Popover.Portal>
         <Popover.Positioner anchor={anchor} side="inline-end" align="start" sideOffset={8} collisionPadding={8} className="z-50">
           <Popover.Popup
-            aria-label={t('sessions.sidebar.sections.title')}
+            aria-label={t('sessions.sidebar.customize.title')}
             // Opaque, with the floating light: the menus it opens are glass, and a
             // glass surface under them would keep them from blurring what is behind.
             className={cn(SECTIONS_PANEL_CLASS, 'flex max-h-[min(40rem,calc(100vh-4rem))] w-[22rem] max-w-[calc(100vw-2rem)] flex-col overflow-hidden')}
             initialFocus={false}
           >
-            {draft ? <SectionEditor key={draft.id} draft={draft} /> : <SectionList />}
+            {draft ? <SectionEditor key={draft.id} draft={draft} /> : <SectionList pages={pages} sidebarMode={sidebarMode} showModeSwitch={showModeSwitch} />}
           </Popover.Popup>
         </Popover.Positioner>
       </Popover.Portal>
@@ -164,8 +176,10 @@ export const SidebarSectionsManager: React.FC<{ anchor: React.RefObject<HTMLElem
 
 const SECTION_PRESETS = ['waiting', 'running', 'prs', 'stalled', 'today'] as const satisfies readonly SidebarSectionTemplate[];
 
-const SectionList: React.FC = () => {
+const SectionList: React.FC<{ pages: readonly SidebarPage[]; sidebarMode: SidebarMode; showModeSwitch: boolean }> = ({ pages, sidebarMode, showModeSwitch }) => {
   const { t } = useI18n();
+  // The mode being arranged; the manager starts on the one the sidebar is in.
+  const [editedMode, setEditedMode] = React.useState<SidebarMode>(sidebarMode);
   const sections = useSessionDisplayStore((state) => state.sections);
   const pinLists = useSessionDisplayStore((state) => state.pinLists);
   const sensors = useRowDragSensors();
@@ -179,6 +193,12 @@ const SectionList: React.FC = () => {
   };
   return (
     <ScrollableOverlay outerClassName="min-h-0" className="flex flex-col gap-3 p-3" disableHorizontal>
+      <div className="flex items-center justify-between gap-2">
+        <span className="typography-ui-label font-medium text-foreground">{t('sessions.sidebar.customize.title')}</span>
+        {showModeSwitch ? <SidebarModeSwitch mode={editedMode} onChange={setEditedMode} /> : null}
+      </div>
+      <NavRowsEditor mode={editedMode} pages={pages} />
+      {editedMode === 'code' ? <>
       <div className="flex items-center justify-between gap-2">
         <span className="typography-ui-label font-medium text-foreground">{t('sessions.sidebar.sections.title')}</span>
         {/* A new section starts from a preset: the common ones by name, a group
@@ -229,11 +249,71 @@ const SectionList: React.FC = () => {
           ))}
         </div>
       ) : null}
+      </> : null}
     </ScrollableOverlay>
   );
 };
 
 const SECTION_LIST_MODIFIERS = [keepRowInList];
+
+/**
+ * The pages of one mode: the ones shown as a row in the order they are shown,
+ * then the ones left under More. A switch moves a page between the two, and the
+ * rows drag anywhere but their switch, as the sections do.
+ */
+const NavRowsEditor: React.FC<{ mode: SidebarMode; pages: readonly SidebarPage[] }> = ({ mode, pages }) => {
+  const { t } = useI18n();
+  const stored = useSessionDisplayStore((state) => state.sidebarNav[mode]);
+  const sensors = useRowDragSensors();
+  const { rows, more } = arrangeSidebarNav(pages, stored);
+  const order = [...rows, ...more];
+  const shownIds = new Set(rows.map((page) => page.id));
+  const onDragEnd = (event: DragEndEvent): void => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const known = new Set(pages.map((page) => page.id));
+    const arranged = reorderSidebarNav(rows.map((page) => page.id), order.map((page) => page.id), String(active.id), String(over.id));
+    // A page that is gone for now (an extension turned off) keeps its place in the saved rows.
+    useSessionDisplayStore.getState().setSidebarNavRows(mode, [...arranged, ...stored.filter((id) => !known.has(id))]);
+  };
+  return (
+    <div className="flex flex-col gap-1">
+      <span className="typography-micro text-muted-foreground">{t('sessions.sidebar.customize.rows')}</span>
+      <DndContext sensors={sensors} collisionDetection={closestCenter} modifiers={SECTION_LIST_MODIFIERS} autoScroll={ROW_DRAG_AUTO_SCROLL} onDragEnd={onDragEnd}>
+        <SortableContext items={order.map((page) => page.id)} strategy={verticalListSortingStrategy}>
+          <div className="flex flex-col gap-0.5">
+            {order.map((page) => <NavRowItem key={page.id} page={page} mode={mode} shown={shownIds.has(page.id)} />)}
+          </div>
+        </SortableContext>
+      </DndContext>
+      <p className="typography-micro text-muted-foreground">{t('sessions.sidebar.customize.rowsHint')}</p>
+    </div>
+  );
+};
+
+const NavRowItem: React.FC<{ page: SidebarPage; mode: SidebarMode; shown: boolean }> = ({ page, mode, shown }) => {
+  const { t } = useI18n();
+  const { listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: page.id, transition: ROW_SORT_TRANSITION });
+  return (
+    <div
+      ref={setNodeRef}
+      style={{ transform: CSS.Translate.toString(transform), transition }}
+      className={cn('flex cursor-grab touch-pan-y select-none flex-col rounded-md active:cursor-grabbing', isDragging && 'oc-tile relative z-10 cursor-grabbing')}
+      {...listeners}
+    >
+      <div className="flex min-h-8 items-center gap-2 py-1 ps-2 pe-1">
+        <span className="flex size-4 shrink-0 items-center justify-center text-muted-foreground">{page.renderIcon('size-4')}</span>
+        <span className={cn('min-w-0 flex-1 truncate typography-ui-label', shown ? 'text-foreground' : 'text-muted-foreground')} dir="auto">{page.label}</span>
+        <Switch
+          size="sm"
+          checked={shown}
+          onCheckedChange={(next) => useSessionDisplayStore.getState().setSidebarNavRowShown(mode, page.id, next)}
+          aria-label={t('sessions.sidebar.customize.show', { name: page.label })}
+        />
+      </div>
+    </div>
+  );
+};
 
 /** One section in the list: its name and what can be done with it here; the row drags anywhere but its controls. */
 const SectionRow: React.FC<{ entry: SidebarSectionEntry }> = ({ entry }) => {

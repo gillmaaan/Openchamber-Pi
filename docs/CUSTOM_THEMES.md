@@ -113,6 +113,9 @@ Add an override only when the default relationship does not fit your palette.
 | `chat` | `userMessageBackground`, `divider`, legacy `background` used as the inline-code background fallback |
 | `markdown` | `link`, `linkHover`, `inlineCode`, `inlineCodeBackground`, `blockquote`, `blockquoteBorder`, `listMarker`, `bold`, `italic`, `strikethrough`, `hr` |
 | `tools` | `border`, `icon`, `title`, `description`; `edit` accepts `addedBackground`, `removedBackground`, `modifiedBackground`, `lineNumber` |
+| `edges` | `control`, `controlFocus`, `surface` |
+
+`edges` sets the half-pixel outlines. `control` outlines buttons, text fields and the chosen option of a switch such as Cowork/Code. `controlFocus` outlines a focused text field. `surface` outlines the composer, the panels beside the chat and menus. An omitted edge keeps the app's own outline, which is a faint tint of the text color for `control` and `controlFocus` and white or black at low opacity for `surface`. Use a color with alpha, such as `#ffffff24`, so the outline follows the surface under it.
 
 `syntax.base.background` and `foreground` inherit the main canvas and text. Choose a code background close to `surface.background` for a subtle separation. Code surfaces render that color directly, without an automatic blend with the canvas. `syntax.highlights` accepts `diffAdded`, `diffRemoved`, `diffModified`, their `Background` variants, `lineNumber` and `lineNumberActive`. Diff backgrounds inherit their corresponding diff color at a low opacity.
 

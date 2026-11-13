@@ -1,0 +1,479 @@
+{
+ "name": "error-http429",
+ "description": "HTTP 429 with retry-after on every attempt.",
+ "cwd": "/work/project",
+ "header": {
+  "type": "session",
+  "version": 3,
+  "id": "ses_fixture_error_http429",
+  "timestamp": "2026-11-10T06:18:34.013Z",
+  "cwd": "/work/project"
+ },
+ "events": [
+  {
+   "type": "agent_start"
+  },
+  {
+   "type": "turn_start"
+  },
+  {
+   "type": "message_start",
+   "message": {
+    "role": "system",
+    "content": "",
+    "sections": {
+     "preamble": "trimmed"
+    },
+    "timestamp": 1794291514035
+   }
+  },
+  {
+   "type": "message_end",
+   "message": {
+    "role": "system",
+    "content": "",
+    "sections": {
+     "preamble": "trimmed"
+    },
+    "timestamp": 1794291514035
+   }
+  },
+  {
+   "type": "message_start",
+   "message": {
+    "role": "user",
+    "content": [
+     {
+      "type": "text",
+      "text": "HTTP429 please"
+     }
+    ],
+    "timestamp": 1794291514035
+   }
+  },
+  {
+   "type": "message_end",
+   "message": {
+    "role": "user",
+    "content": [
+     {
+      "type": "text",
+      "text": "HTTP429 please"
+     }
+    ],
+    "timestamp": 1794291514035
+   }
+  },
+  {
+   "type": "message_start",
+   "message": {
+    "role": "assistant",
+    "content": [],
+    "api": "openai-completions",
+    "provider": "mock",
+    "model": "mock-model",
+    "usage": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "totalTokens": 0,
+     "cost": {
+      "input": 0,
+      "output": 0,
+      "cacheRead": 0,
+      "cacheWrite": 0,
+      "total": 0
+     }
+    },
+    "stopReason": "error",
+    "timestamp": 1794291514043,
+    "errorMessage": "429: {\"message\":\"mock rate limit\",\"type\":\"rate_limit_error\"}",
+    "durationMs": 10,
+    "thinkingLevel": "low"
+   }
+  },
+  {
+   "type": "message_end",
+   "message": {
+    "role": "assistant",
+    "content": [],
+    "api": "openai-completions",
+    "provider": "mock",
+    "model": "mock-model",
+    "usage": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "totalTokens": 0,
+     "cost": {
+      "input": 0,
+      "output": 0,
+      "cacheRead": 0,
+      "cacheWrite": 0,
+      "total": 0
+     }
+    },
+    "stopReason": "error",
+    "timestamp": 1794291514043,
+    "errorMessage": "429: {\"message\":\"mock rate limit\",\"type\":\"rate_limit_error\"}",
+    "durationMs": 10,
+    "thinkingLevel": "low"
+   }
+  },
+  {
+   "type": "turn_end",
+   "message": {
+    "role": "assistant",
+    "content": [],
+    "api": "openai-completions",
+    "provider": "mock",
+    "model": "mock-model",
+    "usage": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "totalTokens": 0,
+     "cost": {
+      "input": 0,
+      "output": 0,
+      "cacheRead": 0,
+      "cacheWrite": 0,
+      "total": 0
+     }
+    },
+    "stopReason": "error",
+    "timestamp": 1794291514043,
+    "errorMessage": "429: {\"message\":\"mock rate limit\",\"type\":\"rate_limit_error\"}",
+    "durationMs": 10,
+    "thinkingLevel": "low"
+   },
+   "toolResults": []
+  },
+  {
+   "type": "agent_end",
+   "messages": [
+    {
+     "role": "system",
+     "content": "",
+     "sections": {
+      "preamble": "trimmed"
+     },
+     "timestamp": 1794291514035
+    },
+    {
+     "role": "user",
+     "content": [
+      {
+       "type": "text",
+       "text": "HTTP429 please"
+      }
+     ],
+     "timestamp": 1794291514035
+    },
+    {
+     "role": "assistant",
+     "content": [],
+     "api": "openai-completions",
+     "provider": "mock",
+     "model": "mock-model",
+     "usage": {
+      "input": 0,
+      "output": 0,
+      "cacheRead": 0,
+      "cacheWrite": 0,
+      "totalTokens": 0,
+      "cost": {
+       "input": 0,
+       "output": 0,
+       "cacheRead": 0,
+       "cacheWrite": 0,
+       "total": 0
+      }
+     },
+     "stopReason": "error",
+     "timestamp": 1794291514043,
+     "errorMessage": "429: {\"message\":\"mock rate limit\",\"type\":\"rate_limit_error\"}",
+     "durationMs": 10,
+     "thinkingLevel": "low"
+    }
+   ],
+   "willRetry": true
+  },
+  {
+   "type": "auto_retry_start",
+   "attempt": 1,
+   "maxAttempts": 1,
+   "delayMs": 50,
+   "errorMessage": "429: {\"message\":\"mock rate limit\",\"type\":\"rate_limit_error\"}"
+  },
+  {
+   "type": "entry_appended",
+   "entry": {
+    "type": "context_edit",
+    "id": "cfd65755",
+    "parentId": "bdd0738b",
+    "timestamp": "2026-11-10T06:18:34.054Z",
+    "targetId": "bdd0738b",
+    "replacement": null
+   }
+  },
+  {
+   "type": "agent_start"
+  },
+  {
+   "type": "turn_start"
+  },
+  {
+   "type": "message_start",
+   "message": {
+    "role": "assistant",
+    "content": [],
+    "api": "openai-completions",
+    "provider": "mock",
+    "model": "mock-model",
+    "usage": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "totalTokens": 0,
+     "cost": {
+      "input": 0,
+      "output": 0,
+      "cacheRead": 0,
+      "cacheWrite": 0,
+      "total": 0
+     }
+    },
+    "stopReason": "error",
+    "timestamp": 1794291514106,
+    "errorMessage": "429: {\"message\":\"mock rate limit\",\"type\":\"rate_limit_error\"}",
+    "durationMs": 2,
+    "thinkingLevel": "low"
+   }
+  },
+  {
+   "type": "message_end",
+   "message": {
+    "role": "assistant",
+    "content": [],
+    "api": "openai-completions",
+    "provider": "mock",
+    "model": "mock-model",
+    "usage": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "totalTokens": 0,
+     "cost": {
+      "input": 0,
+      "output": 0,
+      "cacheRead": 0,
+      "cacheWrite": 0,
+      "total": 0
+     }
+    },
+    "stopReason": "error",
+    "timestamp": 1794291514106,
+    "errorMessage": "429: {\"message\":\"mock rate limit\",\"type\":\"rate_limit_error\"}",
+    "durationMs": 2,
+    "thinkingLevel": "low"
+   }
+  },
+  {
+   "type": "turn_end",
+   "message": {
+    "role": "assistant",
+    "content": [],
+    "api": "openai-completions",
+    "provider": "mock",
+    "model": "mock-model",
+    "usage": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "totalTokens": 0,
+     "cost": {
+      "input": 0,
+      "output": 0,
+      "cacheRead": 0,
+      "cacheWrite": 0,
+      "total": 0
+     }
+    },
+    "stopReason": "error",
+    "timestamp": 1794291514106,
+    "errorMessage": "429: {\"message\":\"mock rate limit\",\"type\":\"rate_limit_error\"}",
+    "durationMs": 2,
+    "thinkingLevel": "low"
+   },
+   "toolResults": []
+  },
+  {
+   "type": "agent_end",
+   "messages": [
+    {
+     "role": "assistant",
+     "content": [],
+     "api": "openai-completions",
+     "provider": "mock",
+     "model": "mock-model",
+     "usage": {
+      "input": 0,
+      "output": 0,
+      "cacheRead": 0,
+      "cacheWrite": 0,
+      "totalTokens": 0,
+      "cost": {
+       "input": 0,
+       "output": 0,
+       "cacheRead": 0,
+       "cacheWrite": 0,
+       "total": 0
+      }
+     },
+     "stopReason": "error",
+     "timestamp": 1794291514106,
+     "errorMessage": "429: {\"message\":\"mock rate limit\",\"type\":\"rate_limit_error\"}",
+     "durationMs": 2,
+     "thinkingLevel": "low"
+    }
+   ],
+   "willRetry": false
+  },
+  {
+   "type": "auto_retry_end",
+   "success": false,
+   "attempt": 1,
+   "finalError": "429: {\"message\":\"mock rate limit\",\"type\":\"rate_limit_error\"}"
+  },
+  {
+   "type": "agent_settled",
+   "aborted": false
+  }
+ ],
+ "entries": [
+  {
+   "type": "model_change",
+   "id": "c0201091",
+   "parentId": null,
+   "timestamp": "2026-11-10T06:18:34.031Z",
+   "provider": "mock",
+   "modelId": "mock-model"
+  },
+  {
+   "type": "thinking_level_change",
+   "id": "84a0b732",
+   "parentId": "c0201091",
+   "timestamp": "2026-11-10T06:18:34.031Z",
+   "thinkingLevel": "low"
+  },
+  {
+   "type": "message",
+   "id": "1a0c2dce",
+   "parentId": "84a0b732",
+   "timestamp": "2026-11-10T06:18:34.035Z",
+   "message": {
+    "role": "system",
+    "content": "",
+    "sections": {
+     "preamble": "trimmed"
+    },
+    "timestamp": 1794291514035
+   }
+  },
+  {
+   "type": "message",
+   "id": "2a631704",
+   "parentId": "1a0c2dce",
+   "timestamp": "2026-11-10T06:18:34.035Z",
+   "message": {
+    "role": "user",
+    "content": [
+     {
+      "type": "text",
+      "text": "HTTP429 please"
+     }
+    ],
+    "timestamp": 1794291514035
+   }
+  },
+  {
+   "type": "message",
+   "id": "bdd0738b",
+   "parentId": "2a631704",
+   "timestamp": "2026-11-10T06:18:34.053Z",
+   "message": {
+    "role": "assistant",
+    "content": [],
+    "api": "openai-completions",
+    "provider": "mock",
+    "model": "mock-model",
+    "usage": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "totalTokens": 0,
+     "cost": {
+      "input": 0,
+      "output": 0,
+      "cacheRead": 0,
+      "cacheWrite": 0,
+      "total": 0
+     }
+    },
+    "stopReason": "error",
+    "timestamp": 1794291514043,
+    "errorMessage": "429: {\"message\":\"mock rate limit\",\"type\":\"rate_limit_error\"}",
+    "durationMs": 10,
+    "thinkingLevel": "low"
+   }
+  },
+  {
+   "type": "context_edit",
+   "id": "cfd65755",
+   "parentId": "bdd0738b",
+   "timestamp": "2026-11-10T06:18:34.054Z",
+   "targetId": "bdd0738b",
+   "replacement": null
+  },
+  {
+   "type": "message",
+   "id": "71fcf85a",
+   "parentId": "cfd65755",
+   "timestamp": "2026-11-10T06:18:34.108Z",
+   "message": {
+    "role": "assistant",
+    "content": [],
+    "api": "openai-completions",
+    "provider": "mock",
+    "model": "mock-model",
+    "usage": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "totalTokens": 0,
+     "cost": {
+      "input": 0,
+      "output": 0,
+      "cacheRead": 0,
+      "cacheWrite": 0,
+      "total": 0
+     }
+    },
+    "stopReason": "error",
+    "timestamp": 1794291514106,
+    "errorMessage": "429: {\"message\":\"mock rate limit\",\"type\":\"rate_limit_error\"}",
+    "durationMs": 2,
+    "thinkingLevel": "low"
+   }
+  }
+ ]
+}

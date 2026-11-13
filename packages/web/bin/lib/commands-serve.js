@@ -26,7 +26,7 @@ const DAEMON_READY_TIMEOUT_MS = 30000;
 
 function createServeCommand({
   serverPath,
-  checkOpenCodeCLI,
+  checkPiRuntime,
   getServerRuntimeBinary,
   setForegroundServerActive,
   setForegroundShutdown,
@@ -100,7 +100,7 @@ async function serveCommand(options) {
       }
     }
 
-    const opencodeBinary = await checkOpenCodeCLI(emitNotice);
+    await checkPiRuntime();
     const runtimeBin = getServerRuntimeBinary();
 
     ensureLogsDir();
@@ -153,14 +153,8 @@ async function serveCommand(options) {
         );
       }
 
-      // Propagate resolved values into env before importing the server module.
-      // The binary path is left unmarked: a startup service enabled from this
-      // server's terminal wants the same OpenCode.
-      if (opencodeBinary) {
-        process.env.OPENCODE_BINARY = opencodeBinary;
-      }
       // Started from a shell OpenChamber opened, this is a server of its own:
-      // the other instance's web assets, runtime and OpenCode wiring go.
+      // the other instance's web assets and runtime go.
       for (const key of injectedEnvKeys(process.env)) delete process.env[key];
       assignInjectedEnv(process.env, {
         OPENCHAMBER_UI_PASSWORD: effectiveUiPassword || undefined,
@@ -286,14 +280,13 @@ async function serveCommand(options) {
       stdio: ['ignore', logFd, logFd, 'ipc'],
       // Same as the foreground path above: what the shell's own OpenChamber
       // put there goes, the server's own settings are recorded as
-      // OpenChamber's, the binary path is not.
-      env: assignInjectedEnv({ ...withoutInjectedEnv(process.env), OPENCODE_BINARY: opencodeBinary }, {
+      // OpenChamber's.
+      env: assignInjectedEnv({ ...withoutInjectedEnv(process.env) }, {
         OPENCHAMBER_PORT: String(targetPort),
         OPENCHAMBER_RUNTIME: 'web',
         OPENCHAMBER_HOST: effectiveHost,
         OPENCHAMBER_UI_PASSWORD: effectiveUiPassword || undefined,
         OPENCHAMBER_API_ONLY: options.apiOnly === true ? 'true' : undefined,
-        OPENCHAMBER_SKIP_OPENCODE_START: process.env.OPENCODE_SKIP_START || undefined,
       }),
     });
 

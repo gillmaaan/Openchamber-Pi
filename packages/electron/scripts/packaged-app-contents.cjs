@@ -41,6 +41,14 @@ const REQUIRED_UNPACKED_FILES = [
   `${WEB_PACKAGE}/server/lib/git/credential-helper.js`,
   `${WEB_PACKAGE}/server/lib/git/ssh-wrapper.js`,
   `${WEB_PACKAGE}/server/lib/git/repository-credential-helper.js`,
+  // The RPC entry, the CLI and their chunks run in a spawned Node/Bun, which
+  // cannot read a path inside app.asar.
+  'node_modules/@earendil-works/pi-coding-agent/dist/bundle/rpc-entry.js',
+  'node_modules/@earendil-works/pi-coding-agent/dist/bundle/cli.js',
+  'node_modules/@earendil-works/pi-coding-agent/package.json',
+  // Pi's bundle loads extensions (the gate included) through jiti, resolved
+  // from the unpacked tree when the child runs.
+  'node_modules/jiti/lib/jiti.cjs',
 ];
 
 const requiredUnpackedFiles = ({ platform = process.platform, arch = process.arch } = {}) => (

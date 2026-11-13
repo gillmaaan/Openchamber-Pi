@@ -1,0 +1,492 @@
+{
+ "name": "user-bash-and-switches",
+ "description": "A thinking level change, a model change, a user bash command, an image prompt and a normal answer.",
+ "cwd": "/work/project",
+ "header": {
+  "type": "session",
+  "version": 3,
+  "id": "ses_fixture_user_bash_and_switches",
+  "timestamp": "2026-11-10T06:18:46.870Z",
+  "cwd": "/work/project"
+ },
+ "events": [
+  {
+   "type": "thinking_level_changed",
+   "level": "high"
+  },
+  {
+   "type": "thinking_level_changed",
+   "level": "low"
+  },
+  {
+   "type": "bash_execution_update",
+   "id": "r4",
+   "delta": "from-user-shell\n"
+  },
+  {
+   "type": "agent_start"
+  },
+  {
+   "type": "turn_start"
+  },
+  {
+   "type": "message_start",
+   "message": {
+    "role": "system",
+    "content": "",
+    "sections": {
+     "preamble": "trimmed"
+    },
+    "timestamp": 1794291526916
+   }
+  },
+  {
+   "type": "message_end",
+   "message": {
+    "role": "system",
+    "content": "",
+    "sections": {
+     "preamble": "trimmed"
+    },
+    "timestamp": 1794291526916
+   }
+  },
+  {
+   "type": "message_start",
+   "message": {
+    "role": "user",
+    "content": [
+     {
+      "type": "text",
+      "text": "PLAIN with an image"
+     },
+     {
+      "type": "image",
+      "data": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+      "mimeType": "image/png"
+     }
+    ],
+    "timestamp": 1794291526915
+   }
+  },
+  {
+   "type": "message_end",
+   "message": {
+    "role": "user",
+    "content": [
+     {
+      "type": "text",
+      "text": "PLAIN with an image"
+     },
+     {
+      "type": "image",
+      "data": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+      "mimeType": "image/png"
+     }
+    ],
+    "timestamp": 1794291526915
+   }
+  },
+  {
+   "type": "message_start",
+   "message": {
+    "role": "assistant",
+    "content": [
+     {
+      "type": "text",
+      "text": "plain "
+     }
+    ],
+    "api": "openai-completions",
+    "provider": "mock",
+    "model": "mock-model-2",
+    "usage": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "totalTokens": 0,
+     "cost": {
+      "input": 0,
+      "output": 0,
+      "cacheRead": 0,
+      "cacheWrite": 0,
+      "total": 0
+     }
+    },
+    "stopReason": "pending",
+    "timestamp": 1794291526925
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 80,
+    "output": 6,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "reasoning": 0,
+    "totalTokens": 86,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "text_start",
+    "contentIndex": 0
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 80,
+    "output": 6,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "reasoning": 0,
+    "totalTokens": 86,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "text_delta",
+    "contentIndex": 0,
+    "delta": "plain "
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 80,
+    "output": 6,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "reasoning": 0,
+    "totalTokens": 86,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "text_delta",
+    "contentIndex": 0,
+    "delta": "answer"
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 80,
+    "output": 6,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "reasoning": 0,
+    "totalTokens": 86,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "text_end",
+    "contentIndex": 0,
+    "content": "plain answer"
+   }
+  },
+  {
+   "type": "message_end",
+   "message": {
+    "role": "assistant",
+    "content": [
+     {
+      "type": "text",
+      "text": "plain answer"
+     }
+    ],
+    "api": "openai-completions",
+    "provider": "mock",
+    "model": "mock-model-2",
+    "usage": {
+     "input": 80,
+     "output": 6,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "reasoning": 0,
+     "totalTokens": 86,
+     "cost": {
+      "input": 0,
+      "output": 0,
+      "cacheRead": 0,
+      "cacheWrite": 0,
+      "total": 0,
+      "totalFromProvider": false
+     }
+    },
+    "stopReason": "stop",
+    "timestamp": 1794291526925,
+    "responseId": "mock-1",
+    "responseModel": "mock-model",
+    "rawStopReason": "stop",
+    "durationMs": 13,
+    "thinkingLevel": "low"
+   }
+  },
+  {
+   "type": "turn_end",
+   "message": {
+    "role": "assistant",
+    "content": [
+     {
+      "type": "text",
+      "text": "plain answer"
+     }
+    ],
+    "api": "openai-completions",
+    "provider": "mock",
+    "model": "mock-model-2",
+    "usage": {
+     "input": 80,
+     "output": 6,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "reasoning": 0,
+     "totalTokens": 86,
+     "cost": {
+      "input": 0,
+      "output": 0,
+      "cacheRead": 0,
+      "cacheWrite": 0,
+      "total": 0,
+      "totalFromProvider": false
+     }
+    },
+    "stopReason": "stop",
+    "timestamp": 1794291526925,
+    "responseId": "mock-1",
+    "responseModel": "mock-model",
+    "rawStopReason": "stop",
+    "durationMs": 13,
+    "thinkingLevel": "low"
+   },
+   "toolResults": []
+  },
+  {
+   "type": "agent_end",
+   "messages": [
+    {
+     "role": "system",
+     "content": "",
+     "sections": {
+      "preamble": "trimmed"
+     },
+     "timestamp": 1794291526916
+    },
+    {
+     "role": "user",
+     "content": [
+      {
+       "type": "text",
+       "text": "PLAIN with an image"
+      },
+      {
+       "type": "image",
+       "data": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+       "mimeType": "image/png"
+      }
+     ],
+     "timestamp": 1794291526915
+    },
+    {
+     "role": "assistant",
+     "content": [
+      {
+       "type": "text",
+       "text": "plain answer"
+      }
+     ],
+     "api": "openai-completions",
+     "provider": "mock",
+     "model": "mock-model-2",
+     "usage": {
+      "input": 80,
+      "output": 6,
+      "cacheRead": 0,
+      "cacheWrite": 0,
+      "reasoning": 0,
+      "totalTokens": 86,
+      "cost": {
+       "input": 0,
+       "output": 0,
+       "cacheRead": 0,
+       "cacheWrite": 0,
+       "total": 0,
+       "totalFromProvider": false
+      }
+     },
+     "stopReason": "stop",
+     "timestamp": 1794291526925,
+     "responseId": "mock-1",
+     "responseModel": "mock-model",
+     "rawStopReason": "stop",
+     "durationMs": 13,
+     "thinkingLevel": "low"
+    }
+   ],
+   "willRetry": false
+  },
+  {
+   "type": "agent_settled",
+   "aborted": false
+  }
+ ],
+ "entries": [
+  {
+   "type": "model_change",
+   "id": "ac39e57f",
+   "parentId": null,
+   "timestamp": "2026-11-10T06:18:46.889Z",
+   "provider": "mock",
+   "modelId": "mock-model"
+  },
+  {
+   "type": "thinking_level_change",
+   "id": "d727236f",
+   "parentId": "ac39e57f",
+   "timestamp": "2026-11-10T06:18:46.889Z",
+   "thinkingLevel": "low"
+  },
+  {
+   "type": "thinking_level_change",
+   "id": "308e6c60",
+   "parentId": "d727236f",
+   "timestamp": "2026-11-10T06:18:46.892Z",
+   "thinkingLevel": "high"
+  },
+  {
+   "type": "model_change",
+   "id": "b8a968ad",
+   "parentId": "308e6c60",
+   "timestamp": "2026-11-10T06:18:46.892Z",
+   "provider": "mock",
+   "modelId": "mock-model-2"
+  },
+  {
+   "type": "thinking_level_change",
+   "id": "5bb5ea38",
+   "parentId": "b8a968ad",
+   "timestamp": "2026-11-10T06:18:46.892Z",
+   "thinkingLevel": "low"
+  },
+  {
+   "type": "message",
+   "id": "cdf0e4bc",
+   "parentId": "5bb5ea38",
+   "timestamp": "2026-11-10T06:18:46.896Z",
+   "message": {
+    "role": "bashExecution",
+    "command": "echo from-user-shell; exit 2",
+    "output": "from-user-shell\n",
+    "exitCode": 2,
+    "cancelled": false,
+    "truncated": false,
+    "timestamp": 1794291526896
+   }
+  },
+  {
+   "type": "message",
+   "id": "ee393a3d",
+   "parentId": "cdf0e4bc",
+   "timestamp": "2026-11-10T06:18:46.916Z",
+   "message": {
+    "role": "system",
+    "content": "",
+    "sections": {
+     "preamble": "trimmed"
+    },
+    "timestamp": 1794291526916
+   }
+  },
+  {
+   "type": "message",
+   "id": "52c5d86d",
+   "parentId": "ee393a3d",
+   "timestamp": "2026-11-10T06:18:46.916Z",
+   "message": {
+    "role": "user",
+    "content": [
+     {
+      "type": "text",
+      "text": "PLAIN with an image"
+     },
+     {
+      "type": "image",
+      "data": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+      "mimeType": "image/png"
+     }
+    ],
+    "timestamp": 1794291526915
+   }
+  },
+  {
+   "type": "message",
+   "id": "80dd61a9",
+   "parentId": "52c5d86d",
+   "timestamp": "2026-11-10T06:18:46.938Z",
+   "message": {
+    "role": "assistant",
+    "content": [
+     {
+      "type": "text",
+      "text": "plain answer"
+     }
+    ],
+    "api": "openai-completions",
+    "provider": "mock",
+    "model": "mock-model-2",
+    "usage": {
+     "input": 80,
+     "output": 6,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "reasoning": 0,
+     "totalTokens": 86,
+     "cost": {
+      "input": 0,
+      "output": 0,
+      "cacheRead": 0,
+      "cacheWrite": 0,
+      "total": 0,
+      "totalFromProvider": false
+     }
+    },
+    "stopReason": "stop",
+    "timestamp": 1794291526925,
+    "responseId": "mock-1",
+    "responseModel": "mock-model",
+    "rawStopReason": "stop",
+    "durationMs": 13,
+    "thinkingLevel": "low"
+   }
+  }
+ ]
+}

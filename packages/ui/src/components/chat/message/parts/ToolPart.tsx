@@ -2518,7 +2518,8 @@ const SubagentToolPartContent: React.FC<ToolPartProps> = (props) => {
 };
 
 /**
- * Most of OpenChamber's own tools run behind Code Mode, so their calls arrive
+ * OpenChamber's own tools are direct calls now, but a session recorded while
+ * they sat behind Code Mode, and any script a model writes, has their calls
  * as `execute` parts. A script that made just one of those calls reads as that
  * tool's own row: its action, detail and icon, instead of "execute" and a
  * list of tool names. Everything else about the part stays the script's.

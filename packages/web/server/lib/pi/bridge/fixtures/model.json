@@ -1,0 +1,101 @@
+{
+  "location": {
+    "directory": "/work/proj"
+  },
+  "data": [
+    {
+      "id": "m1",
+      "modelID": "m1",
+      "providerID": "mock",
+      "name": "Mock One",
+      "package": "@opencode/ai/providers/openai-compatible",
+      "settings": {
+        "apiKey": "test",
+        "baseURL": "http://127.0.0.1:56330/v1"
+      },
+      "capabilities": {
+        "tools": true,
+        "input": [
+          "text"
+        ],
+        "output": [
+          "text"
+        ]
+      },
+      "variants": [
+        {
+          "id": "low",
+          "settings": {
+            "reasoningEffort": "low"
+          }
+        },
+        {
+          "id": "high",
+          "settings": {
+            "reasoningEffort": "high"
+          }
+        }
+      ],
+      "time": {
+        "released": 0
+      },
+      "cost": [],
+      "status": "active",
+      "enabled": true,
+      "limit": {
+        "context": 100000,
+        "output": 4000
+      }
+    },
+    {
+      "id": "m2",
+      "modelID": "m2",
+      "providerID": "mock",
+      "name": "Mock Two",
+      "package": "@opencode/ai/providers/openai-compatible",
+      "settings": {
+        "apiKey": "test",
+        "baseURL": "http://127.0.0.1:56330/v1"
+      },
+      "capabilities": {
+        "tools": true,
+        "input": [
+          "text"
+        ],
+        "output": [
+          "text"
+        ]
+      },
+      "variants": [
+        {
+          "id": "low",
+          "settings": {
+            "reasoningEffort": "low"
+          }
+        },
+        {
+          "id": "medium",
+          "settings": {
+            "reasoningEffort": "medium"
+          }
+        },
+        {
+          "id": "high",
+          "settings": {
+            "reasoningEffort": "high"
+          }
+        }
+      ],
+      "time": {
+        "released": 0
+      },
+      "cost": [],
+      "status": "active",
+      "enabled": true,
+      "limit": {
+        "context": 50000,
+        "output": 2000
+      }
+    }
+  ]
+}

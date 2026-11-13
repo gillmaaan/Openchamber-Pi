@@ -1,0 +1,4289 @@
+{
+ "name": "tool-steps",
+ "description": "Four tool steps: parallel read + bash, a failing read + ls, edit + write + a failing bash, then grep + find + an unknown tool; then the final text.",
+ "cwd": "/work/project",
+ "header": {
+  "type": "session",
+  "version": 3,
+  "id": "ses_fixture_tool_steps",
+  "timestamp": "2026-11-10T06:22:28.187Z",
+  "cwd": "/work/project"
+ },
+ "events": [
+  {
+   "type": "agent_start"
+  },
+  {
+   "type": "turn_start"
+  },
+  {
+   "type": "message_start",
+   "message": {
+    "role": "system",
+    "content": "",
+    "sections": {
+     "preamble": "trimmed"
+    },
+    "timestamp": 1794291748221
+   }
+  },
+  {
+   "type": "message_end",
+   "message": {
+    "role": "system",
+    "content": "",
+    "sections": {
+     "preamble": "trimmed"
+    },
+    "timestamp": 1794291748221
+   }
+  },
+  {
+   "type": "message_start",
+   "message": {
+    "role": "user",
+    "content": [
+     {
+      "type": "text",
+      "text": "STEPS:[[{\"name\":\"read\",\"args\":{\"path\":\"notes.txt\"}},{\"name\":\"bash\",\"args\":{\"command\":\"echo one\"}}],[{\"name\":\"read\",\"args\":{\"path\":\"missing.txt\"}},{\"name\":\"ls\",\"args\":{\"path\":\".\"}}],[{\"name\":\"edit\",\"args\":{\"path\":\"notes.txt\",\"edits\":[{\"oldText\":\"line one\",\"newText\":\"line ONE\"},{\"oldText\":\"line two\",\"newText\":\"line TWO\"}]}},{\"name\":\"write\",\"args\":{\"path\":\"out.txt\",\"content\":\"hello\\nworld\\n\"}},{\"name\":\"bash\",\"args\":{\"command\":\"echo out; echo err 1>&2; exit 3\"}}],[{\"name\":\"grep\",\"args\":{\"pattern\":\"LINE\",\"ignoreCase\":true}},{\"name\":\"find\",\"args\":{\"pattern\":\"*.txt\"}},{\"name\":\"nope_tool\",\"args\":{\"x\":1}}]]"
+     }
+    ],
+    "timestamp": 1794291748221
+   }
+  },
+  {
+   "type": "message_end",
+   "message": {
+    "role": "user",
+    "content": [
+     {
+      "type": "text",
+      "text": "STEPS:[[{\"name\":\"read\",\"args\":{\"path\":\"notes.txt\"}},{\"name\":\"bash\",\"args\":{\"command\":\"echo one\"}}],[{\"name\":\"read\",\"args\":{\"path\":\"missing.txt\"}},{\"name\":\"ls\",\"args\":{\"path\":\".\"}}],[{\"name\":\"edit\",\"args\":{\"path\":\"notes.txt\",\"edits\":[{\"oldText\":\"line one\",\"newText\":\"line ONE\"},{\"oldText\":\"line two\",\"newText\":\"line TWO\"}]}},{\"name\":\"write\",\"args\":{\"path\":\"out.txt\",\"content\":\"hello\\nworld\\n\"}},{\"name\":\"bash\",\"args\":{\"command\":\"echo out; echo err 1>&2; exit 3\"}}],[{\"name\":\"grep\",\"args\":{\"pattern\":\"LINE\",\"ignoreCase\":true}},{\"name\":\"find\",\"args\":{\"pattern\":\"*.txt\"}},{\"name\":\"nope_tool\",\"args\":{\"x\":1}}]]"
+     }
+    ],
+    "timestamp": 1794291748221
+   }
+  },
+  {
+   "type": "message_start",
+   "message": {
+    "role": "assistant",
+    "content": [
+     {
+      "type": "text",
+      "text": "Step 1. "
+     }
+    ],
+    "api": "openai-completions",
+    "provider": "mock",
+    "model": "mock-model",
+    "usage": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "totalTokens": 0,
+     "cost": {
+      "input": 0,
+      "output": 0,
+      "cacheRead": 0,
+      "cacheWrite": 0,
+      "total": 0
+     }
+    },
+    "stopReason": "pending",
+    "timestamp": 1794291748232
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 100,
+    "output": 20,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "reasoning": 0,
+    "totalTokens": 120,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "text_start",
+    "contentIndex": 0
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 100,
+    "output": 20,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "reasoning": 0,
+    "totalTokens": 120,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "text_delta",
+    "contentIndex": 0,
+    "delta": "Step 1. "
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 100,
+    "output": 20,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "reasoning": 0,
+    "totalTokens": 120,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "toolcall_start",
+    "contentIndex": 1,
+    "id": "call_0_0",
+    "toolName": "read"
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 100,
+    "output": 20,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "reasoning": 0,
+    "totalTokens": 120,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "toolcall_delta",
+    "contentIndex": 1,
+    "delta": ""
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 100,
+    "output": 20,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "reasoning": 0,
+    "totalTokens": 120,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "toolcall_delta",
+    "contentIndex": 1,
+    "delta": "{\"path\":"
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 100,
+    "output": 20,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "reasoning": 0,
+    "totalTokens": 120,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "toolcall_delta",
+    "contentIndex": 1,
+    "delta": "\"notes.txt\"}"
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 100,
+    "output": 20,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "reasoning": 0,
+    "totalTokens": 120,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "toolcall_start",
+    "contentIndex": 2,
+    "id": "call_0_1",
+    "toolName": "bash"
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 100,
+    "output": 20,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "reasoning": 0,
+    "totalTokens": 120,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "toolcall_delta",
+    "contentIndex": 2,
+    "delta": ""
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 100,
+    "output": 20,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "reasoning": 0,
+    "totalTokens": 120,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "toolcall_delta",
+    "contentIndex": 2,
+    "delta": "{\"comman"
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 100,
+    "output": 20,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "reasoning": 0,
+    "totalTokens": 120,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "toolcall_delta",
+    "contentIndex": 2,
+    "delta": "d\":\"echo one\"}"
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 100,
+    "output": 20,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "reasoning": 0,
+    "totalTokens": 120,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "text_end",
+    "contentIndex": 0,
+    "content": "Step 1. "
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 100,
+    "output": 20,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "reasoning": 0,
+    "totalTokens": 120,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "toolcall_end",
+    "contentIndex": 1,
+    "toolCall": {
+     "type": "toolCall",
+     "id": "call_0_0",
+     "name": "read",
+     "arguments": {
+      "path": "notes.txt"
+     }
+    }
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 100,
+    "output": 20,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "reasoning": 0,
+    "totalTokens": 120,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "toolcall_end",
+    "contentIndex": 2,
+    "toolCall": {
+     "type": "toolCall",
+     "id": "call_0_1",
+     "name": "bash",
+     "arguments": {
+      "command": "echo one"
+     }
+    }
+   }
+  },
+  {
+   "type": "message_end",
+   "message": {
+    "role": "assistant",
+    "content": [
+     {
+      "type": "text",
+      "text": "Step 1. "
+     },
+     {
+      "type": "toolCall",
+      "id": "call_0_0",
+      "name": "read",
+      "arguments": {
+       "path": "notes.txt"
+      }
+     },
+     {
+      "type": "toolCall",
+      "id": "call_0_1",
+      "name": "bash",
+      "arguments": {
+       "command": "echo one"
+      }
+     }
+    ],
+    "api": "openai-completions",
+    "provider": "mock",
+    "model": "mock-model",
+    "usage": {
+     "input": 100,
+     "output": 20,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "reasoning": 0,
+     "totalTokens": 120,
+     "cost": {
+      "input": 0,
+      "output": 0,
+      "cacheRead": 0,
+      "cacheWrite": 0,
+      "total": 0,
+      "totalFromProvider": false
+     }
+    },
+    "stopReason": "toolUse",
+    "timestamp": 1794291748232,
+    "responseId": "mock-1",
+    "rawStopReason": "tool_calls",
+    "durationMs": 14,
+    "thinkingLevel": "low"
+   }
+  },
+  {
+   "type": "tool_execution_start",
+   "toolCallId": "call_0_0",
+   "toolName": "read",
+   "args": {
+    "path": "notes.txt"
+   }
+  },
+  {
+   "type": "tool_execution_start",
+   "toolCallId": "call_0_1",
+   "toolName": "bash",
+   "args": {
+    "command": "echo one"
+   }
+  },
+  {
+   "type": "tool_execution_update",
+   "toolCallId": "call_0_1",
+   "toolName": "bash",
+   "args": {
+    "command": "echo one"
+   },
+   "partialResult": {
+    "content": []
+   }
+  },
+  {
+   "type": "tool_execution_end",
+   "toolCallId": "call_0_0",
+   "toolName": "read",
+   "result": {
+    "content": [
+     {
+      "type": "text",
+      "text": "line one\nline two\n"
+     }
+    ],
+    "structuredContent": "line one\nline two\n"
+   },
+   "isError": false,
+   "durationMs": 2
+  },
+  {
+   "type": "tool_execution_update",
+   "toolCallId": "call_0_1",
+   "toolName": "bash",
+   "args": {
+    "command": "echo one"
+   },
+   "partialResult": {
+    "content": [
+     {
+      "type": "text",
+      "text": "one\n"
+     }
+    ],
+    "details": {}
+   }
+  },
+  {
+   "type": "tool_execution_end",
+   "toolCallId": "call_0_1",
+   "toolName": "bash",
+   "result": {
+    "content": [
+     {
+      "type": "text",
+      "text": "one\n"
+     }
+    ],
+    "structuredContent": {
+     "output": "one\n",
+     "truncated": false,
+     "exit_code": 0,
+     "wall_time_seconds": 0
+    }
+   },
+   "isError": false,
+   "durationMs": 4
+  },
+  {
+   "type": "message_start",
+   "message": {
+    "role": "toolResult",
+    "toolCallId": "call_0_0",
+    "toolName": "read",
+    "content": [
+     {
+      "type": "text",
+      "text": "line one\nline two\n"
+     }
+    ],
+    "isError": false,
+    "durationMs": 2,
+    "timestamp": 1794291748252
+   }
+  },
+  {
+   "type": "message_end",
+   "message": {
+    "role": "toolResult",
+    "toolCallId": "call_0_0",
+    "toolName": "read",
+    "content": [
+     {
+      "type": "text",
+      "text": "line one\nline two\n"
+     }
+    ],
+    "isError": false,
+    "durationMs": 2,
+    "timestamp": 1794291748252
+   }
+  },
+  {
+   "type": "message_start",
+   "message": {
+    "role": "toolResult",
+    "toolCallId": "call_0_1",
+    "toolName": "bash",
+    "content": [
+     {
+      "type": "text",
+      "text": "one\n"
+     }
+    ],
+    "isError": false,
+    "durationMs": 4,
+    "timestamp": 1794291748252
+   }
+  },
+  {
+   "type": "message_end",
+   "message": {
+    "role": "toolResult",
+    "toolCallId": "call_0_1",
+    "toolName": "bash",
+    "content": [
+     {
+      "type": "text",
+      "text": "one\n"
+     }
+    ],
+    "isError": false,
+    "durationMs": 4,
+    "timestamp": 1794291748252
+   }
+  },
+  {
+   "type": "turn_end",
+   "message": {
+    "role": "assistant",
+    "content": [
+     {
+      "type": "text",
+      "text": "Step 1. "
+     },
+     {
+      "type": "toolCall",
+      "id": "call_0_0",
+      "name": "read",
+      "arguments": {
+       "path": "notes.txt"
+      }
+     },
+     {
+      "type": "toolCall",
+      "id": "call_0_1",
+      "name": "bash",
+      "arguments": {
+       "command": "echo one"
+      }
+     }
+    ],
+    "api": "openai-completions",
+    "provider": "mock",
+    "model": "mock-model",
+    "usage": {
+     "input": 100,
+     "output": 20,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "reasoning": 0,
+     "totalTokens": 120,
+     "cost": {
+      "input": 0,
+      "output": 0,
+      "cacheRead": 0,
+      "cacheWrite": 0,
+      "total": 0,
+      "totalFromProvider": false
+     }
+    },
+    "stopReason": "toolUse",
+    "timestamp": 1794291748232,
+    "responseId": "mock-1",
+    "rawStopReason": "tool_calls",
+    "durationMs": 14,
+    "thinkingLevel": "low"
+   },
+   "toolResults": [
+    {
+     "role": "toolResult",
+     "toolCallId": "call_0_0",
+     "toolName": "read",
+     "content": [
+      {
+       "type": "text",
+       "text": "line one\nline two\n"
+      }
+     ],
+     "isError": false,
+     "durationMs": 2,
+     "timestamp": 1794291748252
+    },
+    {
+     "role": "toolResult",
+     "toolCallId": "call_0_1",
+     "toolName": "bash",
+     "content": [
+      {
+       "type": "text",
+       "text": "one\n"
+      }
+     ],
+     "isError": false,
+     "durationMs": 4,
+     "timestamp": 1794291748252
+    }
+   ]
+  },
+  {
+   "type": "turn_start"
+  },
+  {
+   "type": "message_start",
+   "message": {
+    "role": "assistant",
+    "content": [
+     {
+      "type": "text",
+      "text": "Step 2. "
+     }
+    ],
+    "api": "openai-completions",
+    "provider": "mock",
+    "model": "mock-model",
+    "usage": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "totalTokens": 0,
+     "cost": {
+      "input": 0,
+      "output": 0,
+      "cacheRead": 0,
+      "cacheWrite": 0,
+      "total": 0
+     }
+    },
+    "stopReason": "pending",
+    "timestamp": 1794291748253
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 110,
+    "output": 20,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "reasoning": 0,
+    "totalTokens": 130,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "text_start",
+    "contentIndex": 0
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 110,
+    "output": 20,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "reasoning": 0,
+    "totalTokens": 130,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "text_delta",
+    "contentIndex": 0,
+    "delta": "Step 2. "
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 110,
+    "output": 20,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "reasoning": 0,
+    "totalTokens": 130,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "toolcall_start",
+    "contentIndex": 1,
+    "id": "call_1_0",
+    "toolName": "read"
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 110,
+    "output": 20,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "reasoning": 0,
+    "totalTokens": 130,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "toolcall_delta",
+    "contentIndex": 1,
+    "delta": ""
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 110,
+    "output": 20,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "reasoning": 0,
+    "totalTokens": 130,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "toolcall_delta",
+    "contentIndex": 1,
+    "delta": "{\"path\":"
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 110,
+    "output": 20,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "reasoning": 0,
+    "totalTokens": 130,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "toolcall_delta",
+    "contentIndex": 1,
+    "delta": "\"missing.txt\"}"
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 110,
+    "output": 20,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "reasoning": 0,
+    "totalTokens": 130,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "toolcall_start",
+    "contentIndex": 2,
+    "id": "call_1_1",
+    "toolName": "ls"
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 110,
+    "output": 20,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "reasoning": 0,
+    "totalTokens": 130,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "toolcall_delta",
+    "contentIndex": 2,
+    "delta": ""
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 110,
+    "output": 20,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "reasoning": 0,
+    "totalTokens": 130,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "toolcall_delta",
+    "contentIndex": 2,
+    "delta": "{\"path\":"
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 110,
+    "output": 20,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "reasoning": 0,
+    "totalTokens": 130,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "toolcall_delta",
+    "contentIndex": 2,
+    "delta": "\".\"}"
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 110,
+    "output": 20,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "reasoning": 0,
+    "totalTokens": 130,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "text_end",
+    "contentIndex": 0,
+    "content": "Step 2. "
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 110,
+    "output": 20,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "reasoning": 0,
+    "totalTokens": 130,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "toolcall_end",
+    "contentIndex": 1,
+    "toolCall": {
+     "type": "toolCall",
+     "id": "call_1_0",
+     "name": "read",
+     "arguments": {
+      "path": "missing.txt"
+     }
+    }
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 110,
+    "output": 20,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "reasoning": 0,
+    "totalTokens": 130,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "toolcall_end",
+    "contentIndex": 2,
+    "toolCall": {
+     "type": "toolCall",
+     "id": "call_1_1",
+     "name": "ls",
+     "arguments": {
+      "path": "."
+     }
+    }
+   }
+  },
+  {
+   "type": "message_end",
+   "message": {
+    "role": "assistant",
+    "content": [
+     {
+      "type": "text",
+      "text": "Step 2. "
+     },
+     {
+      "type": "toolCall",
+      "id": "call_1_0",
+      "name": "read",
+      "arguments": {
+       "path": "missing.txt"
+      }
+     },
+     {
+      "type": "toolCall",
+      "id": "call_1_1",
+      "name": "ls",
+      "arguments": {
+       "path": "."
+      }
+     }
+    ],
+    "api": "openai-completions",
+    "provider": "mock",
+    "model": "mock-model",
+    "usage": {
+     "input": 110,
+     "output": 20,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "reasoning": 0,
+     "totalTokens": 130,
+     "cost": {
+      "input": 0,
+      "output": 0,
+      "cacheRead": 0,
+      "cacheWrite": 0,
+      "total": 0,
+      "totalFromProvider": false
+     }
+    },
+    "stopReason": "toolUse",
+    "timestamp": 1794291748253,
+    "responseId": "mock-1",
+    "rawStopReason": "tool_calls",
+    "durationMs": 2,
+    "thinkingLevel": "low"
+   }
+  },
+  {
+   "type": "tool_execution_start",
+   "toolCallId": "call_1_0",
+   "toolName": "read",
+   "args": {
+    "path": "missing.txt"
+   }
+  },
+  {
+   "type": "tool_execution_start",
+   "toolCallId": "call_1_1",
+   "toolName": "ls",
+   "args": {
+    "path": "."
+   }
+  },
+  {
+   "type": "tool_execution_end",
+   "toolCallId": "call_1_0",
+   "toolName": "read",
+   "result": {
+    "content": [
+     {
+      "type": "text",
+      "text": "ENOENT: no such file or directory, access '/work/project/missing.txt'"
+     }
+    ],
+    "details": {}
+   },
+   "isError": true,
+   "durationMs": 0
+  },
+  {
+   "type": "tool_execution_end",
+   "toolCallId": "call_1_1",
+   "toolName": "ls",
+   "result": {
+    "content": [
+     {
+      "type": "text",
+      "text": "notes.txt"
+     }
+    ]
+   },
+   "isError": false,
+   "durationMs": 0
+  },
+  {
+   "type": "message_start",
+   "message": {
+    "role": "toolResult",
+    "toolCallId": "call_1_0",
+    "toolName": "read",
+    "content": [
+     {
+      "type": "text",
+      "text": "ENOENT: no such file or directory, access '/work/project/missing.txt'"
+     }
+    ],
+    "details": {},
+    "isError": true,
+    "durationMs": 0,
+    "timestamp": 1794291748255
+   }
+  },
+  {
+   "type": "message_end",
+   "message": {
+    "role": "toolResult",
+    "toolCallId": "call_1_0",
+    "toolName": "read",
+    "content": [
+     {
+      "type": "text",
+      "text": "ENOENT: no such file or directory, access '/work/project/missing.txt'"
+     }
+    ],
+    "details": {},
+    "isError": true,
+    "durationMs": 0,
+    "timestamp": 1794291748255
+   }
+  },
+  {
+   "type": "message_start",
+   "message": {
+    "role": "toolResult",
+    "toolCallId": "call_1_1",
+    "toolName": "ls",
+    "content": [
+     {
+      "type": "text",
+      "text": "notes.txt"
+     }
+    ],
+    "isError": false,
+    "durationMs": 0,
+    "timestamp": 1794291748256
+   }
+  },
+  {
+   "type": "message_end",
+   "message": {
+    "role": "toolResult",
+    "toolCallId": "call_1_1",
+    "toolName": "ls",
+    "content": [
+     {
+      "type": "text",
+      "text": "notes.txt"
+     }
+    ],
+    "isError": false,
+    "durationMs": 0,
+    "timestamp": 1794291748256
+   }
+  },
+  {
+   "type": "turn_end",
+   "message": {
+    "role": "assistant",
+    "content": [
+     {
+      "type": "text",
+      "text": "Step 2. "
+     },
+     {
+      "type": "toolCall",
+      "id": "call_1_0",
+      "name": "read",
+      "arguments": {
+       "path": "missing.txt"
+      }
+     },
+     {
+      "type": "toolCall",
+      "id": "call_1_1",
+      "name": "ls",
+      "arguments": {
+       "path": "."
+      }
+     }
+    ],
+    "api": "openai-completions",
+    "provider": "mock",
+    "model": "mock-model",
+    "usage": {
+     "input": 110,
+     "output": 20,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "reasoning": 0,
+     "totalTokens": 130,
+     "cost": {
+      "input": 0,
+      "output": 0,
+      "cacheRead": 0,
+      "cacheWrite": 0,
+      "total": 0,
+      "totalFromProvider": false
+     }
+    },
+    "stopReason": "toolUse",
+    "timestamp": 1794291748253,
+    "responseId": "mock-1",
+    "rawStopReason": "tool_calls",
+    "durationMs": 2,
+    "thinkingLevel": "low"
+   },
+   "toolResults": [
+    {
+     "role": "toolResult",
+     "toolCallId": "call_1_0",
+     "toolName": "read",
+     "content": [
+      {
+       "type": "text",
+       "text": "ENOENT: no such file or directory, access '/work/project/missing.txt'"
+      }
+     ],
+     "details": {},
+     "isError": true,
+     "durationMs": 0,
+     "timestamp": 1794291748255
+    },
+    {
+     "role": "toolResult",
+     "toolCallId": "call_1_1",
+     "toolName": "ls",
+     "content": [
+      {
+       "type": "text",
+       "text": "notes.txt"
+      }
+     ],
+     "isError": false,
+     "durationMs": 0,
+     "timestamp": 1794291748256
+    }
+   ]
+  },
+  {
+   "type": "turn_start"
+  },
+  {
+   "type": "message_start",
+   "message": {
+    "role": "assistant",
+    "content": [
+     {
+      "type": "text",
+      "text": "Step 3. "
+     }
+    ],
+    "api": "openai-completions",
+    "provider": "mock",
+    "model": "mock-model",
+    "usage": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "totalTokens": 0,
+     "cost": {
+      "input": 0,
+      "output": 0,
+      "cacheRead": 0,
+      "cacheWrite": 0,
+      "total": 0
+     }
+    },
+    "stopReason": "pending",
+    "timestamp": 1794291748256
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 120,
+    "output": 20,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "reasoning": 0,
+    "totalTokens": 140,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "text_start",
+    "contentIndex": 0
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 120,
+    "output": 20,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "reasoning": 0,
+    "totalTokens": 140,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "text_delta",
+    "contentIndex": 0,
+    "delta": "Step 3. "
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 120,
+    "output": 20,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "reasoning": 0,
+    "totalTokens": 140,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "toolcall_start",
+    "contentIndex": 1,
+    "id": "call_2_0",
+    "toolName": "edit"
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 120,
+    "output": 20,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "reasoning": 0,
+    "totalTokens": 140,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "toolcall_delta",
+    "contentIndex": 1,
+    "delta": ""
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 120,
+    "output": 20,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "reasoning": 0,
+    "totalTokens": 140,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "toolcall_delta",
+    "contentIndex": 1,
+    "delta": "{\"path\":"
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 120,
+    "output": 20,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "reasoning": 0,
+    "totalTokens": 140,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "toolcall_delta",
+    "contentIndex": 1,
+    "delta": "\"notes.txt\",\"edits\":[{\"oldText\":\"line one\",\"newText\":\"line ONE\"},{\"oldText\":\"line two\",\"newText\":\"line TWO\"}]}"
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 120,
+    "output": 20,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "reasoning": 0,
+    "totalTokens": 140,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "toolcall_start",
+    "contentIndex": 2,
+    "id": "call_2_1",
+    "toolName": "write"
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 120,
+    "output": 20,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "reasoning": 0,
+    "totalTokens": 140,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "toolcall_delta",
+    "contentIndex": 2,
+    "delta": ""
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 120,
+    "output": 20,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "reasoning": 0,
+    "totalTokens": 140,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "toolcall_delta",
+    "contentIndex": 2,
+    "delta": "{\"path\":"
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 120,
+    "output": 20,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "reasoning": 0,
+    "totalTokens": 140,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "toolcall_delta",
+    "contentIndex": 2,
+    "delta": "\"out.txt\",\"content\":\"hello\\nworld\\n\"}"
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 120,
+    "output": 20,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "reasoning": 0,
+    "totalTokens": 140,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "toolcall_start",
+    "contentIndex": 3,
+    "id": "call_2_2",
+    "toolName": "bash"
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 120,
+    "output": 20,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "reasoning": 0,
+    "totalTokens": 140,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "toolcall_delta",
+    "contentIndex": 3,
+    "delta": ""
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 120,
+    "output": 20,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "reasoning": 0,
+    "totalTokens": 140,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "toolcall_delta",
+    "contentIndex": 3,
+    "delta": "{\"comman"
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 120,
+    "output": 20,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "reasoning": 0,
+    "totalTokens": 140,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "toolcall_delta",
+    "contentIndex": 3,
+    "delta": "d\":\"echo out; echo err 1>&2; exit 3\"}"
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 120,
+    "output": 20,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "reasoning": 0,
+    "totalTokens": 140,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "text_end",
+    "contentIndex": 0,
+    "content": "Step 3. "
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 120,
+    "output": 20,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "reasoning": 0,
+    "totalTokens": 140,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "toolcall_end",
+    "contentIndex": 1,
+    "toolCall": {
+     "type": "toolCall",
+     "id": "call_2_0",
+     "name": "edit",
+     "arguments": {
+      "path": "notes.txt",
+      "edits": [
+       {
+        "oldText": "line one",
+        "newText": "line ONE"
+       },
+       {
+        "oldText": "line two",
+        "newText": "line TWO"
+       }
+      ]
+     }
+    }
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 120,
+    "output": 20,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "reasoning": 0,
+    "totalTokens": 140,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "toolcall_end",
+    "contentIndex": 2,
+    "toolCall": {
+     "type": "toolCall",
+     "id": "call_2_1",
+     "name": "write",
+     "arguments": {
+      "path": "out.txt",
+      "content": "hello\nworld\n"
+     }
+    }
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 120,
+    "output": 20,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "reasoning": 0,
+    "totalTokens": 140,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "toolcall_end",
+    "contentIndex": 3,
+    "toolCall": {
+     "type": "toolCall",
+     "id": "call_2_2",
+     "name": "bash",
+     "arguments": {
+      "command": "echo out; echo err 1>&2; exit 3"
+     }
+    }
+   }
+  },
+  {
+   "type": "message_end",
+   "message": {
+    "role": "assistant",
+    "content": [
+     {
+      "type": "text",
+      "text": "Step 3. "
+     },
+     {
+      "type": "toolCall",
+      "id": "call_2_0",
+      "name": "edit",
+      "arguments": {
+       "path": "notes.txt",
+       "edits": [
+        {
+         "oldText": "line one",
+         "newText": "line ONE"
+        },
+        {
+         "oldText": "line two",
+         "newText": "line TWO"
+        }
+       ]
+      }
+     },
+     {
+      "type": "toolCall",
+      "id": "call_2_1",
+      "name": "write",
+      "arguments": {
+       "path": "out.txt",
+       "content": "hello\nworld\n"
+      }
+     },
+     {
+      "type": "toolCall",
+      "id": "call_2_2",
+      "name": "bash",
+      "arguments": {
+       "command": "echo out; echo err 1>&2; exit 3"
+      }
+     }
+    ],
+    "api": "openai-completions",
+    "provider": "mock",
+    "model": "mock-model",
+    "usage": {
+     "input": 120,
+     "output": 20,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "reasoning": 0,
+     "totalTokens": 140,
+     "cost": {
+      "input": 0,
+      "output": 0,
+      "cacheRead": 0,
+      "cacheWrite": 0,
+      "total": 0,
+      "totalFromProvider": false
+     }
+    },
+    "stopReason": "toolUse",
+    "timestamp": 1794291748256,
+    "responseId": "mock-1",
+    "rawStopReason": "tool_calls",
+    "durationMs": 2,
+    "thinkingLevel": "low"
+   }
+  },
+  {
+   "type": "tool_execution_start",
+   "toolCallId": "call_2_0",
+   "toolName": "edit",
+   "args": {
+    "path": "notes.txt",
+    "edits": [
+     {
+      "oldText": "line one",
+      "newText": "line ONE"
+     },
+     {
+      "oldText": "line two",
+      "newText": "line TWO"
+     }
+    ]
+   }
+  },
+  {
+   "type": "tool_execution_start",
+   "toolCallId": "call_2_1",
+   "toolName": "write",
+   "args": {
+    "path": "out.txt",
+    "content": "hello\nworld\n"
+   }
+  },
+  {
+   "type": "tool_execution_start",
+   "toolCallId": "call_2_2",
+   "toolName": "bash",
+   "args": {
+    "command": "echo out; echo err 1>&2; exit 3"
+   }
+  },
+  {
+   "type": "tool_execution_update",
+   "toolCallId": "call_2_2",
+   "toolName": "bash",
+   "args": {
+    "command": "echo out; echo err 1>&2; exit 3"
+   },
+   "partialResult": {
+    "content": []
+   }
+  },
+  {
+   "type": "tool_execution_end",
+   "toolCallId": "call_2_1",
+   "toolName": "write",
+   "result": {
+    "content": [
+     {
+      "type": "text",
+      "text": "Successfully wrote to out.txt"
+     }
+    ]
+   },
+   "isError": false,
+   "durationMs": 1
+  },
+  {
+   "type": "tool_execution_end",
+   "toolCallId": "call_2_0",
+   "toolName": "edit",
+   "result": {
+    "content": [
+     {
+      "type": "text",
+      "text": "Successfully replaced 2 block(s) in notes.txt."
+     }
+    ],
+    "details": {
+     "diff": "-1 line one\n-2 line two\n+1 line ONE\n+2 line TWO",
+     "patch": "--- notes.txt\n+++ notes.txt\n@@ -1,2 +1,2 @@\n-line one\n-line two\n+line ONE\n+line TWO\n",
+     "firstChangedLine": 1
+    }
+   },
+   "isError": false,
+   "durationMs": 2
+  },
+  {
+   "type": "tool_execution_update",
+   "toolCallId": "call_2_2",
+   "toolName": "bash",
+   "args": {
+    "command": "echo out; echo err 1>&2; exit 3"
+   },
+   "partialResult": {
+    "content": [
+     {
+      "type": "text",
+      "text": "out\n"
+     }
+    ],
+    "details": {}
+   }
+  },
+  {
+   "type": "tool_execution_update",
+   "toolCallId": "call_2_2",
+   "toolName": "bash",
+   "args": {
+    "command": "echo out; echo err 1>&2; exit 3"
+   },
+   "partialResult": {
+    "content": [
+     {
+      "type": "text",
+      "text": "out\nerr\n"
+     }
+    ],
+    "details": {}
+   }
+  },
+  {
+   "type": "tool_execution_end",
+   "toolCallId": "call_2_2",
+   "toolName": "bash",
+   "result": {
+    "content": [
+     {
+      "type": "text",
+      "text": "out\nerr\n\n\nCommand exited with code 3"
+     }
+    ],
+    "structuredContent": {
+     "output": "out\nerr\n",
+     "truncated": false,
+     "exit_code": 3,
+     "wall_time_seconds": 0
+    },
+    "isError": true
+   },
+   "isError": true,
+   "durationMs": 3
+  },
+  {
+   "type": "message_start",
+   "message": {
+    "role": "toolResult",
+    "toolCallId": "call_2_0",
+    "toolName": "edit",
+    "content": [
+     {
+      "type": "text",
+      "text": "Successfully replaced 2 block(s) in notes.txt."
+     }
+    ],
+    "details": {
+     "diff": "-1 line one\n-2 line two\n+1 line ONE\n+2 line TWO",
+     "patch": "--- notes.txt\n+++ notes.txt\n@@ -1,2 +1,2 @@\n-line one\n-line two\n+line ONE\n+line TWO\n",
+     "firstChangedLine": 1
+    },
+    "isError": false,
+    "durationMs": 2,
+    "timestamp": 1794291748261
+   }
+  },
+  {
+   "type": "message_end",
+   "message": {
+    "role": "toolResult",
+    "toolCallId": "call_2_0",
+    "toolName": "edit",
+    "content": [
+     {
+      "type": "text",
+      "text": "Successfully replaced 2 block(s) in notes.txt."
+     }
+    ],
+    "details": {
+     "diff": "-1 line one\n-2 line two\n+1 line ONE\n+2 line TWO",
+     "patch": "--- notes.txt\n+++ notes.txt\n@@ -1,2 +1,2 @@\n-line one\n-line two\n+line ONE\n+line TWO\n",
+     "firstChangedLine": 1
+    },
+    "isError": false,
+    "durationMs": 2,
+    "timestamp": 1794291748261
+   }
+  },
+  {
+   "type": "message_start",
+   "message": {
+    "role": "toolResult",
+    "toolCallId": "call_2_1",
+    "toolName": "write",
+    "content": [
+     {
+      "type": "text",
+      "text": "Successfully wrote to out.txt"
+     }
+    ],
+    "isError": false,
+    "durationMs": 1,
+    "timestamp": 1794291748261
+   }
+  },
+  {
+   "type": "message_end",
+   "message": {
+    "role": "toolResult",
+    "toolCallId": "call_2_1",
+    "toolName": "write",
+    "content": [
+     {
+      "type": "text",
+      "text": "Successfully wrote to out.txt"
+     }
+    ],
+    "isError": false,
+    "durationMs": 1,
+    "timestamp": 1794291748261
+   }
+  },
+  {
+   "type": "message_start",
+   "message": {
+    "role": "toolResult",
+    "toolCallId": "call_2_2",
+    "toolName": "bash",
+    "content": [
+     {
+      "type": "text",
+      "text": "out\nerr\n\n\nCommand exited with code 3"
+     }
+    ],
+    "isError": true,
+    "durationMs": 3,
+    "timestamp": 1794291748262
+   }
+  },
+  {
+   "type": "message_end",
+   "message": {
+    "role": "toolResult",
+    "toolCallId": "call_2_2",
+    "toolName": "bash",
+    "content": [
+     {
+      "type": "text",
+      "text": "out\nerr\n\n\nCommand exited with code 3"
+     }
+    ],
+    "isError": true,
+    "durationMs": 3,
+    "timestamp": 1794291748262
+   }
+  },
+  {
+   "type": "turn_end",
+   "message": {
+    "role": "assistant",
+    "content": [
+     {
+      "type": "text",
+      "text": "Step 3. "
+     },
+     {
+      "type": "toolCall",
+      "id": "call_2_0",
+      "name": "edit",
+      "arguments": {
+       "path": "notes.txt",
+       "edits": [
+        {
+         "oldText": "line one",
+         "newText": "line ONE"
+        },
+        {
+         "oldText": "line two",
+         "newText": "line TWO"
+        }
+       ]
+      }
+     },
+     {
+      "type": "toolCall",
+      "id": "call_2_1",
+      "name": "write",
+      "arguments": {
+       "path": "out.txt",
+       "content": "hello\nworld\n"
+      }
+     },
+     {
+      "type": "toolCall",
+      "id": "call_2_2",
+      "name": "bash",
+      "arguments": {
+       "command": "echo out; echo err 1>&2; exit 3"
+      }
+     }
+    ],
+    "api": "openai-completions",
+    "provider": "mock",
+    "model": "mock-model",
+    "usage": {
+     "input": 120,
+     "output": 20,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "reasoning": 0,
+     "totalTokens": 140,
+     "cost": {
+      "input": 0,
+      "output": 0,
+      "cacheRead": 0,
+      "cacheWrite": 0,
+      "total": 0,
+      "totalFromProvider": false
+     }
+    },
+    "stopReason": "toolUse",
+    "timestamp": 1794291748256,
+    "responseId": "mock-1",
+    "rawStopReason": "tool_calls",
+    "durationMs": 2,
+    "thinkingLevel": "low"
+   },
+   "toolResults": [
+    {
+     "role": "toolResult",
+     "toolCallId": "call_2_0",
+     "toolName": "edit",
+     "content": [
+      {
+       "type": "text",
+       "text": "Successfully replaced 2 block(s) in notes.txt."
+      }
+     ],
+     "details": {
+      "diff": "-1 line one\n-2 line two\n+1 line ONE\n+2 line TWO",
+      "patch": "--- notes.txt\n+++ notes.txt\n@@ -1,2 +1,2 @@\n-line one\n-line two\n+line ONE\n+line TWO\n",
+      "firstChangedLine": 1
+     },
+     "isError": false,
+     "durationMs": 2,
+     "timestamp": 1794291748261
+    },
+    {
+     "role": "toolResult",
+     "toolCallId": "call_2_1",
+     "toolName": "write",
+     "content": [
+      {
+       "type": "text",
+       "text": "Successfully wrote to out.txt"
+      }
+     ],
+     "isError": false,
+     "durationMs": 1,
+     "timestamp": 1794291748261
+    },
+    {
+     "role": "toolResult",
+     "toolCallId": "call_2_2",
+     "toolName": "bash",
+     "content": [
+      {
+       "type": "text",
+       "text": "out\nerr\n\n\nCommand exited with code 3"
+      }
+     ],
+     "isError": true,
+     "durationMs": 3,
+     "timestamp": 1794291748262
+    }
+   ]
+  },
+  {
+   "type": "turn_start"
+  },
+  {
+   "type": "message_start",
+   "message": {
+    "role": "assistant",
+    "content": [
+     {
+      "type": "text",
+      "text": "Step 4. "
+     }
+    ],
+    "api": "openai-completions",
+    "provider": "mock",
+    "model": "mock-model",
+    "usage": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "totalTokens": 0,
+     "cost": {
+      "input": 0,
+      "output": 0,
+      "cacheRead": 0,
+      "cacheWrite": 0,
+      "total": 0
+     }
+    },
+    "stopReason": "pending",
+    "timestamp": 1794291748262
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 130,
+    "output": 20,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "reasoning": 0,
+    "totalTokens": 150,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "text_start",
+    "contentIndex": 0
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 130,
+    "output": 20,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "reasoning": 0,
+    "totalTokens": 150,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "text_delta",
+    "contentIndex": 0,
+    "delta": "Step 4. "
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 130,
+    "output": 20,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "reasoning": 0,
+    "totalTokens": 150,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "toolcall_start",
+    "contentIndex": 1,
+    "id": "call_3_0",
+    "toolName": "grep"
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 130,
+    "output": 20,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "reasoning": 0,
+    "totalTokens": 150,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "toolcall_delta",
+    "contentIndex": 1,
+    "delta": ""
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 130,
+    "output": 20,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "reasoning": 0,
+    "totalTokens": 150,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "toolcall_delta",
+    "contentIndex": 1,
+    "delta": "{\"patter"
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 130,
+    "output": 20,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "reasoning": 0,
+    "totalTokens": 150,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "toolcall_delta",
+    "contentIndex": 1,
+    "delta": "n\":\"LINE\",\"ignoreCase\":true}"
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 130,
+    "output": 20,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "reasoning": 0,
+    "totalTokens": 150,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "toolcall_start",
+    "contentIndex": 2,
+    "id": "call_3_1",
+    "toolName": "find"
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 130,
+    "output": 20,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "reasoning": 0,
+    "totalTokens": 150,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "toolcall_delta",
+    "contentIndex": 2,
+    "delta": ""
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 130,
+    "output": 20,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "reasoning": 0,
+    "totalTokens": 150,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "toolcall_delta",
+    "contentIndex": 2,
+    "delta": "{\"patter"
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 130,
+    "output": 20,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "reasoning": 0,
+    "totalTokens": 150,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "toolcall_delta",
+    "contentIndex": 2,
+    "delta": "n\":\"*.txt\"}"
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 130,
+    "output": 20,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "reasoning": 0,
+    "totalTokens": 150,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "toolcall_start",
+    "contentIndex": 3,
+    "id": "call_3_2",
+    "toolName": "nope_tool"
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 130,
+    "output": 20,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "reasoning": 0,
+    "totalTokens": 150,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "toolcall_delta",
+    "contentIndex": 3,
+    "delta": ""
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 130,
+    "output": 20,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "reasoning": 0,
+    "totalTokens": 150,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "toolcall_delta",
+    "contentIndex": 3,
+    "delta": "{\"x\":1}"
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 130,
+    "output": 20,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "reasoning": 0,
+    "totalTokens": 150,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "toolcall_delta",
+    "contentIndex": 3,
+    "delta": ""
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 130,
+    "output": 20,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "reasoning": 0,
+    "totalTokens": 150,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "text_end",
+    "contentIndex": 0,
+    "content": "Step 4. "
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 130,
+    "output": 20,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "reasoning": 0,
+    "totalTokens": 150,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "toolcall_end",
+    "contentIndex": 1,
+    "toolCall": {
+     "type": "toolCall",
+     "id": "call_3_0",
+     "name": "grep",
+     "arguments": {
+      "pattern": "LINE",
+      "ignoreCase": true
+     }
+    }
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 130,
+    "output": 20,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "reasoning": 0,
+    "totalTokens": 150,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "toolcall_end",
+    "contentIndex": 2,
+    "toolCall": {
+     "type": "toolCall",
+     "id": "call_3_1",
+     "name": "find",
+     "arguments": {
+      "pattern": "*.txt"
+     }
+    }
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 130,
+    "output": 20,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "reasoning": 0,
+    "totalTokens": 150,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "toolcall_end",
+    "contentIndex": 3,
+    "toolCall": {
+     "type": "toolCall",
+     "id": "call_3_2",
+     "name": "nope_tool",
+     "arguments": {
+      "x": 1
+     }
+    }
+   }
+  },
+  {
+   "type": "message_end",
+   "message": {
+    "role": "assistant",
+    "content": [
+     {
+      "type": "text",
+      "text": "Step 4. "
+     },
+     {
+      "type": "toolCall",
+      "id": "call_3_0",
+      "name": "grep",
+      "arguments": {
+       "pattern": "LINE",
+       "ignoreCase": true
+      }
+     },
+     {
+      "type": "toolCall",
+      "id": "call_3_1",
+      "name": "find",
+      "arguments": {
+       "pattern": "*.txt"
+      }
+     },
+     {
+      "type": "toolCall",
+      "id": "call_3_2",
+      "name": "nope_tool",
+      "arguments": {
+       "x": 1
+      }
+     }
+    ],
+    "api": "openai-completions",
+    "provider": "mock",
+    "model": "mock-model",
+    "usage": {
+     "input": 130,
+     "output": 20,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "reasoning": 0,
+     "totalTokens": 150,
+     "cost": {
+      "input": 0,
+      "output": 0,
+      "cacheRead": 0,
+      "cacheWrite": 0,
+      "total": 0,
+      "totalFromProvider": false
+     }
+    },
+    "stopReason": "toolUse",
+    "timestamp": 1794291748262,
+    "responseId": "mock-1",
+    "rawStopReason": "tool_calls",
+    "durationMs": 1,
+    "thinkingLevel": "low"
+   }
+  },
+  {
+   "type": "tool_execution_start",
+   "toolCallId": "call_3_0",
+   "toolName": "grep",
+   "args": {
+    "pattern": "LINE",
+    "ignoreCase": true
+   }
+  },
+  {
+   "type": "tool_execution_start",
+   "toolCallId": "call_3_1",
+   "toolName": "find",
+   "args": {
+    "pattern": "*.txt"
+   }
+  },
+  {
+   "type": "tool_execution_start",
+   "toolCallId": "call_3_2",
+   "toolName": "nope_tool",
+   "args": {
+    "x": 1
+   }
+  },
+  {
+   "type": "tool_execution_end",
+   "toolCallId": "call_3_2",
+   "toolName": "nope_tool",
+   "result": {
+    "content": [
+     {
+      "type": "text",
+      "text": "Tool nope_tool not found"
+     }
+    ],
+    "details": {}
+   },
+   "isError": true
+  },
+  {
+   "type": "tool_execution_end",
+   "toolCallId": "call_3_1",
+   "toolName": "find",
+   "result": {
+    "content": [
+     {
+      "type": "text",
+      "text": "fd is not available and could not be downloaded"
+     }
+    ],
+    "details": {}
+   },
+   "isError": true,
+   "durationMs": 6
+  },
+  {
+   "type": "tool_execution_end",
+   "toolCallId": "call_3_0",
+   "toolName": "grep",
+   "result": {
+    "content": [
+     {
+      "type": "text",
+      "text": "notes.txt:1: line ONE\nnotes.txt:2: line TWO"
+     }
+    ]
+   },
+   "isError": false,
+   "durationMs": 31
+  },
+  {
+   "type": "message_start",
+   "message": {
+    "role": "toolResult",
+    "toolCallId": "call_3_0",
+    "toolName": "grep",
+    "content": [
+     {
+      "type": "text",
+      "text": "notes.txt:1: line ONE\nnotes.txt:2: line TWO"
+     }
+    ],
+    "isError": false,
+    "durationMs": 31,
+    "timestamp": 1794291748295
+   }
+  },
+  {
+   "type": "message_end",
+   "message": {
+    "role": "toolResult",
+    "toolCallId": "call_3_0",
+    "toolName": "grep",
+    "content": [
+     {
+      "type": "text",
+      "text": "notes.txt:1: line ONE\nnotes.txt:2: line TWO"
+     }
+    ],
+    "isError": false,
+    "durationMs": 31,
+    "timestamp": 1794291748295
+   }
+  },
+  {
+   "type": "message_start",
+   "message": {
+    "role": "toolResult",
+    "toolCallId": "call_3_1",
+    "toolName": "find",
+    "content": [
+     {
+      "type": "text",
+      "text": "fd is not available and could not be downloaded"
+     }
+    ],
+    "details": {},
+    "isError": true,
+    "durationMs": 6,
+    "timestamp": 1794291748295
+   }
+  },
+  {
+   "type": "message_end",
+   "message": {
+    "role": "toolResult",
+    "toolCallId": "call_3_1",
+    "toolName": "find",
+    "content": [
+     {
+      "type": "text",
+      "text": "fd is not available and could not be downloaded"
+     }
+    ],
+    "details": {},
+    "isError": true,
+    "durationMs": 6,
+    "timestamp": 1794291748295
+   }
+  },
+  {
+   "type": "message_start",
+   "message": {
+    "role": "toolResult",
+    "toolCallId": "call_3_2",
+    "toolName": "nope_tool",
+    "content": [
+     {
+      "type": "text",
+      "text": "Tool nope_tool not found"
+     }
+    ],
+    "details": {},
+    "isError": true,
+    "timestamp": 1794291748295
+   }
+  },
+  {
+   "type": "message_end",
+   "message": {
+    "role": "toolResult",
+    "toolCallId": "call_3_2",
+    "toolName": "nope_tool",
+    "content": [
+     {
+      "type": "text",
+      "text": "Tool nope_tool not found"
+     }
+    ],
+    "details": {},
+    "isError": true,
+    "timestamp": 1794291748295
+   }
+  },
+  {
+   "type": "turn_end",
+   "message": {
+    "role": "assistant",
+    "content": [
+     {
+      "type": "text",
+      "text": "Step 4. "
+     },
+     {
+      "type": "toolCall",
+      "id": "call_3_0",
+      "name": "grep",
+      "arguments": {
+       "pattern": "LINE",
+       "ignoreCase": true
+      }
+     },
+     {
+      "type": "toolCall",
+      "id": "call_3_1",
+      "name": "find",
+      "arguments": {
+       "pattern": "*.txt"
+      }
+     },
+     {
+      "type": "toolCall",
+      "id": "call_3_2",
+      "name": "nope_tool",
+      "arguments": {
+       "x": 1
+      }
+     }
+    ],
+    "api": "openai-completions",
+    "provider": "mock",
+    "model": "mock-model",
+    "usage": {
+     "input": 130,
+     "output": 20,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "reasoning": 0,
+     "totalTokens": 150,
+     "cost": {
+      "input": 0,
+      "output": 0,
+      "cacheRead": 0,
+      "cacheWrite": 0,
+      "total": 0,
+      "totalFromProvider": false
+     }
+    },
+    "stopReason": "toolUse",
+    "timestamp": 1794291748262,
+    "responseId": "mock-1",
+    "rawStopReason": "tool_calls",
+    "durationMs": 1,
+    "thinkingLevel": "low"
+   },
+   "toolResults": [
+    {
+     "role": "toolResult",
+     "toolCallId": "call_3_0",
+     "toolName": "grep",
+     "content": [
+      {
+       "type": "text",
+       "text": "notes.txt:1: line ONE\nnotes.txt:2: line TWO"
+      }
+     ],
+     "isError": false,
+     "durationMs": 31,
+     "timestamp": 1794291748295
+    },
+    {
+     "role": "toolResult",
+     "toolCallId": "call_3_1",
+     "toolName": "find",
+     "content": [
+      {
+       "type": "text",
+       "text": "fd is not available and could not be downloaded"
+      }
+     ],
+     "details": {},
+     "isError": true,
+     "durationMs": 6,
+     "timestamp": 1794291748295
+    },
+    {
+     "role": "toolResult",
+     "toolCallId": "call_3_2",
+     "toolName": "nope_tool",
+     "content": [
+      {
+       "type": "text",
+       "text": "Tool nope_tool not found"
+      }
+     ],
+     "details": {},
+     "isError": true,
+     "timestamp": 1794291748295
+    }
+   ]
+  },
+  {
+   "type": "turn_start"
+  },
+  {
+   "type": "message_start",
+   "message": {
+    "role": "assistant",
+    "content": [
+     {
+      "type": "text",
+      "text": "All st"
+     }
+    ],
+    "api": "openai-completions",
+    "provider": "mock",
+    "model": "mock-model",
+    "usage": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "totalTokens": 0,
+     "cost": {
+      "input": 0,
+      "output": 0,
+      "cacheRead": 0,
+      "cacheWrite": 0,
+      "total": 0
+     }
+    },
+    "stopReason": "pending",
+    "timestamp": 1794291748295
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 100,
+    "output": 12,
+    "cacheRead": 100,
+    "cacheWrite": 0,
+    "reasoning": 0,
+    "totalTokens": 212,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "text_start",
+    "contentIndex": 0
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 100,
+    "output": 12,
+    "cacheRead": 100,
+    "cacheWrite": 0,
+    "reasoning": 0,
+    "totalTokens": 212,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "text_delta",
+    "contentIndex": 0,
+    "delta": "All st"
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 100,
+    "output": 12,
+    "cacheRead": 100,
+    "cacheWrite": 0,
+    "reasoning": 0,
+    "totalTokens": 212,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "text_delta",
+    "contentIndex": 0,
+    "delta": "eps done"
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 100,
+    "output": 12,
+    "cacheRead": 100,
+    "cacheWrite": 0,
+    "reasoning": 0,
+    "totalTokens": 212,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "text_end",
+    "contentIndex": 0,
+    "content": "All steps done"
+   }
+  },
+  {
+   "type": "message_end",
+   "message": {
+    "role": "assistant",
+    "content": [
+     {
+      "type": "text",
+      "text": "All steps done"
+     }
+    ],
+    "api": "openai-completions",
+    "provider": "mock",
+    "model": "mock-model",
+    "usage": {
+     "input": 100,
+     "output": 12,
+     "cacheRead": 100,
+     "cacheWrite": 0,
+     "reasoning": 0,
+     "totalTokens": 212,
+     "cost": {
+      "input": 0,
+      "output": 0,
+      "cacheRead": 0,
+      "cacheWrite": 0,
+      "total": 0,
+      "totalFromProvider": false
+     }
+    },
+    "stopReason": "stop",
+    "timestamp": 1794291748295,
+    "responseId": "mock-1",
+    "rawStopReason": "stop",
+    "durationMs": 1,
+    "thinkingLevel": "low"
+   }
+  },
+  {
+   "type": "turn_end",
+   "message": {
+    "role": "assistant",
+    "content": [
+     {
+      "type": "text",
+      "text": "All steps done"
+     }
+    ],
+    "api": "openai-completions",
+    "provider": "mock",
+    "model": "mock-model",
+    "usage": {
+     "input": 100,
+     "output": 12,
+     "cacheRead": 100,
+     "cacheWrite": 0,
+     "reasoning": 0,
+     "totalTokens": 212,
+     "cost": {
+      "input": 0,
+      "output": 0,
+      "cacheRead": 0,
+      "cacheWrite": 0,
+      "total": 0,
+      "totalFromProvider": false
+     }
+    },
+    "stopReason": "stop",
+    "timestamp": 1794291748295,
+    "responseId": "mock-1",
+    "rawStopReason": "stop",
+    "durationMs": 1,
+    "thinkingLevel": "low"
+   },
+   "toolResults": []
+  },
+  {
+   "type": "agent_end",
+   "messages": [
+    {
+     "role": "system",
+     "content": "",
+     "sections": {
+      "preamble": "trimmed"
+     },
+     "timestamp": 1794291748221
+    },
+    {
+     "role": "user",
+     "content": [
+      {
+       "type": "text",
+       "text": "STEPS:[[{\"name\":\"read\",\"args\":{\"path\":\"notes.txt\"}},{\"name\":\"bash\",\"args\":{\"command\":\"echo one\"}}],[{\"name\":\"read\",\"args\":{\"path\":\"missing.txt\"}},{\"name\":\"ls\",\"args\":{\"path\":\".\"}}],[{\"name\":\"edit\",\"args\":{\"path\":\"notes.txt\",\"edits\":[{\"oldText\":\"line one\",\"newText\":\"line ONE\"},{\"oldText\":\"line two\",\"newText\":\"line TWO\"}]}},{\"name\":\"write\",\"args\":{\"path\":\"out.txt\",\"content\":\"hello\\nworld\\n\"}},{\"name\":\"bash\",\"args\":{\"command\":\"echo out; echo err 1>&2; exit 3\"}}],[{\"name\":\"grep\",\"args\":{\"pattern\":\"LINE\",\"ignoreCase\":true}},{\"name\":\"find\",\"args\":{\"pattern\":\"*.txt\"}},{\"name\":\"nope_tool\",\"args\":{\"x\":1}}]]"
+      }
+     ],
+     "timestamp": 1794291748221
+    },
+    {
+     "role": "assistant",
+     "content": [
+      {
+       "type": "text",
+       "text": "Step 1. "
+      },
+      {
+       "type": "toolCall",
+       "id": "call_0_0",
+       "name": "read",
+       "arguments": {
+        "path": "notes.txt"
+       }
+      },
+      {
+       "type": "toolCall",
+       "id": "call_0_1",
+       "name": "bash",
+       "arguments": {
+        "command": "echo one"
+       }
+      }
+     ],
+     "api": "openai-completions",
+     "provider": "mock",
+     "model": "mock-model",
+     "usage": {
+      "input": 100,
+      "output": 20,
+      "cacheRead": 0,
+      "cacheWrite": 0,
+      "reasoning": 0,
+      "totalTokens": 120,
+      "cost": {
+       "input": 0,
+       "output": 0,
+       "cacheRead": 0,
+       "cacheWrite": 0,
+       "total": 0,
+       "totalFromProvider": false
+      }
+     },
+     "stopReason": "toolUse",
+     "timestamp": 1794291748232,
+     "responseId": "mock-1",
+     "rawStopReason": "tool_calls",
+     "durationMs": 14,
+     "thinkingLevel": "low"
+    },
+    {
+     "role": "toolResult",
+     "toolCallId": "call_0_0",
+     "toolName": "read",
+     "content": [
+      {
+       "type": "text",
+       "text": "line one\nline two\n"
+      }
+     ],
+     "isError": false,
+     "durationMs": 2,
+     "timestamp": 1794291748252
+    },
+    {
+     "role": "toolResult",
+     "toolCallId": "call_0_1",
+     "toolName": "bash",
+     "content": [
+      {
+       "type": "text",
+       "text": "one\n"
+      }
+     ],
+     "isError": false,
+     "durationMs": 4,
+     "timestamp": 1794291748252
+    },
+    {
+     "role": "assistant",
+     "content": [
+      {
+       "type": "text",
+       "text": "Step 2. "
+      },
+      {
+       "type": "toolCall",
+       "id": "call_1_0",
+       "name": "read",
+       "arguments": {
+        "path": "missing.txt"
+       }
+      },
+      {
+       "type": "toolCall",
+       "id": "call_1_1",
+       "name": "ls",
+       "arguments": {
+        "path": "."
+       }
+      }
+     ],
+     "api": "openai-completions",
+     "provider": "mock",
+     "model": "mock-model",
+     "usage": {
+      "input": 110,
+      "output": 20,
+      "cacheRead": 0,
+      "cacheWrite": 0,
+      "reasoning": 0,
+      "totalTokens": 130,
+      "cost": {
+       "input": 0,
+       "output": 0,
+       "cacheRead": 0,
+       "cacheWrite": 0,
+       "total": 0,
+       "totalFromProvider": false
+      }
+     },
+     "stopReason": "toolUse",
+     "timestamp": 1794291748253,
+     "responseId": "mock-1",
+     "rawStopReason": "tool_calls",
+     "durationMs": 2,
+     "thinkingLevel": "low"
+    },
+    {
+     "role": "toolResult",
+     "toolCallId": "call_1_0",
+     "toolName": "read",
+     "content": [
+      {
+       "type": "text",
+       "text": "ENOENT: no such file or directory, access '/work/project/missing.txt'"
+      }
+     ],
+     "details": {},
+     "isError": true,
+     "durationMs": 0,
+     "timestamp": 1794291748255
+    },
+    {
+     "role": "toolResult",
+     "toolCallId": "call_1_1",
+     "toolName": "ls",
+     "content": [
+      {
+       "type": "text",
+       "text": "notes.txt"
+      }
+     ],
+     "isError": false,
+     "durationMs": 0,
+     "timestamp": 1794291748256
+    },
+    {
+     "role": "assistant",
+     "content": [
+      {
+       "type": "text",
+       "text": "Step 3. "
+      },
+      {
+       "type": "toolCall",
+       "id": "call_2_0",
+       "name": "edit",
+       "arguments": {
+        "path": "notes.txt",
+        "edits": [
+         {
+          "oldText": "line one",
+          "newText": "line ONE"
+         },
+         {
+          "oldText": "line two",
+          "newText": "line TWO"
+         }
+        ]
+       }
+      },
+      {
+       "type": "toolCall",
+       "id": "call_2_1",
+       "name": "write",
+       "arguments": {
+        "path": "out.txt",
+        "content": "hello\nworld\n"
+       }
+      },
+      {
+       "type": "toolCall",
+       "id": "call_2_2",
+       "name": "bash",
+       "arguments": {
+        "command": "echo out; echo err 1>&2; exit 3"
+       }
+      }
+     ],
+     "api": "openai-completions",
+     "provider": "mock",
+     "model": "mock-model",
+     "usage": {
+      "input": 120,
+      "output": 20,
+      "cacheRead": 0,
+      "cacheWrite": 0,
+      "reasoning": 0,
+      "totalTokens": 140,
+      "cost": {
+       "input": 0,
+       "output": 0,
+       "cacheRead": 0,
+       "cacheWrite": 0,
+       "total": 0,
+       "totalFromProvider": false
+      }
+     },
+     "stopReason": "toolUse",
+     "timestamp": 1794291748256,
+     "responseId": "mock-1",
+     "rawStopReason": "tool_calls",
+     "durationMs": 2,
+     "thinkingLevel": "low"
+    },
+    {
+     "role": "toolResult",
+     "toolCallId": "call_2_0",
+     "toolName": "edit",
+     "content": [
+      {
+       "type": "text",
+       "text": "Successfully replaced 2 block(s) in notes.txt."
+      }
+     ],
+     "details": {
+      "diff": "-1 line one\n-2 line two\n+1 line ONE\n+2 line TWO",
+      "patch": "--- notes.txt\n+++ notes.txt\n@@ -1,2 +1,2 @@\n-line one\n-line two\n+line ONE\n+line TWO\n",
+      "firstChangedLine": 1
+     },
+     "isError": false,
+     "durationMs": 2,
+     "timestamp": 1794291748261
+    },
+    {
+     "role": "toolResult",
+     "toolCallId": "call_2_1",
+     "toolName": "write",
+     "content": [
+      {
+       "type": "text",
+       "text": "Successfully wrote to out.txt"
+      }
+     ],
+     "isError": false,
+     "durationMs": 1,
+     "timestamp": 1794291748261
+    },
+    {
+     "role": "toolResult",
+     "toolCallId": "call_2_2",
+     "toolName": "bash",
+     "content": [
+      {
+       "type": "text",
+       "text": "out\nerr\n\n\nCommand exited with code 3"
+      }
+     ],
+     "isError": true,
+     "durationMs": 3,
+     "timestamp": 1794291748262
+    },
+    {
+     "role": "assistant",
+     "content": [
+      {
+       "type": "text",
+       "text": "Step 4. "
+      },
+      {
+       "type": "toolCall",
+       "id": "call_3_0",
+       "name": "grep",
+       "arguments": {
+        "pattern": "LINE",
+        "ignoreCase": true
+       }
+      },
+      {
+       "type": "toolCall",
+       "id": "call_3_1",
+       "name": "find",
+       "arguments": {
+        "pattern": "*.txt"
+       }
+      },
+      {
+       "type": "toolCall",
+       "id": "call_3_2",
+       "name": "nope_tool",
+       "arguments": {
+        "x": 1
+       }
+      }
+     ],
+     "api": "openai-completions",
+     "provider": "mock",
+     "model": "mock-model",
+     "usage": {
+      "input": 130,
+      "output": 20,
+      "cacheRead": 0,
+      "cacheWrite": 0,
+      "reasoning": 0,
+      "totalTokens": 150,
+      "cost": {
+       "input": 0,
+       "output": 0,
+       "cacheRead": 0,
+       "cacheWrite": 0,
+       "total": 0,
+       "totalFromProvider": false
+      }
+     },
+     "stopReason": "toolUse",
+     "timestamp": 1794291748262,
+     "responseId": "mock-1",
+     "rawStopReason": "tool_calls",
+     "durationMs": 1,
+     "thinkingLevel": "low"
+    },
+    {
+     "role": "toolResult",
+     "toolCallId": "call_3_0",
+     "toolName": "grep",
+     "content": [
+      {
+       "type": "text",
+       "text": "notes.txt:1: line ONE\nnotes.txt:2: line TWO"
+      }
+     ],
+     "isError": false,
+     "durationMs": 31,
+     "timestamp": 1794291748295
+    },
+    {
+     "role": "toolResult",
+     "toolCallId": "call_3_1",
+     "toolName": "find",
+     "content": [
+      {
+       "type": "text",
+       "text": "fd is not available and could not be downloaded"
+      }
+     ],
+     "details": {},
+     "isError": true,
+     "durationMs": 6,
+     "timestamp": 1794291748295
+    },
+    {
+     "role": "toolResult",
+     "toolCallId": "call_3_2",
+     "toolName": "nope_tool",
+     "content": [
+      {
+       "type": "text",
+       "text": "Tool nope_tool not found"
+      }
+     ],
+     "details": {},
+     "isError": true,
+     "timestamp": 1794291748295
+    },
+    {
+     "role": "assistant",
+     "content": [
+      {
+       "type": "text",
+       "text": "All steps done"
+      }
+     ],
+     "api": "openai-completions",
+     "provider": "mock",
+     "model": "mock-model",
+     "usage": {
+      "input": 100,
+      "output": 12,
+      "cacheRead": 100,
+      "cacheWrite": 0,
+      "reasoning": 0,
+      "totalTokens": 212,
+      "cost": {
+       "input": 0,
+       "output": 0,
+       "cacheRead": 0,
+       "cacheWrite": 0,
+       "total": 0,
+       "totalFromProvider": false
+      }
+     },
+     "stopReason": "stop",
+     "timestamp": 1794291748295,
+     "responseId": "mock-1",
+     "rawStopReason": "stop",
+     "durationMs": 1,
+     "thinkingLevel": "low"
+    }
+   ],
+   "willRetry": false
+  },
+  {
+   "type": "agent_settled",
+   "aborted": false
+  }
+ ],
+ "entries": [
+  {
+   "type": "model_change",
+   "id": "fb67afcf",
+   "parentId": null,
+   "timestamp": "2026-11-10T06:22:28.217Z",
+   "provider": "mock",
+   "modelId": "mock-model"
+  },
+  {
+   "type": "thinking_level_change",
+   "id": "525a0bd0",
+   "parentId": "fb67afcf",
+   "timestamp": "2026-11-10T06:22:28.217Z",
+   "thinkingLevel": "low"
+  },
+  {
+   "type": "message",
+   "id": "21016e60",
+   "parentId": "525a0bd0",
+   "timestamp": "2026-11-10T06:22:28.222Z",
+   "message": {
+    "role": "system",
+    "content": "",
+    "sections": {
+     "preamble": "trimmed"
+    },
+    "timestamp": 1794291748221
+   }
+  },
+  {
+   "type": "message",
+   "id": "ca73844c",
+   "parentId": "21016e60",
+   "timestamp": "2026-11-10T06:22:28.222Z",
+   "message": {
+    "role": "user",
+    "content": [
+     {
+      "type": "text",
+      "text": "STEPS:[[{\"name\":\"read\",\"args\":{\"path\":\"notes.txt\"}},{\"name\":\"bash\",\"args\":{\"command\":\"echo one\"}}],[{\"name\":\"read\",\"args\":{\"path\":\"missing.txt\"}},{\"name\":\"ls\",\"args\":{\"path\":\".\"}}],[{\"name\":\"edit\",\"args\":{\"path\":\"notes.txt\",\"edits\":[{\"oldText\":\"line one\",\"newText\":\"line ONE\"},{\"oldText\":\"line two\",\"newText\":\"line TWO\"}]}},{\"name\":\"write\",\"args\":{\"path\":\"out.txt\",\"content\":\"hello\\nworld\\n\"}},{\"name\":\"bash\",\"args\":{\"command\":\"echo out; echo err 1>&2; exit 3\"}}],[{\"name\":\"grep\",\"args\":{\"pattern\":\"LINE\",\"ignoreCase\":true}},{\"name\":\"find\",\"args\":{\"pattern\":\"*.txt\"}},{\"name\":\"nope_tool\",\"args\":{\"x\":1}}]]"
+     }
+    ],
+    "timestamp": 1794291748221
+   }
+  },
+  {
+   "type": "message",
+   "id": "6f09fc52",
+   "parentId": "ca73844c",
+   "timestamp": "2026-11-10T06:22:28.246Z",
+   "message": {
+    "role": "assistant",
+    "content": [
+     {
+      "type": "text",
+      "text": "Step 1. "
+     },
+     {
+      "type": "toolCall",
+      "id": "call_0_0",
+      "name": "read",
+      "arguments": {
+       "path": "notes.txt"
+      }
+     },
+     {
+      "type": "toolCall",
+      "id": "call_0_1",
+      "name": "bash",
+      "arguments": {
+       "command": "echo one"
+      }
+     }
+    ],
+    "api": "openai-completions",
+    "provider": "mock",
+    "model": "mock-model",
+    "usage": {
+     "input": 100,
+     "output": 20,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "reasoning": 0,
+     "totalTokens": 120,
+     "cost": {
+      "input": 0,
+      "output": 0,
+      "cacheRead": 0,
+      "cacheWrite": 0,
+      "total": 0,
+      "totalFromProvider": false
+     }
+    },
+    "stopReason": "toolUse",
+    "timestamp": 1794291748232,
+    "responseId": "mock-1",
+    "rawStopReason": "tool_calls",
+    "durationMs": 14,
+    "thinkingLevel": "low"
+   }
+  },
+  {
+   "type": "message",
+   "id": "a71bd71a",
+   "parentId": "6f09fc52",
+   "timestamp": "2026-11-10T06:22:28.252Z",
+   "message": {
+    "role": "toolResult",
+    "toolCallId": "call_0_0",
+    "toolName": "read",
+    "content": [
+     {
+      "type": "text",
+      "text": "line one\nline two\n"
+     }
+    ],
+    "isError": false,
+    "durationMs": 2,
+    "timestamp": 1794291748252
+   }
+  },
+  {
+   "type": "message",
+   "id": "0f59d806",
+   "parentId": "a71bd71a",
+   "timestamp": "2026-11-10T06:22:28.252Z",
+   "message": {
+    "role": "toolResult",
+    "toolCallId": "call_0_1",
+    "toolName": "bash",
+    "content": [
+     {
+      "type": "text",
+      "text": "one\n"
+     }
+    ],
+    "isError": false,
+    "durationMs": 4,
+    "timestamp": 1794291748252
+   }
+  },
+  {
+   "type": "message",
+   "id": "698f3c90",
+   "parentId": "0f59d806",
+   "timestamp": "2026-11-10T06:22:28.255Z",
+   "message": {
+    "role": "assistant",
+    "content": [
+     {
+      "type": "text",
+      "text": "Step 2. "
+     },
+     {
+      "type": "toolCall",
+      "id": "call_1_0",
+      "name": "read",
+      "arguments": {
+       "path": "missing.txt"
+      }
+     },
+     {
+      "type": "toolCall",
+      "id": "call_1_1",
+      "name": "ls",
+      "arguments": {
+       "path": "."
+      }
+     }
+    ],
+    "api": "openai-completions",
+    "provider": "mock",
+    "model": "mock-model",
+    "usage": {
+     "input": 110,
+     "output": 20,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "reasoning": 0,
+     "totalTokens": 130,
+     "cost": {
+      "input": 0,
+      "output": 0,
+      "cacheRead": 0,
+      "cacheWrite": 0,
+      "total": 0,
+      "totalFromProvider": false
+     }
+    },
+    "stopReason": "toolUse",
+    "timestamp": 1794291748253,
+    "responseId": "mock-1",
+    "rawStopReason": "tool_calls",
+    "durationMs": 2,
+    "thinkingLevel": "low"
+   }
+  },
+  {
+   "type": "message",
+   "id": "9327aa20",
+   "parentId": "698f3c90",
+   "timestamp": "2026-11-10T06:22:28.256Z",
+   "message": {
+    "role": "toolResult",
+    "toolCallId": "call_1_0",
+    "toolName": "read",
+    "content": [
+     {
+      "type": "text",
+      "text": "ENOENT: no such file or directory, access '/work/project/missing.txt'"
+     }
+    ],
+    "details": {},
+    "isError": true,
+    "durationMs": 0,
+    "timestamp": 1794291748255
+   }
+  },
+  {
+   "type": "message",
+   "id": "778ea6a9",
+   "parentId": "9327aa20",
+   "timestamp": "2026-11-10T06:22:28.256Z",
+   "message": {
+    "role": "toolResult",
+    "toolCallId": "call_1_1",
+    "toolName": "ls",
+    "content": [
+     {
+      "type": "text",
+      "text": "notes.txt"
+     }
+    ],
+    "isError": false,
+    "durationMs": 0,
+    "timestamp": 1794291748256
+   }
+  },
+  {
+   "type": "message",
+   "id": "c139dbe3",
+   "parentId": "778ea6a9",
+   "timestamp": "2026-11-10T06:22:28.258Z",
+   "message": {
+    "role": "assistant",
+    "content": [
+     {
+      "type": "text",
+      "text": "Step 3. "
+     },
+     {
+      "type": "toolCall",
+      "id": "call_2_0",
+      "name": "edit",
+      "arguments": {
+       "path": "notes.txt",
+       "edits": [
+        {
+         "oldText": "line one",
+         "newText": "line ONE"
+        },
+        {
+         "oldText": "line two",
+         "newText": "line TWO"
+        }
+       ]
+      }
+     },
+     {
+      "type": "toolCall",
+      "id": "call_2_1",
+      "name": "write",
+      "arguments": {
+       "path": "out.txt",
+       "content": "hello\nworld\n"
+      }
+     },
+     {
+      "type": "toolCall",
+      "id": "call_2_2",
+      "name": "bash",
+      "arguments": {
+       "command": "echo out; echo err 1>&2; exit 3"
+      }
+     }
+    ],
+    "api": "openai-completions",
+    "provider": "mock",
+    "model": "mock-model",
+    "usage": {
+     "input": 120,
+     "output": 20,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "reasoning": 0,
+     "totalTokens": 140,
+     "cost": {
+      "input": 0,
+      "output": 0,
+      "cacheRead": 0,
+      "cacheWrite": 0,
+      "total": 0,
+      "totalFromProvider": false
+     }
+    },
+    "stopReason": "toolUse",
+    "timestamp": 1794291748256,
+    "responseId": "mock-1",
+    "rawStopReason": "tool_calls",
+    "durationMs": 2,
+    "thinkingLevel": "low"
+   }
+  },
+  {
+   "type": "message",
+   "id": "9ef84af1",
+   "parentId": "c139dbe3",
+   "timestamp": "2026-11-10T06:22:28.261Z",
+   "message": {
+    "role": "toolResult",
+    "toolCallId": "call_2_0",
+    "toolName": "edit",
+    "content": [
+     {
+      "type": "text",
+      "text": "Successfully replaced 2 block(s) in notes.txt."
+     }
+    ],
+    "details": {
+     "diff": "-1 line one\n-2 line two\n+1 line ONE\n+2 line TWO",
+     "patch": "--- notes.txt\n+++ notes.txt\n@@ -1,2 +1,2 @@\n-line one\n-line two\n+line ONE\n+line TWO\n",
+     "firstChangedLine": 1
+    },
+    "isError": false,
+    "durationMs": 2,
+    "timestamp": 1794291748261
+   }
+  },
+  {
+   "type": "message",
+   "id": "b0516ed9",
+   "parentId": "9ef84af1",
+   "timestamp": "2026-11-10T06:22:28.261Z",
+   "message": {
+    "role": "toolResult",
+    "toolCallId": "call_2_1",
+    "toolName": "write",
+    "content": [
+     {
+      "type": "text",
+      "text": "Successfully wrote to out.txt"
+     }
+    ],
+    "isError": false,
+    "durationMs": 1,
+    "timestamp": 1794291748261
+   }
+  },
+  {
+   "type": "message",
+   "id": "301d4e55",
+   "parentId": "b0516ed9",
+   "timestamp": "2026-11-10T06:22:28.262Z",
+   "message": {
+    "role": "toolResult",
+    "toolCallId": "call_2_2",
+    "toolName": "bash",
+    "content": [
+     {
+      "type": "text",
+      "text": "out\nerr\n\n\nCommand exited with code 3"
+     }
+    ],
+    "isError": true,
+    "durationMs": 3,
+    "timestamp": 1794291748262
+   }
+  },
+  {
+   "type": "message",
+   "id": "6f1baf1f",
+   "parentId": "301d4e55",
+   "timestamp": "2026-11-10T06:22:28.264Z",
+   "message": {
+    "role": "assistant",
+    "content": [
+     {
+      "type": "text",
+      "text": "Step 4. "
+     },
+     {
+      "type": "toolCall",
+      "id": "call_3_0",
+      "name": "grep",
+      "arguments": {
+       "pattern": "LINE",
+       "ignoreCase": true
+      }
+     },
+     {
+      "type": "toolCall",
+      "id": "call_3_1",
+      "name": "find",
+      "arguments": {
+       "pattern": "*.txt"
+      }
+     },
+     {
+      "type": "toolCall",
+      "id": "call_3_2",
+      "name": "nope_tool",
+      "arguments": {
+       "x": 1
+      }
+     }
+    ],
+    "api": "openai-completions",
+    "provider": "mock",
+    "model": "mock-model",
+    "usage": {
+     "input": 130,
+     "output": 20,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "reasoning": 0,
+     "totalTokens": 150,
+     "cost": {
+      "input": 0,
+      "output": 0,
+      "cacheRead": 0,
+      "cacheWrite": 0,
+      "total": 0,
+      "totalFromProvider": false
+     }
+    },
+    "stopReason": "toolUse",
+    "timestamp": 1794291748262,
+    "responseId": "mock-1",
+    "rawStopReason": "tool_calls",
+    "durationMs": 1,
+    "thinkingLevel": "low"
+   }
+  },
+  {
+   "type": "message",
+   "id": "e797813c",
+   "parentId": "6f1baf1f",
+   "timestamp": "2026-11-10T06:22:28.295Z",
+   "message": {
+    "role": "toolResult",
+    "toolCallId": "call_3_0",
+    "toolName": "grep",
+    "content": [
+     {
+      "type": "text",
+      "text": "notes.txt:1: line ONE\nnotes.txt:2: line TWO"
+     }
+    ],
+    "isError": false,
+    "durationMs": 31,
+    "timestamp": 1794291748295
+   }
+  },
+  {
+   "type": "message",
+   "id": "c91ee838",
+   "parentId": "e797813c",
+   "timestamp": "2026-11-10T06:22:28.295Z",
+   "message": {
+    "role": "toolResult",
+    "toolCallId": "call_3_1",
+    "toolName": "find",
+    "content": [
+     {
+      "type": "text",
+      "text": "fd is not available and could not be downloaded"
+     }
+    ],
+    "details": {},
+    "isError": true,
+    "durationMs": 6,
+    "timestamp": 1794291748295
+   }
+  },
+  {
+   "type": "message",
+   "id": "12d1af75",
+   "parentId": "c91ee838",
+   "timestamp": "2026-11-10T06:22:28.295Z",
+   "message": {
+    "role": "toolResult",
+    "toolCallId": "call_3_2",
+    "toolName": "nope_tool",
+    "content": [
+     {
+      "type": "text",
+      "text": "Tool nope_tool not found"
+     }
+    ],
+    "details": {},
+    "isError": true,
+    "timestamp": 1794291748295
+   }
+  },
+  {
+   "type": "message",
+   "id": "1dce48f3",
+   "parentId": "12d1af75",
+   "timestamp": "2026-11-10T06:22:28.297Z",
+   "message": {
+    "role": "assistant",
+    "content": [
+     {
+      "type": "text",
+      "text": "All steps done"
+     }
+    ],
+    "api": "openai-completions",
+    "provider": "mock",
+    "model": "mock-model",
+    "usage": {
+     "input": 100,
+     "output": 12,
+     "cacheRead": 100,
+     "cacheWrite": 0,
+     "reasoning": 0,
+     "totalTokens": 212,
+     "cost": {
+      "input": 0,
+      "output": 0,
+      "cacheRead": 0,
+      "cacheWrite": 0,
+      "total": 0,
+      "totalFromProvider": false
+     }
+    },
+    "stopReason": "stop",
+    "timestamp": 1794291748295,
+    "responseId": "mock-1",
+    "rawStopReason": "stop",
+    "durationMs": 1,
+    "thinkingLevel": "low"
+   }
+  }
+ ]
+}

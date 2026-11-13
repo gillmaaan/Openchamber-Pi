@@ -1,0 +1,1064 @@
+{
+ "name": "reasoning-bash",
+ "description": "Reasoning, text, a bash call and a final answer (the mock default).",
+ "cwd": "/work/project",
+ "header": {
+  "type": "session",
+  "version": 3,
+  "id": "ses_fixture_reasoning_bash",
+  "timestamp": "2026-11-10T06:18:30.348Z",
+  "cwd": "/work/project"
+ },
+ "events": [
+  {
+   "type": "agent_start"
+  },
+  {
+   "type": "turn_start"
+  },
+  {
+   "type": "message_start",
+   "message": {
+    "role": "system",
+    "content": "",
+    "sections": {
+     "preamble": "trimmed"
+    },
+    "timestamp": 1794291510374
+   }
+  },
+  {
+   "type": "message_end",
+   "message": {
+    "role": "system",
+    "content": "",
+    "sections": {
+     "preamble": "trimmed"
+    },
+    "timestamp": 1794291510374
+   }
+  },
+  {
+   "type": "message_start",
+   "message": {
+    "role": "user",
+    "content": [
+     {
+      "type": "text",
+      "text": "hello go"
+     }
+    ],
+    "timestamp": 1794291510374
+   }
+  },
+  {
+   "type": "message_end",
+   "message": {
+    "role": "user",
+    "content": [
+     {
+      "type": "text",
+      "text": "hello go"
+     }
+    ],
+    "timestamp": 1794291510374
+   }
+  },
+  {
+   "type": "message_start",
+   "message": {
+    "role": "assistant",
+    "content": [
+     {
+      "type": "thinking",
+      "thinking": "Let me think. ",
+      "thinkingSignature": "reasoning_content"
+     }
+    ],
+    "api": "openai-completions",
+    "provider": "mock",
+    "model": "mock-model",
+    "usage": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "totalTokens": 0,
+     "cost": {
+      "input": 0,
+      "output": 0,
+      "cacheRead": 0,
+      "cacheWrite": 0,
+      "total": 0
+     }
+    },
+    "stopReason": "pending",
+    "timestamp": 1794291510383
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 100,
+    "output": 20,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "reasoning": 8,
+    "totalTokens": 120,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "thinking_start",
+    "contentIndex": 0
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 100,
+    "output": 20,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "reasoning": 8,
+    "totalTokens": 120,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "thinking_delta",
+    "contentIndex": 0,
+    "delta": "Let me think. "
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 100,
+    "output": 20,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "reasoning": 8,
+    "totalTokens": 120,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "thinking_delta",
+    "contentIndex": 0,
+    "delta": "Use the tool."
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 100,
+    "output": 20,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "reasoning": 8,
+    "totalTokens": 120,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "text_start",
+    "contentIndex": 1
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 100,
+    "output": 20,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "reasoning": 8,
+    "totalTokens": 120,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "text_delta",
+    "contentIndex": 1,
+    "delta": "Running it. "
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 100,
+    "output": 20,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "reasoning": 8,
+    "totalTokens": 120,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "toolcall_start",
+    "contentIndex": 2,
+    "id": "call_1",
+    "toolName": "bash"
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 100,
+    "output": 20,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "reasoning": 8,
+    "totalTokens": 120,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "toolcall_delta",
+    "contentIndex": 2,
+    "delta": "{\"command\":"
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 100,
+    "output": 20,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "reasoning": 8,
+    "totalTokens": 120,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "toolcall_delta",
+    "contentIndex": 2,
+    "delta": "\"echo hi\"}"
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 100,
+    "output": 20,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "reasoning": 8,
+    "totalTokens": 120,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "thinking_end",
+    "contentIndex": 0,
+    "content": "Let me think. Use the tool."
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 100,
+    "output": 20,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "reasoning": 8,
+    "totalTokens": 120,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "text_end",
+    "contentIndex": 1,
+    "content": "Running it. "
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 100,
+    "output": 20,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "reasoning": 8,
+    "totalTokens": 120,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "toolcall_end",
+    "contentIndex": 2,
+    "toolCall": {
+     "type": "toolCall",
+     "id": "call_1",
+     "name": "bash",
+     "arguments": {
+      "command": "echo hi"
+     }
+    }
+   }
+  },
+  {
+   "type": "message_end",
+   "message": {
+    "role": "assistant",
+    "content": [
+     {
+      "type": "thinking",
+      "thinking": "Let me think. Use the tool.",
+      "thinkingSignature": "reasoning_content"
+     },
+     {
+      "type": "text",
+      "text": "Running it. "
+     },
+     {
+      "type": "toolCall",
+      "id": "call_1",
+      "name": "bash",
+      "arguments": {
+       "command": "echo hi"
+      }
+     }
+    ],
+    "api": "openai-completions",
+    "provider": "mock",
+    "model": "mock-model",
+    "usage": {
+     "input": 100,
+     "output": 20,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "reasoning": 8,
+     "totalTokens": 120,
+     "cost": {
+      "input": 0,
+      "output": 0,
+      "cacheRead": 0,
+      "cacheWrite": 0,
+      "total": 0,
+      "totalFromProvider": false
+     }
+    },
+    "stopReason": "toolUse",
+    "timestamp": 1794291510383,
+    "responseId": "mock-1",
+    "rawStopReason": "tool_calls",
+    "durationMs": 14,
+    "thinkingLevel": "low"
+   }
+  },
+  {
+   "type": "tool_execution_start",
+   "toolCallId": "call_1",
+   "toolName": "bash",
+   "args": {
+    "command": "echo hi"
+   }
+  },
+  {
+   "type": "tool_execution_update",
+   "toolCallId": "call_1",
+   "toolName": "bash",
+   "args": {
+    "command": "echo hi"
+   },
+   "partialResult": {
+    "content": []
+   }
+  },
+  {
+   "type": "tool_execution_update",
+   "toolCallId": "call_1",
+   "toolName": "bash",
+   "args": {
+    "command": "echo hi"
+   },
+   "partialResult": {
+    "content": [
+     {
+      "type": "text",
+      "text": "hi\n"
+     }
+    ],
+    "details": {}
+   }
+  },
+  {
+   "type": "tool_execution_end",
+   "toolCallId": "call_1",
+   "toolName": "bash",
+   "result": {
+    "content": [
+     {
+      "type": "text",
+      "text": "hi\n"
+     }
+    ],
+    "structuredContent": {
+     "output": "hi\n",
+     "truncated": false,
+     "exit_code": 0,
+     "wall_time_seconds": 0
+    }
+   },
+   "isError": false,
+   "durationMs": 5
+  },
+  {
+   "type": "message_start",
+   "message": {
+    "role": "toolResult",
+    "toolCallId": "call_1",
+    "toolName": "bash",
+    "content": [
+     {
+      "type": "text",
+      "text": "hi\n"
+     }
+    ],
+    "isError": false,
+    "durationMs": 5,
+    "timestamp": 1794291510403
+   }
+  },
+  {
+   "type": "message_end",
+   "message": {
+    "role": "toolResult",
+    "toolCallId": "call_1",
+    "toolName": "bash",
+    "content": [
+     {
+      "type": "text",
+      "text": "hi\n"
+     }
+    ],
+    "isError": false,
+    "durationMs": 5,
+    "timestamp": 1794291510403
+   }
+  },
+  {
+   "type": "turn_end",
+   "message": {
+    "role": "assistant",
+    "content": [
+     {
+      "type": "thinking",
+      "thinking": "Let me think. Use the tool.",
+      "thinkingSignature": "reasoning_content"
+     },
+     {
+      "type": "text",
+      "text": "Running it. "
+     },
+     {
+      "type": "toolCall",
+      "id": "call_1",
+      "name": "bash",
+      "arguments": {
+       "command": "echo hi"
+      }
+     }
+    ],
+    "api": "openai-completions",
+    "provider": "mock",
+    "model": "mock-model",
+    "usage": {
+     "input": 100,
+     "output": 20,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "reasoning": 8,
+     "totalTokens": 120,
+     "cost": {
+      "input": 0,
+      "output": 0,
+      "cacheRead": 0,
+      "cacheWrite": 0,
+      "total": 0,
+      "totalFromProvider": false
+     }
+    },
+    "stopReason": "toolUse",
+    "timestamp": 1794291510383,
+    "responseId": "mock-1",
+    "rawStopReason": "tool_calls",
+    "durationMs": 14,
+    "thinkingLevel": "low"
+   },
+   "toolResults": [
+    {
+     "role": "toolResult",
+     "toolCallId": "call_1",
+     "toolName": "bash",
+     "content": [
+      {
+       "type": "text",
+       "text": "hi\n"
+      }
+     ],
+     "isError": false,
+     "durationMs": 5,
+     "timestamp": 1794291510403
+    }
+   ]
+  },
+  {
+   "type": "turn_start"
+  },
+  {
+   "type": "message_start",
+   "message": {
+    "role": "assistant",
+    "content": [
+     {
+      "type": "text",
+      "text": "Done: "
+     }
+    ],
+    "api": "openai-completions",
+    "provider": "mock",
+    "model": "mock-model",
+    "usage": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "totalTokens": 0,
+     "cost": {
+      "input": 0,
+      "output": 0,
+      "cacheRead": 0,
+      "cacheWrite": 0,
+      "total": 0
+     }
+    },
+    "stopReason": "pending",
+    "timestamp": 1794291510405
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 100,
+    "output": 12,
+    "cacheRead": 100,
+    "cacheWrite": 0,
+    "reasoning": 0,
+    "totalTokens": 212,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "text_start",
+    "contentIndex": 0
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 100,
+    "output": 12,
+    "cacheRead": 100,
+    "cacheWrite": 0,
+    "reasoning": 0,
+    "totalTokens": 212,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "text_delta",
+    "contentIndex": 0,
+    "delta": "Done: "
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 100,
+    "output": 12,
+    "cacheRead": 100,
+    "cacheWrite": 0,
+    "reasoning": 0,
+    "totalTokens": 212,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "text_delta",
+    "contentIndex": 0,
+    "delta": "tool said hi"
+   }
+  },
+  {
+   "type": "message_update",
+   "usage": {
+    "input": 100,
+    "output": 12,
+    "cacheRead": 100,
+    "cacheWrite": 0,
+    "reasoning": 0,
+    "totalTokens": 212,
+    "cost": {
+     "input": 0,
+     "output": 0,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "total": 0,
+     "totalFromProvider": false
+    }
+   },
+   "assistantMessageEvent": {
+    "type": "text_end",
+    "contentIndex": 0,
+    "content": "Done: tool said hi"
+   }
+  },
+  {
+   "type": "message_end",
+   "message": {
+    "role": "assistant",
+    "content": [
+     {
+      "type": "text",
+      "text": "Done: tool said hi"
+     }
+    ],
+    "api": "openai-completions",
+    "provider": "mock",
+    "model": "mock-model",
+    "usage": {
+     "input": 100,
+     "output": 12,
+     "cacheRead": 100,
+     "cacheWrite": 0,
+     "reasoning": 0,
+     "totalTokens": 212,
+     "cost": {
+      "input": 0,
+      "output": 0,
+      "cacheRead": 0,
+      "cacheWrite": 0,
+      "total": 0,
+      "totalFromProvider": false
+     }
+    },
+    "stopReason": "stop",
+    "timestamp": 1794291510405,
+    "responseId": "mock-1",
+    "rawStopReason": "stop",
+    "durationMs": 2,
+    "thinkingLevel": "low"
+   }
+  },
+  {
+   "type": "turn_end",
+   "message": {
+    "role": "assistant",
+    "content": [
+     {
+      "type": "text",
+      "text": "Done: tool said hi"
+     }
+    ],
+    "api": "openai-completions",
+    "provider": "mock",
+    "model": "mock-model",
+    "usage": {
+     "input": 100,
+     "output": 12,
+     "cacheRead": 100,
+     "cacheWrite": 0,
+     "reasoning": 0,
+     "totalTokens": 212,
+     "cost": {
+      "input": 0,
+      "output": 0,
+      "cacheRead": 0,
+      "cacheWrite": 0,
+      "total": 0,
+      "totalFromProvider": false
+     }
+    },
+    "stopReason": "stop",
+    "timestamp": 1794291510405,
+    "responseId": "mock-1",
+    "rawStopReason": "stop",
+    "durationMs": 2,
+    "thinkingLevel": "low"
+   },
+   "toolResults": []
+  },
+  {
+   "type": "agent_end",
+   "messages": [
+    {
+     "role": "system",
+     "content": "",
+     "sections": {
+      "preamble": "trimmed"
+     },
+     "timestamp": 1794291510374
+    },
+    {
+     "role": "user",
+     "content": [
+      {
+       "type": "text",
+       "text": "hello go"
+      }
+     ],
+     "timestamp": 1794291510374
+    },
+    {
+     "role": "assistant",
+     "content": [
+      {
+       "type": "thinking",
+       "thinking": "Let me think. Use the tool.",
+       "thinkingSignature": "reasoning_content"
+      },
+      {
+       "type": "text",
+       "text": "Running it. "
+      },
+      {
+       "type": "toolCall",
+       "id": "call_1",
+       "name": "bash",
+       "arguments": {
+        "command": "echo hi"
+       }
+      }
+     ],
+     "api": "openai-completions",
+     "provider": "mock",
+     "model": "mock-model",
+     "usage": {
+      "input": 100,
+      "output": 20,
+      "cacheRead": 0,
+      "cacheWrite": 0,
+      "reasoning": 8,
+      "totalTokens": 120,
+      "cost": {
+       "input": 0,
+       "output": 0,
+       "cacheRead": 0,
+       "cacheWrite": 0,
+       "total": 0,
+       "totalFromProvider": false
+      }
+     },
+     "stopReason": "toolUse",
+     "timestamp": 1794291510383,
+     "responseId": "mock-1",
+     "rawStopReason": "tool_calls",
+     "durationMs": 14,
+     "thinkingLevel": "low"
+    },
+    {
+     "role": "toolResult",
+     "toolCallId": "call_1",
+     "toolName": "bash",
+     "content": [
+      {
+       "type": "text",
+       "text": "hi\n"
+      }
+     ],
+     "isError": false,
+     "durationMs": 5,
+     "timestamp": 1794291510403
+    },
+    {
+     "role": "assistant",
+     "content": [
+      {
+       "type": "text",
+       "text": "Done: tool said hi"
+      }
+     ],
+     "api": "openai-completions",
+     "provider": "mock",
+     "model": "mock-model",
+     "usage": {
+      "input": 100,
+      "output": 12,
+      "cacheRead": 100,
+      "cacheWrite": 0,
+      "reasoning": 0,
+      "totalTokens": 212,
+      "cost": {
+       "input": 0,
+       "output": 0,
+       "cacheRead": 0,
+       "cacheWrite": 0,
+       "total": 0,
+       "totalFromProvider": false
+      }
+     },
+     "stopReason": "stop",
+     "timestamp": 1794291510405,
+     "responseId": "mock-1",
+     "rawStopReason": "stop",
+     "durationMs": 2,
+     "thinkingLevel": "low"
+    }
+   ],
+   "willRetry": false
+  },
+  {
+   "type": "agent_settled",
+   "aborted": false
+  }
+ ],
+ "entries": [
+  {
+   "type": "model_change",
+   "id": "e4419cec",
+   "parentId": null,
+   "timestamp": "2026-11-10T06:18:30.370Z",
+   "provider": "mock",
+   "modelId": "mock-model"
+  },
+  {
+   "type": "thinking_level_change",
+   "id": "13fa4056",
+   "parentId": "e4419cec",
+   "timestamp": "2026-11-10T06:18:30.370Z",
+   "thinkingLevel": "low"
+  },
+  {
+   "type": "message",
+   "id": "0766c304",
+   "parentId": "13fa4056",
+   "timestamp": "2026-11-10T06:18:30.375Z",
+   "message": {
+    "role": "system",
+    "content": "",
+    "sections": {
+     "preamble": "trimmed"
+    },
+    "timestamp": 1794291510374
+   }
+  },
+  {
+   "type": "message",
+   "id": "c50a2190",
+   "parentId": "0766c304",
+   "timestamp": "2026-11-10T06:18:30.375Z",
+   "message": {
+    "role": "user",
+    "content": [
+     {
+      "type": "text",
+      "text": "hello go"
+     }
+    ],
+    "timestamp": 1794291510374
+   }
+  },
+  {
+   "type": "message",
+   "id": "d95fcacb",
+   "parentId": "c50a2190",
+   "timestamp": "2026-11-10T06:18:30.397Z",
+   "message": {
+    "role": "assistant",
+    "content": [
+     {
+      "type": "thinking",
+      "thinking": "Let me think. Use the tool.",
+      "thinkingSignature": "reasoning_content"
+     },
+     {
+      "type": "text",
+      "text": "Running it. "
+     },
+     {
+      "type": "toolCall",
+      "id": "call_1",
+      "name": "bash",
+      "arguments": {
+       "command": "echo hi"
+      }
+     }
+    ],
+    "api": "openai-completions",
+    "provider": "mock",
+    "model": "mock-model",
+    "usage": {
+     "input": 100,
+     "output": 20,
+     "cacheRead": 0,
+     "cacheWrite": 0,
+     "reasoning": 8,
+     "totalTokens": 120,
+     "cost": {
+      "input": 0,
+      "output": 0,
+      "cacheRead": 0,
+      "cacheWrite": 0,
+      "total": 0,
+      "totalFromProvider": false
+     }
+    },
+    "stopReason": "toolUse",
+    "timestamp": 1794291510383,
+    "responseId": "mock-1",
+    "rawStopReason": "tool_calls",
+    "durationMs": 14,
+    "thinkingLevel": "low"
+   }
+  },
+  {
+   "type": "message",
+   "id": "cd1c0ff8",
+   "parentId": "d95fcacb",
+   "timestamp": "2026-11-10T06:18:30.403Z",
+   "message": {
+    "role": "toolResult",
+    "toolCallId": "call_1",
+    "toolName": "bash",
+    "content": [
+     {
+      "type": "text",
+      "text": "hi\n"
+     }
+    ],
+    "isError": false,
+    "durationMs": 5,
+    "timestamp": 1794291510403
+   }
+  },
+  {
+   "type": "message",
+   "id": "aade4bdd",
+   "parentId": "cd1c0ff8",
+   "timestamp": "2026-11-10T06:18:30.407Z",
+   "message": {
+    "role": "assistant",
+    "content": [
+     {
+      "type": "text",
+      "text": "Done: tool said hi"
+     }
+    ],
+    "api": "openai-completions",
+    "provider": "mock",
+    "model": "mock-model",
+    "usage": {
+     "input": 100,
+     "output": 12,
+     "cacheRead": 100,
+     "cacheWrite": 0,
+     "reasoning": 0,
+     "totalTokens": 212,
+     "cost": {
+      "input": 0,
+      "output": 0,
+      "cacheRead": 0,
+      "cacheWrite": 0,
+      "total": 0,
+      "totalFromProvider": false
+     }
+    },
+    "stopReason": "stop",
+    "timestamp": 1794291510405,
+    "responseId": "mock-1",
+    "rawStopReason": "stop",
+    "durationMs": 2,
+    "thinkingLevel": "low"
+   }
+  }
+ ]
+}

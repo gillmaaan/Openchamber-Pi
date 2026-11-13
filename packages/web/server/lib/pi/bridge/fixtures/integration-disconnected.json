@@ -1,0 +1,40 @@
+{
+  "location": {
+    "directory": "/work/proj"
+  },
+  "data": [
+    {
+      "id": "claude-agent",
+      "name": "Claude Agent",
+      "methods": [
+        {
+          "id": "claude-login",
+          "type": "external",
+          "label": "Claude Code login (claude auth login)"
+        }
+      ],
+      "connections": []
+    },
+    {
+      "id": "digitalocean",
+      "name": "DigitalOcean",
+      "methods": [
+        {
+          "type": "key"
+        },
+        {
+          "type": "env",
+          "names": [
+            "DIGITALOCEAN_ACCESS_TOKEN"
+          ]
+        },
+        {
+          "id": "browser",
+          "type": "oauth",
+          "label": "Login with DigitalOcean"
+        }
+      ],
+      "connections": []
+    }
+  ]
+}

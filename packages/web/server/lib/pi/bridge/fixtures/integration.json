@@ -1,0 +1,68 @@
+{
+  "location": {
+    "directory": "/work/nongit"
+  },
+  "data": [
+    {
+      "id": "anthropic",
+      "name": "Anthropic",
+      "methods": [
+        {
+          "type": "key"
+        },
+        {
+          "type": "env",
+          "names": [
+            "ANTHROPIC_API_KEY"
+          ]
+        }
+      ],
+      "connections": [
+        {
+          "type": "credential",
+          "id": "cred_1c41c9574001RXvNLLHcQj20vs",
+          "label": "Work",
+          "method": "oauth"
+        }
+      ]
+    },
+    {
+      "id": "openai",
+      "name": "OpenAI",
+      "methods": [
+        {
+          "type": "key"
+        },
+        {
+          "type": "env",
+          "names": [
+            "OPENAI_API_KEY"
+          ]
+        },
+        {
+          "id": "chatgpt-token-sharing",
+          "type": "oauth",
+          "label": "Sign in with ChatGPT"
+        },
+        {
+          "id": "chatgpt-browser",
+          "type": "oauth",
+          "label": "Codex browser (legacy)"
+        },
+        {
+          "id": "chatgpt-headless",
+          "type": "oauth",
+          "label": "Codex device code (legacy)"
+        }
+      ],
+      "connections": [
+        {
+          "type": "credential",
+          "id": "cred_1c41c9541001mWQ5zTvGq4coGY",
+          "label": "default",
+          "method": "key"
+        }
+      ]
+    }
+  ]
+}

@@ -210,7 +210,8 @@ IPC results if its endpoint changes while the read is pending.
 | `windows-app-discovery.mjs` | Windows "Open in": which apps are installed, their icons, and launch candidates. Every `where.exe` and PowerShell lookup is awaited, because a synchronous spawn per candidate froze the window for the whole scan |
 | `linux-app-discovery.mjs` | Linux "Open in": installed FreeDesktop entries, their icons, launch candidates and the chain that runs them. The generic "Terminal" id tries `xdg-terminal-exec` first with `--dir=<path>`, the only spelling the reference implementation parses. The binary runs only after its file, or the file a packaged launcher forwards to, shows support for `--dir=`, and `--print-id` runs bounded only where that file lists it, because older versions ignore that flag and `--help` and open a terminal. Explicit apps reach it only after their own entry fails. Every terminal candidate starts in the project directory; entries get it as an argument through `%f`/`%F` or a known working-directory option. A single-instance terminal without either opens in its own directory. A candidate that exits non-zero within 1 second counts as failed and the chain moves on (#6092) |
 | `preload.mjs` | Safe bridge from the rendered UI to Electron IPC |
-| `ssh-manager.mjs` | SSH host import, connection lifecycle, tunnel/port forwarding helpers |
+| `ssh-manager.mjs` | SSH host import, connection lifecycle, tunnel/port forwarding helpers. A managed remote instance receives this app's own `@openchamber/web` (see `bundled-web-package.mjs`), not a registry build that may expect another agent runtime; a marker file beside the remote install records which build is there. A build installed on a connect replaces the managed daemon started from the previous one even when both report the same version; a foreground server stays with its process manager |
+| `bundled-web-package.mjs` | Packs the app's web package, its UI build and a vendored `@openchamber/sdk` into one npm tarball for the remote install; the SDK is vendored because it is a `workspace:` dependency, and npm resolves the vendored `file:` dependency against the tarball's folder |
 | `startup-ssh.mjs` | Opening the default SSH instance's tunnel during startup, bounded, with teardown so a failed attempt boots Local (`sshStartupFallbackHostId` in the boot outcome) |
 | `dev-dock-identity.mjs` | Unpackaged macOS runs only: the dev icon, the app icon behind construction tape, in the Dock and the issue or PR number from the checked-out branch on its badge, so copies from several worktrees can be told apart. On a numbered branch the number keeps the badge over the unread-chats count; without a number the count works as in the packaged app |
 | `dev-window-tape.mjs` | Unpackaged runs only, every platform: a 5px strip of the same construction tape along the top edge of the main and mini chat windows, so a dev window can be told apart on screen. It ignores the pointer, so clicks and window dragging pass through |
@@ -495,6 +496,19 @@ The server (`packages/web/server/lib/fs/ripgrep.js`) looks for ripgrep in this o
   while terminal and file-editor focus adjust their own font sizes.
 - New Mini Chat windows default to the managed Chats target. Explicit project/worktree drafts retain their target, existing managed chat sessions reopen in their own directory, and the compact header omits project/branch metadata for Chats. Opening a managed draft back in the main window preserves that target.
 - Multiple native windows.
+- Translucent sidebar (macOS only). Settings → Appearance has a switch and an
+  opacity slider from 10 to 100 percent (the server's sanitizer holds the same
+  range); both are device values in the renderer's store. The renderer
+  reports the switch over `desktop_set_sidebar_vibrancy`, and main sets the
+  window's `sidebar` vibrancy with a clear background, then stores
+  `desktopSidebarVibrancy` in `settings.json` so the next window starts with
+  the material (`usesSidebarVibrancy` in `early-startup.mjs`). The reply says
+  whether the window now shows it; the page makes its sidebar translucent only
+  on that answer (`useDesktopSidebarVibrancy`). The shadow the chat casts on
+  the sidebar (`.oc-sidebar-cast` in `Sidebar.tsx`) is a gradient over the
+  column, so the material still shows through it at any opacity. The command is not in
+  `COMMANDS_SAFE_FOR_REMOTE`: a remote host's page cannot change the window.
+  Windows, Linux, web, VS Code and mobile have no such setting.
 - Native notifications. On macOS, viewing a session (the UI's
   `markSessionViewed`: opening it, or returning to the window while it is
   open) removes that session's delivered notifications from Notification

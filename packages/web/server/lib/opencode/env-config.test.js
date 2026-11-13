@@ -139,7 +139,7 @@ describe('resolveOpenCodeEnvConfig hostname', () => {
 
   it('keeps other env config intact when the hostname is validated', () => {
     const result = resolveOpenCodeEnvConfig({
-      env: { OPENCHAMBER_OPENCODE_HOSTNAME: '0.0.0.0', OPENCODE_PORT: '4096' },
+      env: { OPENCHAMBER_OPENCODE_HOSTNAME: '0.0.0.0', OPENCHAMBER_OPENCODE_PORT: '4096' },
     });
     expect(result.configuredOpenCodeHostname).toBe('0.0.0.0');
     expect(result.configuredOpenCodePort).toBe(4096);
@@ -147,24 +147,16 @@ describe('resolveOpenCodeEnvConfig hostname', () => {
   });
 });
 
-describe('resolveOpenCodeEnvConfig OPENCODE_HOST', () => {
-  it('keeps an explicitly written default port', () => {
-    const https = resolveOpenCodeEnvConfig({ env: { OPENCODE_HOST: 'https://opencode.example:443' } });
-    expect(https.configuredOpenCodeHost).toEqual({ origin: 'https://opencode.example', port: 443 });
-    const http = resolveOpenCodeEnvConfig({ env: { OPENCODE_HOST: 'http://[::1]:80' } });
-    expect(http.configuredOpenCodeHost).toEqual({ origin: 'http://[::1]', port: 80 });
-  });
-
-  it('reads a non-default port', () => {
-    const result = resolveOpenCodeEnvConfig({ env: { OPENCODE_HOST: 'http://host:4096' } });
-    expect(result.configuredOpenCodeHost).toEqual({ origin: 'http://host:4096', port: 4096 });
-    expect(result.effectivePort).toBe(4096);
-  });
-
-  it('still rejects a host without a port', () => {
-    const logger = { warn: vi.fn() };
-    const result = resolveOpenCodeEnvConfig({ env: { OPENCODE_HOST: 'https://opencode.example' }, logger });
+describe('resolveOpenCodeEnvConfig ignores the variables of a separate OpenCode', () => {
+  it('does not read OPENCODE_HOST or OPENCODE_PORT', () => {
+    const result = resolveOpenCodeEnvConfig({ env: { OPENCODE_HOST: 'http://host:4096', OPENCODE_PORT: '4097' } });
     expect(result.configuredOpenCodeHost).toBeNull();
-    expect(logger.warn).toHaveBeenCalledWith(expect.stringContaining('must include an explicit port'));
+    expect(result.configuredOpenCodePort).toBeNull();
+    expect(result.effectivePort).toBeNull();
+  });
+
+  it('reads the port from OpenChamber\'s own variables', () => {
+    expect(resolveOpenCodeEnvConfig({ env: { OPENCHAMBER_INTERNAL_PORT: '5050' } }).effectivePort).toBe(5050);
+    expect(resolveOpenCodeEnvConfig({ env: { OPENCHAMBER_OPENCODE_PORT: '5051', OPENCHAMBER_INTERNAL_PORT: '5050' } }).effectivePort).toBe(5051);
   });
 });

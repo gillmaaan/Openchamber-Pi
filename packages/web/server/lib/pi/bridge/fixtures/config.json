@@ -1,0 +1,73 @@
+[
+  {
+    "type": "document",
+    "path": "/work/occonf/opencode.json",
+    "info": {
+      "model": {
+        "providerID": "mock",
+        "model": "m1"
+      },
+      "commands": {
+        "greet": {
+          "template": "Say hello to $ARGUMENTS [PLAIN]",
+          "description": "Greets someone"
+        }
+      },
+      "providers": {
+        "mock": {
+          "name": "Mock",
+          "package": "@opencode/ai/providers/openai-compatible",
+          "settings": {
+            "baseURL": "http://127.0.0.1:56330/v1",
+            "apiKey": "test"
+          },
+          "models": {
+            "m1": {
+              "name": "Mock One",
+              "capabilities": {
+                "tools": true,
+                "input": [
+                  "text"
+                ],
+                "output": [
+                  "text"
+                ],
+                "reasoning": {
+                  "supported": true,
+                  "effort": [
+                    "low",
+                    "high"
+                  ]
+                }
+              },
+              "limit": {
+                "context": 100000,
+                "output": 4000
+              }
+            },
+            "m2": {
+              "name": "Mock Two",
+              "capabilities": {
+                "tools": true,
+                "input": [
+                  "text"
+                ],
+                "output": [
+                  "text"
+                ]
+              },
+              "limit": {
+                "context": 50000,
+                "output": 2000
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "type": "directory",
+    "path": "/work/occonf"
+  }
+]

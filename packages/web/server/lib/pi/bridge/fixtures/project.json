@@ -1,0 +1,23 @@
+[
+  {
+    "id": "e5b4fd05d68e6049196703542f1f387daa39cd95",
+    "canonical": "/work/proj2",
+    "vcs": "git",
+    "time": {
+      "created": 1794275908551,
+      "updated": 1794275908551,
+      "active": 1794275908552
+    },
+    "sandboxes": []
+  },
+  {
+    "id": "b110057e9f13db6a698579034a39cf36e6e3be89",
+    "canonical": "/work/tmp",
+    "time": {
+      "created": 1794275908442,
+      "updated": 1794275908442,
+      "active": 1794275908443
+    },
+    "sandboxes": []
+  }
+]

@@ -10,6 +10,7 @@
 import React from 'react';
 
 import { Icon } from '@/components/icon/Icon';
+import { buttonVariants } from '@/components/ui/button-variants';
 import { ProviderIcon } from '@/components/sourceControl/ProviderIcon';
 import { useSourceControlProvider } from '@/lib/source-control/providers/registry';
 import { GuestIcon } from '@/components/layout/GuestRailIcon';
@@ -50,6 +51,8 @@ type ComposerAttachmentControlsProps = {
      * linked context (issues, PRs, guests), which stays with the main draft.
      */
     filesOnly?: boolean;
+    /** Desktop and VS Code: the attach control is a raised circle of this size. Mobile keeps the bare icon. */
+    roundSizeClass?: string;
 };
 
 export const ComposerAttachmentControls = React.memo(function ComposerAttachmentControls(props: ComposerAttachmentControlsProps) {
@@ -66,8 +69,15 @@ export const ComposerAttachmentControls = React.memo(function ComposerAttachment
         attachGuests,
         onOpenGuestAttach,
         filesOnly = false,
+        roundSizeClass,
     } = props;
     const repositoryDescriptor = useSourceControlProvider(repositoryProvider);
+
+    const attachButtonClass = roundSizeClass
+        ? cn(buttonVariants({ variant: 'outline', size: 'icon' }), 'rounded-full text-muted-foreground hover:text-foreground', roundSizeClass)
+        : footerIconButtonClass;
+    // The circle carries its own outline, so the plus is a bare glyph.
+    const addIconName = roundSizeClass ? 'add' : 'add-circle';
 
     return (
         <div className="flex items-center gap-x-1.5">
@@ -97,7 +107,7 @@ export const ComposerAttachmentControls = React.memo(function ComposerAttachment
                         <TooltipTrigger asChild>
                             <button
                                 type="button"
-                                className={footerIconButtonClass}
+                                className={attachButtonClass}
                                 onClick={handlePickLocalFiles}
                                 aria-label={t('chat.chatInput.actions.attachFiles')}
                             >
@@ -114,10 +124,10 @@ export const ComposerAttachmentControls = React.memo(function ComposerAttachment
                                     <DropdownMenuTrigger asChild>
                                         <button
                                             type="button"
-                                            className={footerIconButtonClass}
+                                            className={attachButtonClass}
                                             aria-label={t('chat.chatInput.actions.addAttachment')}
                                         >
-                                            <Icon name="add-circle" className={cn(iconSizeClass, 'text-current')} />
+                                            <Icon name={addIconName} className={cn(iconSizeClass, 'text-current')} />
                                         </button>
                                     </DropdownMenuTrigger>
                                 </span>
@@ -195,6 +205,7 @@ export const ComposerAttachmentControls = React.memo(function ComposerAttachment
     && prev.onOpenMobileSheet === next.onOpenMobileSheet
     && prev.onOpenGuestAttach === next.onOpenGuestAttach
     && prev.filesOnly === next.filesOnly
+    && prev.roundSizeClass === next.roundSizeClass
     // The project's host is known only once its binding loads, so the link
     // item must follow it rather than keep the GitHub default it first drew.
     && prev.repositoryProvider === next.repositoryProvider

@@ -29,6 +29,7 @@ All in `design-system.css`; the surface classes above are built on them.
 |---|---|
 | `--oc-elevation-button` / `-raised` / `-floating` | The three lifts. Tailwind's `shadow-sm` / `shadow-md` / `shadow-lg` (and `shadow-xl`) map onto them, so a call site's `shadow-*` lands on the same scale. |
 | `--oc-elevation-ring` | The half-pixel ring alone, for an inset edge where an outer one would be clipped (`oc-panel-edge`). |
+| `--edge-control` / `--edge-control-focus` / `--edge-surface` | A theme's authored `edges` (`control`, `controlFocus`, `surface`), set only when the theme has them. Each is the first value of a `var()` whose fallback is the default below, so a theme without `edges` renders as before. `--edge-control` is the hairline `--oc-raised-edge` of `oc-raised` (buttons, fields, the chosen option of a segmented choice), `--edge-control-focus` the same hairline on a focused field, `--edge-surface` the ring `--oc-elevation-ring` of all three elevations (composer, panels, menus). Keep a new edge behind the same `var(--edge-*, default)` shape; never hardcode a replacement. |
 | `border-edge-muted` / `border-edge` / `border-edge-strong` | Lines at 40%, 70% and 100% of the theme's border colour (also `bg-`, `divide-`). Muted for quiet dividers, base for a frame, strong for what must hold its shape. Pick a level; an opacity of `border-border` is the old way. |
 
 A line between layout regions is a half-pixel inset hairline in

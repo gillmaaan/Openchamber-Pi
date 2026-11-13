@@ -208,10 +208,13 @@ describe('when to link', () => {
     expect(entries[MEMORY]).toBe('');
   });
 
-  test('dispatch names the Code Mode call path and leaves subagent work alone', () => {
-    expect(DISPATCH_GUIDANCE).toContain('tools.openchamber inside execute');
-    expect(SESSION_LINK_GUIDANCE).toContain('tools.openchamber inside a Code Mode execute script');
-    expect(WORK_NAME_GUIDANCE).toContain('tools.openchamber inside execute');
+  test('dispatch names the openchamber tool, never a Code Mode script, and leaves subagent work alone', () => {
+    expect(DISPATCH_GUIDANCE).toContain('call the openchamber tool');
+    expect(SESSION_LINK_GUIDANCE).toContain("the openchamber tool's session.link action");
+    expect(WORK_NAME_GUIDANCE).toContain("the openchamber tool's work.name action");
+    for (const text of [DISPATCH_GUIDANCE, SESSION_LINK_GUIDANCE, WORK_NAME_GUIDANCE, WORKFLOW_GUIDANCE]) {
+      expect(text).not.toMatch(/execute|Code Mode/);
+    }
     expect(DISPATCH_GUIDANCE).toContain('session.send');
     expect(DISPATCH_GUIDANCE).toContain('subagent tool');
   });
@@ -297,7 +300,7 @@ describe('when to offer a workflow', () => {
 });
 
 describe('where the managed tools are called', () => {
-  test('names the direct tools the session has, and none for tools behind Code Mode', async () => {
+  test('names the drawn direct tools the session has, and none for the control tool', async () => {
     const control = await entriesFor(createRuntime({ isSessionLinkingAvailable: async () => true }));
     expect(control[GUIDANCE]).not.toContain('direct tool');
     const all = await entriesFor(createRuntime({ isPageRenderingAvailable: async () => true, isSecretRequestAvailable: async () => true, isWorkflowAvailable: async () => true }));

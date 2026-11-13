@@ -127,6 +127,8 @@ export type SessionProjectScrollerActions = {
   removeProject: (id: string) => void;
   reorderProjects: (fromIndex: number, toIndex: number) => void;
   renderProjectStatusIndicator?: (projectId: string, groups: SessionGroup[]) => React.ReactNode;
+  /** Cowork mode: the display menu, opened from an icon at the end of the Chats caption. */
+  renderDisplayMenu?: (trigger: React.ReactElement) => React.ReactNode;
   setSingleProjectId: (id: string) => void;
 };
 
@@ -355,6 +357,7 @@ function SessionProjectScrollerComponent({ model, view, actions }: SessionProjec
           collapsed={row.collapsed}
           forceExpanded={row.forceExpanded}
           alwaysShowActions={view.alwaysShowActions}
+          renderDisplayMenu={actions.renderDisplayMenu}
           onToggle={() => toggleActivityZone(row, { model, actions })}
           onNewChat={() => {
             useUIStore.getState().closeMainSurfaces();

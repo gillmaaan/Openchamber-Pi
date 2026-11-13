@@ -37,6 +37,24 @@ describe('compact theme definitions', () => {
     expect(buildSyntaxTokenRules(theme.colors.syntax).find((rule) => rule.name === 'classes')?.settings.foreground).toBe('#abcdef');
   });
 
+  test('emits authored edge colors only and keeps them through compaction', () => {
+    const generator = new CSSVariableGenerator();
+    expect(generator.generate(requireTheme(minimal))).not.toContain('--edge-');
+
+    const edges = { control: '#ffffff30', controlFocus: '#ffffff66', surface: 'rgb(255 255 255 / 0.2)' };
+    const theme = requireTheme({ ...minimal, colors: { ...minimal.colors, edges } });
+    const css = generator.generate(theme);
+    expect(css).toContain('--edge-control: #ffffff30;');
+    expect(css).toContain('--edge-control-focus: #ffffff66;');
+    expect(css).toContain('--edge-surface: rgb(255 255 255 / 0.2);');
+    expect(compactTheme({ ...minimal, colors: { ...minimal.colors, edges } }).colors.edges).toEqual(edges);
+
+    const partial = generator.generate(requireTheme({ ...minimal, colors: { ...minimal.colors, edges: { surface: '#ffffff20' } } }));
+    expect(partial).toContain('--edge-surface: #ffffff20;');
+    expect(partial).not.toContain('--edge-control');
+    expect(themeSchema.safeParse({ ...minimal, colors: { ...minimal.colors, edges: { control: 'url(x)' } } }).success).toBe(false);
+  });
+
   test('preserves all built-in resolved colors across compact JSON round trips', () => {
     for (const theme of themes) {
       const compact = compactTheme(theme);

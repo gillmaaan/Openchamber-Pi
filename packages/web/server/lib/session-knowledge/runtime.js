@@ -105,7 +105,7 @@ const MEMORY_SAVE_GUIDANCE = 'The openchamber_memory tool keeps memory across se
  * only here. Stated only in the action's description, an agent given an issue
  * to investigate never opened the tool and so never linked it.
  */
-export const SESSION_LINK_GUIDANCE = "Link to this session with session.link (tools.openchamber inside a Code Mode execute script),"
+export const SESSION_LINK_GUIDANCE = "Link to this session with the openchamber tool's session.link action,"
   + " as soon as you know it, each issue or pull or merge request the user gives you to"
   + " work on, fix, investigate or review, that you open for this work, or that the work"
   + " resolves. One merely mentioned in passing stays unlinked. The reply need not say you linked it.";
@@ -115,7 +115,7 @@ export const SESSION_LINK_GUIDANCE = "Link to this session with session.link (to
  * an action only its description mentions is never called. The sidebar lists
  * a task under this name, so it is set early and changed only with the task.
  */
-export const WORK_NAME_GUIDANCE = "Name the task with work.name (tools.openchamber inside execute) as soon as it is clear what"
+export const WORK_NAME_GUIDANCE = "Name the task with the openchamber tool's work.name action as soon as it is clear what"
   + " the task is: at most 4 words naming the task itself, such as \"Login timeout fix\" or \"Sidebar task rows\","
   + " never a step of it. Write it in the language of the user's latest message, even when you work in"
   + " English: \"Таймаут входу\" for a user who writes Ukrainian. A branch name stays in English. Rename it only when the work"
@@ -124,22 +124,21 @@ export const WORK_NAME_GUIDANCE = "Name the task with work.name (tools.openchamb
 
 /**
  * How to hand work to another session, stated with the linking guidance for
- * the same reason (#6608). The call path is spelled out, here and in every
- * line that names an openchamber action: an agent that read
- * only "the openchamber tool" looked for a direct tool of that name, found
+ * the same reason (#6608). Every line that names an openchamber action names
+ * the `openchamber` tool: while it sat behind Code Mode, an agent that read only
+ * "the openchamber tool" looked for a direct tool of that name, found
  * openchamber_secret and openchamber_render, and called those instead. The
  * subagent line keeps it from dispatching what is part of its own task.
  */
-export const DISPATCH_GUIDANCE = "To hand work to another session, call tools.openchamber inside execute:"
+export const DISPATCH_GUIDANCE = "To hand work to another session, call the openchamber tool:"
   + " session.create starts a new session, session.send gives a task to an existing one (session.list finds it by title)."
   + " Only for a separate session the user asks for; part of your own task goes to your subagent tool.";
 
 /**
- * The managed tools the chat draws from their own call stay direct tools; the
- * rest sit behind Code Mode (../agent-tool/runtime.js). OpenCode's Code Mode
- * teaches the model that tools live in `execute`'s catalog, and a model that
- * called a direct tool from a script got "Unknown tool" and concluded the tool
- * did not exist. Names only the direct tools this session has.
+ * OpenCode's Code Mode teaches the model that tools live in `execute`'s
+ * catalog, and a model that called a direct tool from a script got "Unknown
+ * tool" and concluded the tool did not exist. Names the tools whose call the
+ * chat draws (render, secret, workflow) that this session has.
  */
 export const directToolsGuidance = (names) => (names.length === 1
   ? `${names[0]} is a direct tool call: never call it from inside a Code Mode execute script, where it does not exist.`
@@ -273,7 +272,7 @@ export const WORKFLOW_GUIDANCE = 'The openchamber_workflow tool runs a script th
   + ' or needs results cross-checked at that scale, say so and offer a workflow; never start one unasked.'
   + ' A single feature, a few steps or a short loop over files you can do yourself never gets one.'
   + ' Every agent runs on your own model unless the script names another, and dozens of agents on a top model cost many times what a cheap one does.'
-  + ' So when you propose a workflow, give each phase a model in the same message (look them up with models.list, tools.openchamber inside execute, when you have it):'
+  + ' So when you propose a workflow, give each phase a model in the same message (look them up with models.list of the openchamber tool, when you have it):'
   + ' a cheap one for reading and checking against a fixed list, a strong one where a phase weighs judgement or writes what lands.'
   + ' Start the run once the user agrees to the models.';
 

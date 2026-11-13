@@ -1,6 +1,6 @@
 # Tool-use bench
 
-Checks whether an agent reaches OpenChamber's own tools (`openchamber`, `openchamber_memory`, `openchamber_schedule` and the rest) when it should. Most of them sit behind OpenCode's Code Mode (`packages/web/server/lib/agent-tool/DOCUMENTATION.md`), so a change to their descriptions, catalog lines or the session guidance is checked here. It also records what a session costs in context: the size of the first request of every run.
+Checks whether an agent reaches OpenChamber's own tools (`openchamber`, `openchamber_memory`, `openchamber_schedule` and the rest) when it should. All of them are direct tools (`packages/web/server/lib/agent-tool/DOCUMENTATION.md`; they sat behind OpenCode's Code Mode before), so a change to their descriptions or the session guidance is checked here. It also records what a session costs in context: the size of the first request of every run.
 
 ## Run
 

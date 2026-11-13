@@ -65,7 +65,7 @@
        the edge two hairlines, dark outside and light inside, since a single
        ring either vanishes or glows on a dark page. The ring is drawn in the
        shadow so it never shifts layout. */
-    --oc-elevation-ring: rgb(0 0 0 / 0.14);
+    --oc-elevation-ring: var(--edge-surface, rgb(0 0 0 / 0.14));
     --oc-elevation-button:
       0 1px 1.5px 0 rgb(0 0 0 / 0.08),
       0 0 0 0.5px rgb(0 0 0 / 0.14);
@@ -80,6 +80,10 @@
       0 1px 2px -0.5px rgb(0 0 0 / 0.06),
       0 4px 8px -2px rgb(0 0 0 / 0.08),
       0 12px 20px -4px rgb(0 0 0 / 0.06);
+
+    /* What the chat casts onto the sidebar: the shadow's darkest point, at the
+       sidebar's edge. A dark theme needs a deeper black to show at all. */
+    --oc-sidebar-cast: rgb(0 0 0 / 0.06);
 
     /* Motion: springs traced as linear() easings (lib/motion/springs.ts,
        whose test keeps these in step). Popups open on the popup spring and
@@ -133,11 +137,25 @@
     font-family: inherit;
   }
 
+  /* The chat's shadow on the sidebar: darkest at the sidebar's end edge,
+     easing out toward its start, so the sidebar sits behind the chat. */
+  .oc-sidebar-cast {
+    inline-size: 20px;
+    background-image: linear-gradient(
+      var(--oc-to-inline-end),
+      transparent,
+      color-mix(in srgb, var(--oc-sidebar-cast) 8%, transparent) 25%,
+      color-mix(in srgb, var(--oc-sidebar-cast) 24%, transparent) 55%,
+      color-mix(in srgb, var(--oc-sidebar-cast) 55%, transparent) 82%,
+      var(--oc-sidebar-cast)
+    );
+  }
+
   .dark {
     --oc-tile-tone: 3%;
     --oc-tile-inset-tone: 4.5%;
     --oc-tile-hover-tone: 5.5%;
-    --oc-elevation-ring: rgb(255 255 255 / 0.08);
+    --oc-elevation-ring: var(--edge-surface, rgb(255 255 255 / 0.08));
     --oc-elevation-button:
       inset 0 1px 0 0 rgb(255 255 255 / 0.04),
       inset 0 0 0 0.5px var(--oc-elevation-ring),
@@ -155,6 +173,7 @@
       0 0 0 0.5px rgb(0 0 0 / 0.55),
       0 8px 16px 0 rgb(0 0 0 / 0.25),
       0 4px 8px 0 rgb(0 0 0 / 0.25);
+    --oc-sidebar-cast: rgb(0 0 0 / 0.24);
     --oc-glass-blur: 26px;
     --oc-glass-opacity: 50%;
     --oc-glass-popover-opacity: 52%;
@@ -228,6 +247,30 @@
   :root.desktop-runtime #root {
     background: var(--background) !important;
     background-color: var(--background) !important;
+  }
+
+  /* A translucent sidebar (macOS desktop): the window's material shows through
+     it, so the page fill around it steps aside while every other surface keeps
+     its own opaque fill. Declared in this layer because the rule above is
+     important here, and an important declaration in an earlier layer outranks
+     one in a later layer. */
+  :root.desktop-runtime[data-oc-sidebar-vibrancy] body,
+  :root.desktop-runtime[data-oc-sidebar-vibrancy] #root,
+  :root[data-oc-sidebar-vibrancy] .main-content-safe-area {
+    background: transparent !important;
+    background-color: transparent !important;
+  }
+
+  :root[data-oc-sidebar-vibrancy] [data-left-sidebar] {
+    background-color: color-mix(in srgb, var(--sidebar) var(--oc-sidebar-opacity, 65%), transparent) !important;
+  }
+
+  /* Sticky headers in the list take no fill of their own, so they do not
+     stack a second translucent layer over the sidebar's. No blur here: a
+     backdrop filter over the window's material renders ghost copies (see the
+     guard rule below). The peeking sidebar over the chat stays opaque. */
+  :root[data-oc-sidebar-vibrancy] [data-left-sidebar] aside:not([data-sidebar-peek]) .sticky.bg-sidebar {
+    background-color: transparent !important;
   }
 
   .font-sans {
@@ -580,7 +623,7 @@
 .oc-raised {
   /* The button level, with its ring inset. The ring is half a pixel at rest
      and a full one on a focused field, so focus still reads. */
-  --oc-raised-edge: color-mix(in srgb, var(--foreground) 16%, transparent);
+  --oc-raised-edge: var(--edge-control, color-mix(in srgb, var(--foreground) 16%, transparent));
   --oc-raised-edge-width: 0.5px;
   box-shadow:
     inset 0 0 0 var(--oc-raised-edge-width) var(--oc-raised-edge),
@@ -594,7 +637,7 @@
 }
 
 .dark .oc-raised {
-  --oc-raised-edge: color-mix(in srgb, var(--foreground) 14%, transparent);
+  --oc-raised-edge: var(--edge-control, color-mix(in srgb, var(--foreground) 14%, transparent));
   background-image: linear-gradient(
     180deg,
     color-mix(in srgb, var(--foreground) 1%, transparent),
@@ -626,7 +669,7 @@
    keeps the error colour, focused or not. */
 .oc-field:focus,
 .oc-field:focus-within {
-  --oc-raised-edge: color-mix(in srgb, var(--foreground) 26%, transparent);
+  --oc-raised-edge: var(--edge-control-focus, color-mix(in srgb, var(--foreground) 26%, transparent));
   --oc-raised-edge-width: 1px;
 }
 
@@ -859,6 +902,30 @@ html[data-glass-redraw-guard] body::before {
   .oc-glass-panel {
     background-color: var(--oc-glass-color);
   }
+}
+
+/* A translucent sidebar (macOS) leaves the window's material behind the page.
+   A backdrop filter over a window with vibrancy draws ghost copies of what it
+   blurs and flickers while the window moves (electron/electron#19765), so
+   while the sidebar is translucent glass falls back to opaque surfaces, the
+   same treatment as under reduced transparency. */
+:root[data-oc-sidebar-vibrancy] .oc-glass-popover,
+:root[data-oc-sidebar-vibrancy] .oc-glass-tooltip,
+:root[data-oc-sidebar-vibrancy] .oc-glass-panel {
+  background-color: var(--oc-glass-color);
+}
+
+:root[data-oc-sidebar-vibrancy] .oc-glass-popover,
+:root[data-oc-sidebar-vibrancy] .oc-glass-tooltip,
+:root[data-oc-sidebar-vibrancy] .oc-glass-panel,
+:root[data-oc-sidebar-vibrancy] .oc-glass-backdrop,
+:root[data-oc-sidebar-vibrancy] [class*="backdrop-blur"] {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+html[data-oc-sidebar-vibrancy][data-glass-redraw-guard] body::before {
+  content: none;
 }
 
 @media (prefers-reduced-transparency: reduce) {

@@ -80,6 +80,24 @@ export const setDesktopWindowTheme = async (
   }
 };
 
+/**
+ * Ask the shell to show its macOS material behind the window (the sidebar
+ * lets it through). Resolves to whether the window now does, which is false
+ * outside the macOS desktop app and when the shell refuses.
+ */
+export const setDesktopSidebarVibrancy = async (enabled: boolean): Promise<boolean> => {
+  if (!isDesktopShell()) {
+    return false;
+  }
+
+  try {
+    const result = await invokeDesktopCommand<{ vibrancy?: unknown }>('desktop_set_sidebar_vibrancy', { enabled });
+    return result?.vibrancy === true;
+  } catch {
+    return false;
+  }
+};
+
 export const getDesktopAppVersion = async (): Promise<string | null> => {
   if (!isDesktopShell()) {
     return null;

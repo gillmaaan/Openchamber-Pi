@@ -26,8 +26,6 @@ const createRuntime = (server, overrides = {}) => {
     getOpenCodePort: () => null,
     getOpenCodeProcess: () => null,
     setOpenCodeProcess: vi.fn(),
-    killProcessOnPort: vi.fn(),
-    waitForPortRelease: vi.fn(async () => true),
     getServer: () => server,
     getUiAuthController: () => null,
     setUiAuthController: vi.fn(),

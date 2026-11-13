@@ -158,6 +158,9 @@ export const AgentsPage: React.FC = () => {
   // form differs from it, and an incoming refresh only repopulates the form
   // when the stored value moved away from it.
   const savedRef = React.useRef<FormState | null>(null);
+  const entityKey = JSON.stringify([selectedAgentName, settingsDirectory]);
+  const entityKeyRef = React.useRef(entityKey);
+  entityKeyRef.current = entityKey;
   const selectionKey = JSON.stringify([selectedAgentName, settingsDirectory, isNewAgent]);
   const selectionRef = React.useRef(selectionKey);
   selectionRef.current = selectionKey;
@@ -415,7 +418,10 @@ export const AgentsPage: React.FC = () => {
     try {
       const result = await createAgent(buildConfig(agentName), settingsDirectory);
       if (result.ok) {
-        setAgentDraft(null);
+        if (entityKeyRef.current === entityKey) {
+          setSelectedAgent(agentName);
+          setAgentDraft(null);
+        }
         toast.success(t('settings.agents.page.toast.created'));
       } else {
         toast.error(t('settings.agents.page.toast.createFailed'));

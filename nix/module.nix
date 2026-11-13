@@ -23,7 +23,7 @@ let
 in
 {
   options.services.openchamber = {
-    enable = lib.mkEnableOption "OpenChamber, the web UI for OpenCode";
+    enable = lib.mkEnableOption "OpenChamber, the web UI for the Pi coding agent";
 
     package = lib.mkOption {
       type = lib.types.package;
@@ -68,7 +68,7 @@ in
       example = "fabio";
       description = ''
         Run the service as this existing user, with HOME=/home/<user>, so it
-        sees the same projects, ssh keys, and opencode config as a manual
+        sees the same projects, ssh keys, and Pi sessions and settings as a manual
         `nix run` (mirrors the user units in packages/web/README.md). Leave
         null to run under an isolated dynamic user with state in
         /var/lib/openchamber.
@@ -80,13 +80,13 @@ in
     networking.firewall.allowedTCPPorts = lib.mkIf cfg.openFirewall [ cfg.port ];
 
     systemd.services.openchamber = {
-      description = "OpenChamber web UI for OpenCode";
+      description = "OpenChamber web UI for the Pi coding agent";
       wantedBy = [ "multi-user.target" ];
       after = [ "network.target" ];
 
       environment = {
         HOME = homeDir;
-        OPENCODE_CONFIG_DIR = "${homeDir}/.config/opencode";
+        PI_CODING_AGENT_DIR = "${homeDir}/.pi/agent";
         LANG = "C.UTF-8";
         NODE_ENV = "production";
       };
@@ -125,7 +125,7 @@ in
         Restart = "on-failure";
         RestartSec = 5;
 
-        # Light hardening: the service shells out to git, ssh, and opencode,
+        # Light hardening: the service shells out to git and ssh and runs the Pi agent,
         # so keep the sandbox permissive enough for subprocesses. ProtectHome
         # is only for the dynamic user; user mode must see /home.
         NoNewPrivileges = true;

@@ -25,6 +25,7 @@ import { useSessionProjectViewState } from './sidebar/projects/useSessionProject
 import { useProjectRepoStatus } from './sidebar/projects/useProjectRepoStatus';
 import { ProjectEditDialog } from '@/components/layout/ProjectEditDialog';
 import { UpdateDialog } from '@/components/ui/UpdateDialog';
+import { SidebarDisplayMenu } from './sidebar/shell/SidebarDisplayMenu';
 import { SidebarHeader } from './sidebar/shell/SidebarHeader';
 import { SidebarFooter } from './sidebar/shell/SidebarFooter';
 import { SidebarSearchEmptyState } from './sidebar/shell/SidebarSearchEmptyState';
@@ -43,6 +44,9 @@ import type { WorktreeMetadata } from '@/types/worktree';
 import { checkIsGitRepository } from '@/lib/gitApi';
 import { resolveSidebarGrouping, useSessionDisplayStore } from '@/stores/useSessionDisplayStore';
 import { normalizePath } from './sidebar/utils';
+import { CHAT_DRAFT_PROJECT_ID, isChatDirectoryPath } from '@/lib/chatDirectories';
+import { resolveSidebarMode, type SidebarMode } from '@/lib/sidebarNav';
+import { useSessionDirectory } from '@/sync/sync-context';
 import { recordWorktreesSeen } from './sidebar/projects/worktreeFirstSeen';
 import { captureRuntimeInstance, getRuntimeKey } from '@/lib/runtime-switch';
 import { streamPerfCount, streamPerfMark } from '@/stores/utils/streamDebug';
@@ -178,6 +182,32 @@ const SessionSidebarComponent: React.FC<SessionSidebarProps> = ({
   const gitBranches = useGitAllBranches(isVisible);
 
   const isVSCode = React.useMemo(() => isVSCodeRuntime(), []);
+  // Chat and Code belong to the desktop and web sidebar; VS Code lists its
+  // workspace and the phone has its own drawer.
+  const sidebarModesEnabled = !isVSCode && !mobileVariant && !phone;
+  const storedSidebarMode = useSessionDisplayStore((state) => state.sidebarMode);
+  const showChatsSection = useSessionDisplayStore((state) => state.showChatsSection);
+  const sidebarMode = resolveSidebarMode({ enabled: sidebarModesEnabled, stored: storedSidebarMode, chatsShown: showChatsSection });
+  const handleSidebarModeChange = React.useCallback((mode: SidebarMode) => {
+    useSessionDisplayStore.getState().setSidebarMode(mode);
+    // A query or a selection was about the list that is gone.
+    resetSessionSearch();
+    useSessionMultiSelectStore.getState().disable();
+  }, [resetSessionSearch]);
+  // Opening a session shows the list it belongs to, once per session: a click
+  // on the other mode while that session is open stays where the user put it.
+  const currentSessionId = useSessionUIStore((state) => state.currentSessionId);
+  const currentSessionDirectory = useSessionDirectory(currentSessionId);
+  const modeSyncedSessionRef = React.useRef<string | null>(null);
+  React.useEffect(() => {
+    if (!sidebarModesEnabled || !currentSessionId || !currentSessionDirectory) return;
+    if (modeSyncedSessionRef.current === currentSessionId) return;
+    modeSyncedSessionRef.current = currentSessionId;
+    const display = useSessionDisplayStore.getState();
+    if (!display.showChatsSection) return;
+    const mode: SidebarMode = isChatDirectoryPath(currentSessionDirectory) ? 'chat' : 'code';
+    if (display.sidebarMode !== mode) handleSidebarModeChange(mode);
+  }, [currentSessionDirectory, currentSessionId, handleSidebarModeChange, sidebarModesEnabled]);
   // sessionAttentionStates removed — now using notification-store directly in SessionNodeItem
   const worktreeMetadata = useSessionUIStore((state) => state.worktreeMetadata);
   const availableWorktreesByProject = useSessionUIStore((state) => state.availableWorktreesByProject);
@@ -199,6 +229,9 @@ const SessionSidebarComponent: React.FC<SessionSidebarProps> = ({
       window.dispatchEvent(new CustomEvent('openchamber:navigate', { detail: { view: 'chat' } }));
     }
   }, [isVSCode, openNewSessionDraft]);
+  const handleNewChat = React.useCallback(() => {
+    openNewSessionDraftFromTree({ selectedProjectId: CHAT_DRAFT_PROJECT_ID, directoryOverride: null });
+  }, [openNewSessionDraftFromTree]);
   const updateStore = useUpdateStore(useShallow((s) => ({
     checkForUpdates: s.checkForUpdates,
     available: s.available,
@@ -619,12 +652,6 @@ const SessionSidebarComponent: React.FC<SessionSidebarProps> = ({
   // The projects view always groups by worktree (parallel-work overview).
   // VS Code has no worktree groups, so it renders the merged per-project list.
   const useGroupedSections = !isVSCode;
-  const desktopHeaderActionButtonClass =
-    'inline-flex h-6 w-6 cursor-pointer items-center justify-center rounded-md leading-none text-foreground hover:bg-interactive-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed';
-  const mobileHeaderActionButtonClass =
-    'inline-flex h-6 w-6 cursor-pointer items-center justify-center rounded-md leading-none text-muted-foreground hover:text-foreground hover:bg-interactive-hover/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed';
-  const headerActionButtonClass = mobileVariant ? mobileHeaderActionButtonClass : desktopHeaderActionButtonClass;
-  const headerActionIconClass = 'h-4 w-4';
 
   const worktreeRefreshDependencies = React.useMemo(() => ({
     projects,
@@ -707,6 +734,21 @@ const SessionSidebarComponent: React.FC<SessionSidebarProps> = ({
     });
   }, [isVSCode, worktreeRefreshDependencies]);
 
+  // Cowork mode has no Display row: the menu opens from an icon in the Chats caption.
+  const { collapseAll, expandAll } = projectView.actions;
+  const renderDisplayMenu = React.useMemo(() => sidebarMode === 'chat'
+    ? (trigger: React.ReactElement) => (
+      <SidebarDisplayMenu
+        sidebarMode="chat"
+        showProjectDisplayControls={!isVSCode}
+        showSectionControls={!isVSCode}
+        collapseAll={collapseAll}
+        expandAll={expandAll}
+        trigger={trigger}
+      />
+    )
+    : undefined, [collapseAll, expandAll, isVSCode, sidebarMode]);
+
   const collection = (
     <SessionProjectCollection
       topology={{
@@ -740,7 +782,8 @@ const SessionSidebarComponent: React.FC<SessionSidebarProps> = ({
         unresolvedWorktreeProjectPaths,
         projectView: projectView.state,
         onSearchMatchCountChange: setSearchMatchCount,
-      renderList: phone?.renderList,
+        renderList: phone?.renderList,
+        sidebarMode,
       }}
       actions={{
         rowActions: {
@@ -749,6 +792,7 @@ const SessionSidebarComponent: React.FC<SessionSidebarProps> = ({
           resetSessionSearch,
         },
         alwaysShowActions: alwaysShowSidebarActions,
+        renderDisplayMenu,
         setActiveProjectIdOnly,
         setSessionSwitcherOpen,
         openNewSessionDraft: openNewSessionDraftFromTree,
@@ -789,10 +833,12 @@ const SessionSidebarComponent: React.FC<SessionSidebarProps> = ({
         showProjectDisplayControls={!isVSCode}
         showSectionControls={!isVSCode}
         handleOpenDirectoryDialog={handleOpenDirectoryDialog}
+        onNewChat={handleNewChat}
+        sidebarMode={sidebarMode ?? 'code'}
+        showModeSwitch={showChatsSection}
+        onSidebarModeChange={handleSidebarModeChange}
         // A desktop page: phones have their own shell, VS Code no source pickers.
         showSourceBoard={!mobileVariant && !isVSCode}
-        headerActionIconClass={headerActionIconClass}
-        headerActionButtonClass={headerActionButtonClass}
         isSessionSearchOpen={isSessionSearchOpen}
         openSessionSearch={openSessionSearch}
         closeSessionSearch={resetSessionSearch}

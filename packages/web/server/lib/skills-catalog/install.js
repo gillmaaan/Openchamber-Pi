@@ -105,7 +105,7 @@ async function cloneRepo({ cloneUrl, identity, credentialResolver, tempDir, ref 
   };
 }
 
-function getTargetSkillDir({ scope, targetSource, workingDirectory, userSkillDir, skillName }) {
+function getTargetSkillDir({ scope, targetSource, workingDirectory, userSkillDir, skillName, projectSkillsDirName = '.opencode' }) {
   const source = targetSource === 'agents' ? 'agents' : 'opencode';
 
   if (scope === 'user') {
@@ -123,7 +123,10 @@ function getTargetSkillDir({ scope, targetSource, workingDirectory, userSkillDir
     return path.join(workingDirectory, '.agents', 'skills', skillName);
   }
 
-  return path.join(workingDirectory, '.opencode', 'skills', skillName);
+  // The agent-neutral install target for "this project's own skill folder".
+  // OpenCode and the VS Code bridge keep passing no override and get
+  // `.opencode` exactly as before; the Pi config routes pass `.pi`.
+  return path.join(workingDirectory, projectSkillsDirName, 'skills', skillName);
 }
 
 export async function installSkillsFromRepository({
@@ -139,6 +142,9 @@ export async function installSkillsFromRepository({
   selections,
   conflictPolicy,
   conflictDecisions,
+  // `.opencode` for the OpenCode and VS Code callers; the Pi config routes
+  // pass `.pi` so a project install lands where Pi's own skill scan looks.
+  projectSkillsDirName = '.opencode',
 } = {}) {
   const gitCheck = await assertGitAvailable();
   if (!gitCheck.ok) {
@@ -193,7 +199,7 @@ export async function installSkillsFromRepository({
       continue;
     }
 
-    const targetDir = getTargetSkillDir({ scope, targetSource, workingDirectory, userSkillDir, skillName: plan.skillName });
+    const targetDir = getTargetSkillDir({ scope, targetSource, workingDirectory, userSkillDir, skillName: plan.skillName, projectSkillsDirName });
     if (fs.existsSync(targetDir)) {
       const decision = conflictDecisions?.[plan.skillName];
       const hasAutoPolicy = conflictPolicy === 'skipAll' || conflictPolicy === 'overwriteAll';
@@ -257,7 +263,7 @@ export async function installSkillsFromRepository({
         continue;
       }
 
-      const targetDir = getTargetSkillDir({ scope, targetSource, workingDirectory, userSkillDir, skillName: plan.skillName });
+      const targetDir = getTargetSkillDir({ scope, targetSource, workingDirectory, userSkillDir, skillName: plan.skillName, projectSkillsDirName });
       const exists = fs.existsSync(targetDir);
 
       let decision = conflictDecisions?.[plan.skillName] || null;

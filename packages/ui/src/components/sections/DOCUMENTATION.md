@@ -62,6 +62,12 @@ Cancel, Create validates (name, and whatever else the entity needs) and writes
 once, and Cancel drops the draft. Abandoning a half-typed entity leaves nothing
 on disk. Once the entity exists, the page switches to the autosave rules above.
 
+After agent creation, select the submitted name before dropping the draft. The
+completion belongs to the selected entity and Settings directory, not its
+create-mode flag: a catalog refresh may already have changed that flag. If the
+person selected another entity or directory meanwhile, preserve that selection
+and its draft.
+
 `skills/` follows the same split for supporting files: editing an existing file
 writes when the dialog closes, while a new file is only created on confirm.
 
@@ -258,6 +264,10 @@ keeps the rejected credential. Connect only sends it again. A fresh sign-in
 starts with no tokens (it reuses only the earlier client registration) and
 its new credential is the one the next connect uses, so signing in is the
 whole recovery; no sign-out call is needed.
+
+The integration list is the agent's, whatever answers it: the Pi bridge serves
+a remote OAuth MCP server as an `mcp_…` integration whose attempt runs
+`pi mcp login`, and the page's flow is unchanged.
 
 So for a `failed` server whose OAuth integration exists
 (`useMcpOAuthIntegration`), the header's primary button is "Sign in again" in

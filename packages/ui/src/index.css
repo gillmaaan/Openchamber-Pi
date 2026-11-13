@@ -557,7 +557,7 @@ div[data-chat-input-footer="true"] {
 
    The chat draws its edge fades as two bands over the scroller rather than a
    mask on it: a mask made the GPU recomposite the whole transcript every
-   frame it scrolled or grew. Each band is painted in the chat's background
+   frame it scrolled or grew. Each band is a fill in the chat's background
    (`bg-background` on the column, the only thing behind the scroller), with
    alpha 1 - a where the mask had alpha a; over an opaque background that
    composites to the same pixels. The bands are later siblings of the
@@ -573,13 +573,25 @@ div[data-chat-input-footer="true"] {
   pointer-events: none;
 }
 
+/* Each band is a solid fill with its alpha ramp as a mask. A gradient from
+   transparent to the background colour drew the same pixels in theory, but its
+   dithered 8-bit alpha left rows one colour step off the background over the
+   empty parts of the transcript (full-width stripes in the chat); a mask over
+   a solid fill composites to the background exactly. The mask sits on the band
+   alone, a few dozen pixels tall, never on the scroller. */
 .chat-scroll-fade--top {
   display: none;
   top: 0;
   height: var(--scroll-shadow-top-size, var(--scroll-shadow-size));
-  background-image: linear-gradient(
+  background-color: var(--background);
+  -webkit-mask-image: linear-gradient(
     to bottom,
-    var(--background) var(--scroll-shadow-top-clear-size, 0px),
+    #000 var(--scroll-shadow-top-clear-size, 0px),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    #000 var(--scroll-shadow-top-clear-size, 0px),
     transparent 100%
   );
 }
@@ -595,10 +607,16 @@ div[data-chat-input-footer="true"] {
   --scroll-shadow-end-size: calc(var(--chat-composer-inset, 0px) + var(--chat-floating-panel-clearance, 0px) + var(--scroll-shadow-size));
   bottom: 0;
   height: calc(var(--scroll-shadow-end-inset) + var(--scroll-shadow-end-size));
-  background-image: linear-gradient(
+  background-color: var(--background);
+  -webkit-mask-image: linear-gradient(
     to bottom,
     transparent 0px,
-    var(--background) var(--scroll-shadow-end-size)
+    #000 var(--scroll-shadow-end-size)
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0px,
+    #000 var(--scroll-shadow-end-size)
   );
 }
 
@@ -1292,14 +1310,15 @@ diffs-container {
   font-size: inherit !important;
 }
 
-/* Model/agent controls: progressively collapse labels to icon-only as the row narrows.
-   Hide priority (most aggressive first → most resilient last): agent, variant, model. */
+/* Model/agent controls: progressively collapse labels as the row narrows.
+   Neither the agent nor the model has an icon to fall back to, so their names
+   shorten and stay. Only the effort collapses, to its icon. */
 
 /* Desktop (non-VSCode): pick thresholds that fire BEFORE the per-label `max-w-[Xpx]`
    constraints would truncate text with an ellipsis. */
 @container model-controls (max-width: 22rem) {
   :root:not(.vscode-runtime) .model-controls__agent-label {
-    display: none;
+    max-width: 5rem;
   }
 }
 
@@ -1316,19 +1335,25 @@ diffs-container {
 
   :root:not(.vscode-runtime) .model-controls__variant-icon {
     display: block;
+    /* The model and its effort sit 2px apart; the icon keeps the 4px it had. */
+    margin-inline-start: 0.125rem;
   }
 }
 
 @container model-controls (max-width: 10rem) {
+  :root:not(.vscode-runtime) .model-controls__agent-label {
+    max-width: 3rem;
+  }
+
   :root:not(.vscode-runtime) .model-controls__model-label {
-    display: none;
+    max-width: 4rem;
   }
 }
 
 /* VS Code side panel: tighter thresholds since the panel is narrow and labels are smaller. */
 @container model-controls (max-width: 11rem) {
   :root.vscode-runtime .model-controls__agent-label {
-    display: none;
+    max-width: 3.5rem;
   }
 }
 
@@ -1340,12 +1365,13 @@ diffs-container {
 
   :root.vscode-runtime .model-controls__variant-icon {
     display: block;
+    margin-inline-start: 0.125rem;
   }
 }
 
 @container model-controls (max-width: 10rem) {
   :root.vscode-runtime .model-controls__model-label {
-    display: none;
+    max-width: 4rem;
   }
 }
 

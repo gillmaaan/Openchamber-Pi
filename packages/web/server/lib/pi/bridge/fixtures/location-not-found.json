@@ -1,0 +1,7 @@
+{
+  "_tag": "LocationNotFoundError",
+  "location": {
+    "directory": "/work/proj/does-not-exist"
+  },
+  "message": "Location not found: /work/proj/does-not-exist"
+}

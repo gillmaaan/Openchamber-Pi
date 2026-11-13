@@ -35,6 +35,7 @@ const definition = z.object({
     chat: optionalColors(['background', 'userMessageBackground', 'divider']).optional(),
     markdown: optionalColors(['link', 'linkHover', 'inlineCode', 'inlineCodeBackground', 'blockquote', 'blockquoteBorder', 'listMarker', 'bold', 'italic', 'strikethrough', 'hr']).optional(),
     tools: z.object({ border: color.optional(), icon: color.optional(), title: color.optional(), description: color.optional(), edit: optionalColors(['addedBackground', 'removedBackground', 'modifiedBackground', 'lineNumber']).optional() }).optional(),
+    edges: z.object({ control: color.optional(), controlFocus: color.optional(), surface: color.optional() }).optional(),
   }),
   config: z.object({ fonts: z.object({ sans: cssValue.optional(), mono: cssValue.optional(), heading: cssValue.optional() }).optional(), transitions: z.object({ fast: cssValue.optional(), normal: cssValue.optional(), slow: cssValue.optional() }).optional() }).optional(),
 });
@@ -88,6 +89,7 @@ function resolveTheme(source: z.output<typeof definition>): Theme {
       chat: c.chat,
       markdown: c.markdown,
       tools: c.tools,
+      edges: c.edges,
     },
     config,
   };

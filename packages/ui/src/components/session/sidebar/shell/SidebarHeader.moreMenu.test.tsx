@@ -27,7 +27,7 @@ const installDom = () => {
   };
 };
 
-const renderHeader = async () => {
+const renderHeader = async (mode: 'chat' | 'code' = 'code') => {
   const { createRoot } = await import('react-dom/client');
   const { I18nProvider } = await import('@/lib/i18n');
   const { TooltipProvider } = await import('@/components/ui/tooltip');
@@ -43,9 +43,11 @@ const renderHeader = async () => {
           showProjectDisplayControls
           showSectionControls
           handleOpenDirectoryDialog={() => undefined}
+          onNewChat={() => undefined}
+          sidebarMode={mode}
+          showModeSwitch
+          onSidebarModeChange={() => undefined}
           showSourceBoard
-          headerActionIconClass="h-4.5 w-4.5"
-          headerActionButtonClass="inline-flex h-6 w-6"
           isSessionSearchOpen={false}
           openSessionSearch={() => undefined}
           closeSessionSearch={() => undefined}
@@ -61,21 +63,22 @@ const renderHeader = async () => {
       </TooltipProvider>
     </I18nProvider>,
   ));
+  const rowButton = (label: string) => [...container.querySelectorAll('button')].find((button) => button.querySelector('span.flex-1')?.textContent === label);
   const openMenu = async () => {
-    const trigger = container.querySelector<HTMLButtonElement>('button[aria-label="More"]');
-    if (!trigger) throw new Error('Missing More trigger');
+    const trigger = rowButton('More');
+    if (!trigger) throw new Error('Missing More row');
     await act(async () => { trigger.click(); });
   };
   const items = () => [...document.querySelectorAll<HTMLElement>('[role="menuitem"]')];
   const item = (label: string) => items().find((entry) => entry.querySelector('.flex-1')?.textContent?.trim() === label);
-  return { root, openMenu, items, item };
+  return { root, openMenu, items, item, rowButton };
 };
 
-test('a page in the More menu opens and closes on the next pick', async () => {
+test('a page row opens its page and closes it on the next click', async () => {
   const restoreDom = installDom();
   const { useUIStore } = await import('@/stores/useUIStore');
   const initial = useUIStore.getState();
-  const { root, openMenu, item } = await renderHeader();
+  const { root, rowButton } = await renderHeader('code');
   try {
     await act(async () => useUIStore.getState().setOverviewFeatureAvailable(true));
     for (const [label, isOpen] of [
@@ -84,13 +87,12 @@ test('a page in the More menu opens and closes on the next pick', async () => {
       ['Issues and PRs', () => useUIStore.getState().isSourceBoardOpen],
       ['Overview', () => useUIStore.getState().isOverviewOpen],
     ] as const) {
-      await openMenu();
-      const entry = item(label);
-      if (!entry) throw new Error(`Missing ${label}`);
-      await act(async () => { entry.click(); });
+      const row = rowButton(label);
+      if (!row) throw new Error(`Missing ${label} row`);
+      await act(async () => { row.click(); });
       expect(isOpen()).toBe(true);
-      await openMenu();
-      await act(async () => { item(label)!.click(); });
+      expect(rowButton(label)!.className).toContain('bg-interactive-selection');
+      await act(async () => { rowButton(label)!.click(); });
       expect(isOpen()).toBe(false);
     }
   } finally {
@@ -100,13 +102,37 @@ test('a page in the More menu opens and closes on the next pick', async () => {
   }
 });
 
-test('without the overview feature the More menu has no Overview', async () => {
+test('the pages a mode leaves out are under More, and a pick opens and closes the page', async () => {
+  const restoreDom = installDom();
+  const { useUIStore } = await import('@/stores/useUIStore');
+  const initial = useUIStore.getState();
+  const { root, openMenu, item, items } = await renderHeader('chat');
+  try {
+    await openMenu();
+    const labels = items().map((entry) => entry.querySelector('.flex-1')?.textContent?.trim());
+    expect(labels).toContain('Issues and PRs');
+    expect(labels).toContain('Stats');
+    expect(labels).not.toContain('Archive');
+    await act(async () => { item('Stats')!.click(); });
+    expect(useUIStore.getState().isUsageStatsPageOpen).toBe(true);
+    await openMenu();
+    await act(async () => { item('Stats')!.click(); });
+    expect(useUIStore.getState().isUsageStatsPageOpen).toBe(false);
+  } finally {
+    useUIStore.setState(initial);
+    await act(async () => root.unmount());
+    await restoreDom();
+  }
+});
+
+test('without the overview feature there is no Overview anywhere', async () => {
   const restoreDom = installDom();
   const { useUIStore } = await import('@/stores/useUIStore');
   const initial = useUIStore.getState();
   useUIStore.getState().setOverviewFeatureAvailable(false);
-  const { root, openMenu, items } = await renderHeader();
+  const { root, openMenu, items, rowButton } = await renderHeader('chat');
   try {
+    expect(rowButton('Overview')).toBeUndefined();
     await openMenu();
     const labels = items().map((entry) => entry.querySelector('.flex-1')?.textContent?.trim());
     expect(labels).not.toContain('Overview');

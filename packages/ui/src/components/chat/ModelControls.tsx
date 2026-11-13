@@ -676,9 +676,8 @@ export const ModelControls: React.FC<ModelControlsProps> = ({
     const sizeVariant: 'mobile' | 'vscode' | 'default' = isMobile ? 'mobile' : isVSCodeRuntime ? 'vscode' : 'default';
     const buttonHeight = sizeVariant === 'mobile' ? 'h-9' : sizeVariant === 'vscode' ? 'h-6' : 'h-8';
     const controlIconSize = sizeVariant === 'mobile' ? 'size-5' : sizeVariant === 'vscode' ? 'size-4' : 'size-4';
-    const providerLogoSize = sizeVariant === 'mobile' ? 'size-[21px]' : 'size-[17px]';
     const controlTextSize = isCompact ? 'typography-micro' : 'typography-meta';
-    const inlineGapClass = sizeVariant === 'mobile' ? 'gap-x-1' : sizeVariant === 'vscode' ? 'gap-x-2' : 'gap-x-3';
+    const inlineGapClass = sizeVariant === 'mobile' ? 'gap-x-1' : sizeVariant === 'vscode' ? 'gap-x-2' : 'gap-x-3.5';
 
     const currentProvider = selection ? providers.find((provider) => provider.id === currentProviderId) : getCurrentProvider();
     const models = Array.isArray(currentProvider?.models) ? currentProvider.models : [];
@@ -2372,17 +2371,7 @@ export const ModelControls: React.FC<ModelControlsProps> = ({
                                         </>
                                     ) : isAutoSelected ? (
                                         <Icon name="openchamber" className={cn(controlIconSize, 'flex-shrink-0')} />
-                                    ) : currentProviderId ? (
-                                        <>
-                                            {/* Provider logos read smaller than the sprite icons
-                                                beside them at the same box size, so they get a step up. */}
-                                            <ProviderLogo
-                                                providerId={currentProviderId}
-                                                className={cn(providerLogoSize, 'flex-shrink-0')}
-                                            />
-                                            <Icon name="pencil-ai" className={cn(controlIconSize, 'text-primary/60 hidden')} />
-                                        </>
-                                    ) : (
+                                    ) : currentProviderId ? null : (
                                         <Icon name="pencil-ai" className={cn(controlIconSize, 'text-muted-foreground')} />
                                     )}
                                     {modelSelectionReady && (
@@ -2736,7 +2725,7 @@ export const ModelControls: React.FC<ModelControlsProps> = ({
                                 ref={variantTriggerRef}
                                 aria-label={tooltipText}
                                 className={cn(
-                                    'model-controls__variant-trigger group flex items-center gap-1 cursor-pointer select-none hover:bg-transparent min-w-0 overflow-hidden',
+                                    'model-controls__variant-trigger group flex items-center gap-0.5 cursor-pointer select-none hover:bg-transparent min-w-0 overflow-hidden',
                                     buttonHeight,
                                 )}
                             >
@@ -2782,17 +2771,15 @@ export const ModelControls: React.FC<ModelControlsProps> = ({
         );
     };
 
-    // A missing agent swaps its own mark for the warning one, the same size.
+    // The agent is its name. Its colour is a dot before the name; a missing
+    // agent swaps the dot for the warning mark.
     const renderAgentMark = () => agentUnavailable ? (
         <Icon name="error-warning" className={cn(controlIconSize, 'flex-shrink-0 text-[var(--status-warning)]')} />
     ) : (
-        <Icon name="ai-agent"
-            className={cn(
-                controlIconSize,
-                'flex-shrink-0',
-                uiAgentName ? '' : 'text-muted-foreground'
-            )}
-            style={uiAgentName ? { color: getAgentColor(uiAgentName).color } : undefined}
+        <span
+            aria-hidden="true"
+            className={cn('size-1.5 flex-shrink-0 rounded-full', !uiAgentName && 'bg-muted-foreground')}
+            style={uiAgentName ? { background: getAgentColor(uiAgentName).color } : undefined}
         />
     );
 
@@ -2880,7 +2867,7 @@ export const ModelControls: React.FC<ModelControlsProps> = ({
                                                     className={cn(
                                                         'model-controls__agent-label',
                                                         controlTextSize,
-                                                        'font-medium min-w-0 truncate text-foreground',
+                                                        'font-medium min-w-0 truncate text-muted-foreground',
                                                         isDesktop ? 'max-w-[220px]' : undefined
                                                     )}
                                                 >
@@ -3031,12 +3018,14 @@ export const ModelControls: React.FC<ModelControlsProps> = ({
                         inlineGapClass,
                     )}
                 >
+                    {/* The agent leads on desktop, so the model and its effort sit beside the send button. */}
+                    {!isCompact && !isAutoSelected && renderAgentSelector()}
                     {/* The effort follows the model as its suffix, so the two sit closer than the other controls. */}
-                    <div className={cn('flex items-center min-w-0', isMobile ? 'gap-x-0.5' : 'gap-x-1')}>
+                    <div className="flex items-center min-w-0 gap-x-0.5">
                         {renderModelSelector()}
                         {renderVariantSelector()}
                     </div>
-                    {!isAutoSelected && renderAgentSelector()}
+                    {isCompact && !isAutoSelected && renderAgentSelector()}
                 </div>
             </div>
 

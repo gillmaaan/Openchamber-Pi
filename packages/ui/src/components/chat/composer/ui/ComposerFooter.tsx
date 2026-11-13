@@ -105,9 +105,9 @@ function OpenCodeStartupNote({ className }: { className?: string }) {
         <span
             role="status"
             className={cn('min-w-0 truncate self-center typography-micro text-muted-foreground', className)}
-            title={t('chat.chatInput.waitingForOpenCodeHint')}
+            title={t('chat.chatInput.waitingForPiHint')}
         >
-            {t('chat.chatInput.waitingForOpenCode')}
+            {t('chat.chatInput.waitingForPi')}
         </span>
     );
 }
@@ -168,6 +168,8 @@ function ComposerFooterView(props: ComposerFooterProps) {
     const dictationEnabled = useConfigStore((state) => state.dictationEnabled);
     const [dictationSupported] = React.useState(() => !isVSCodeRuntime() && isDictationCaptureSupported());
     const showDictation = dictationEnabled && dictationSupported;
+    // The circles that bookend the desktop footer: attach on the left, send and stop on the right.
+    const roundSizeClass = isVSCode ? 'size-6' : 'size-7';
 
     return (
         <div
@@ -266,6 +268,7 @@ function ComposerFooterView(props: ComposerFooterProps) {
                             isVSCode={isVSCode}
                             footerIconButtonClass={footerIconButtonClass}
                             iconSizeClass={iconSizeClass}
+                            roundSizeClass={roundSizeClass}
                             handlePickLocalFiles={onPickLocalFiles}
                             openGitHubPicker={onOpenGitHubPicker}
                             repositoryProvider={repositoryProvider}
@@ -293,13 +296,21 @@ function ComposerFooterView(props: ComposerFooterProps) {
                         /> : null}
                         {!isBtw ? <SessionGoalObjectiveCounter length={messageLength} /> : null}
                     </div>
-                    <div className={cn('flex items-center flex-1 justify-end', footerGapClass, 'md:gap-x-3')} data-dictation-chain="true">
+                    {/* The gap equals the one between the agent and the model inside ModelControls, so the clusters sit evenly. */}
+                    <div className={cn('flex items-center flex-1 justify-end', isVSCode ? 'gap-x-2' : 'gap-x-3.5')} data-dictation-chain="true">
                         {waitingForOpenCode ? <OpenCodeStartupNote className="flex-shrink-0" /> : null}
                         {parallelRun ? <MemoModelControls className="flex-1 min-w-0" agentOnly /> : isBtw ? <ModelControls className="flex-1 min-w-0 justify-end" sessionId={modelSessionId ?? null} selection={btwSelection} rememberVariantPicks={false} modelSelectorOpen={btwModelSelectorOpen} onModelSelectorOpenChange={onBtwModelSelectorOpenChange} /> : pinnedSelection ? <ModelControls className="flex-1 min-w-0 justify-end" sessionId={currentSessionId} selection={pinnedSelection} rememberVariantPicks /> : <MemoModelControls className={cn('flex-1 min-w-0 justify-end')} onRunInParallel={onRunInParallel} />}
                         {!isBtw ? <MemoComposerDictation
                             radius={chatInputRadius}
                             isMobile={isMobile}
                             footerIconButtonClass={footerIconButtonClass}
+                            // The mic glyph is 10px wide inside a 24px button, 7px of air on
+                            // each side. Pull the box in by that (one less on the send side,
+                            // where the circle's edge has no side bearing) so the glyph is
+                            // one gap from its neighbours. The button, the glyph and the gaps
+                            // follow the user's density scale, so the 7px does too; the
+                            // spacing scale has no 1.75 step.
+                            triggerClassName="-ms-[calc(7px*var(--padding-scale,1))] -me-1.5"
                             footerPaddingClass={footerPaddingClass}
                             iconSizeClass={iconSizeClass}
                             sendIconSizeClass={sendIconSizeClass}
@@ -327,6 +338,7 @@ function ComposerFooterView(props: ComposerFooterProps) {
                                 onPrimaryAction={parallelRun.onLaunch}
                                 onAbort={onAbort}
                                 sendLabel={t('chat.parallel.runAria', { count: parallelRun.runCount })}
+                                roundSizeClass={roundSizeClass}
                             />
                         ) : <ComposerActionButtons
                             isMobile={isMobile}
@@ -341,6 +353,7 @@ function ComposerFooterView(props: ComposerFooterProps) {
                             onPrimaryAction={onPrimaryAction}
                             onAbort={onAbort}
                             escapeStops={escapeStops && !isBtw}
+                            roundSizeClass={roundSizeClass}
                         />}
                     </div>
                 </>

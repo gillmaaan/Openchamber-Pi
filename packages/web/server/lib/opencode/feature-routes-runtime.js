@@ -55,15 +55,14 @@ import { registerTrackedItemsRoutes } from '../tracked-items/routes.js';
 import { registerOpenChamberSessionRoutes } from '../openchamber-sessions/routes.js';
 import { registerOpenChamberControlRoutes } from '../openchamber-control/routes.js';
 import { registerMarkdownImageGrantRoutes } from '../markdown-image-grants/routes.js';
-import { registerSkillRoutes } from './skill-routes.js';
-import { registerPluginRoutes } from './plugin-routes.js';
+import { registerSettingsConfigRoutes } from '../pi/config-routes/settings.js';
+import { registerSkillConfigRoutes } from '../pi/config-routes/skills.js';
+import { createPluginConfigRoutes } from '../pi/config-routes/plugins.js';
 import { getNpmInfo, clearCache as clearNpmCache } from './npm-registry.js';
 import { parseNpmSpec, parsePathSpec, isExactSemver } from './plugin-spec.js';
 import { registerOpenCodeRoutes } from './routes.js';
+import { registerProviderConfigRoutes } from '../pi/providers/index.js';
 import { getProviderSources, removeProviderConfig, upsertProviderConfig } from './providers.js';
-import { getAgentSources, getAgentConfig, getAgentPermissions, createAgent, updateAgent, deleteAgent, listDisabledAgents } from './agents.js';
-import { getCommandSources, getCommandConfig, createCommand, updateCommand, deleteCommand } from './commands.js';
-import { listMcpConfigs, getMcpConfig, createMcpConfig, updateMcpConfig, deleteMcpConfig } from './mcp.js';
 import { listSnippets, getSnippet, createSnippet, updateSnippet, deleteSnippet, expandSnippets, previewSnippet } from './snippets.js';
 import {
   listPluginEntries,
@@ -82,8 +81,6 @@ import {
   encodePluginId,
   decodePluginId,
 } from './plugins.js';
-import { SKILL_DIR, SKILL_SCOPE, readSkillSupportingFile, writeSkillSupportingFile, deleteSkillSupportingFile } from './shared.js';
-import { getSkillSources, discoverSkills, mergeDiscoveredSkills, createSkill, updateSkill, deleteSkill, renameSkill, isManagedSkillPath } from './skills.js';
 import { getCuratedSkillsSources } from '../skills-catalog/curated-sources.js';
 import { getCacheKey, scanWithCache } from '../skills-catalog/cache.js';
 import { parseSkillRepoSource } from '../skills-catalog/source.js';
@@ -120,6 +117,22 @@ export const createFeatureRoutesRuntime = (dependencies) => {
     pluginSwitchStore,
     isPluginSwitchAvailable,
     refreshPluginSwitches,
+    piPackages,
+    onPiPackagesChanged,
+    getPiProviders,
+    piAgentStore,
+    onPiAgentsChanged,
+    piCommandStore,
+    onPiCommandsChanged,
+    piMcpStore,
+    piMcpStatusCache,
+    piSkillStore,
+    onPiSkillsChanged = () => {},
+    piCompactionSettings,
+    piWebSearchChoice,
+    isPiWebAccessPackageInstalled,
+    piAgentDir,
+    piRunPi,
   } = dependencies;
   const gitRuntimeIdentity = Object.freeze({
     id: `server_${crypto.randomUUID()}`,
@@ -276,7 +289,6 @@ export const createFeatureRoutesRuntime = (dependencies) => {
       persistResolvedSettings,
       sanitizeProjects,
       sanitizeSkillCatalogs,
-      isUnsafeSkillRelativePath,
       buildOpenCodeUrl,
       getOpenCodeAuthHeaders,
       getOpenCodePort,
@@ -329,6 +341,20 @@ export const createFeatureRoutesRuntime = (dependencies) => {
     // switch and routes the sends that follow it.
     registerRoutingPromptRewrite(app, routingRuntime);
 
+    // Compaction, web search and the global AGENTS.md live where Pi reads
+    // them; registered before `routes.js`, whose OpenCode-shaped handlers for
+    // the same paths would otherwise answer first.
+    if (piCompactionSettings && piWebSearchChoice) {
+      registerSettingsConfigRoutes(app, {
+        compaction: piCompactionSettings,
+        webSearch: piWebSearchChoice,
+        isWebAccessPackageInstalled: isPiWebAccessPackageInstalled,
+        getAgentDir: piAgentDir,
+      });
+    }
+
+    // Providers, keys, logins and custom endpoints live in Pi's files.
+    registerProviderConfigRoutes(app, { getProviders: () => getPiProviders?.() ?? null });
     registerOpenCodeRoutes(app, {
       crypto,
       clientReloadDelayMs,
@@ -410,23 +436,14 @@ export const createFeatureRoutesRuntime = (dependencies) => {
       resolveOptionalProjectDirectory,
       refreshOpenCodeAfterConfigChange,
       clientReloadDelayMs,
-      getAgentSources,
-      getAgentConfig,
-      getAgentPermissions,
-      listDisabledAgents,
-      createAgent,
-      updateAgent,
-      deleteAgent,
-      getCommandSources,
-      getCommandConfig,
-      createCommand,
-      updateCommand,
-      deleteCommand,
-      listMcpConfigs,
-      getMcpConfig,
-      createMcpConfig,
-      updateMcpConfig,
-      deleteMcpConfig,
+      piAgentStore,
+      onPiAgentsChanged,
+      piCommandStore,
+      onPiCommandsChanged,
+      piMcpStore,
+      piMcpStatusCache,
+      piAgentDir,
+      piRunPi,
       listSnippets,
       getSnippet,
       createSnippet,
@@ -436,30 +453,12 @@ export const createFeatureRoutesRuntime = (dependencies) => {
       previewSnippet,
     });
 
-    registerPluginRoutes(app, {
+    createPluginConfigRoutes({
+      app,
+      packages: piPackages,
       resolveOptionalProjectDirectory,
-      refreshOpenCodeAfterConfigChange,
-      clientReloadDelayMs,
-      listPluginEntries,
-      getPluginEntry,
-      createPluginEntry,
-      updatePluginEntry,
-      deletePluginEntry,
-      setPluginEntryEnabled,
-      setPluginFileEnabled,
-      listPluginDirFiles,
-      readPluginDirFile,
-      writePluginDirFile,
-      deletePluginDirFile,
-      encodePluginId,
-      decodePluginId,
-      getNpmInfo,
-      parseNpmSpec,
-      parsePathSpec,
-      isExactSemver,
-      pluginSwitchStore,
-      isPluginSwitchAvailable,
-      refreshPluginSwitches,
+      readSettings: readSettingsFromDiskMigrated,
+      onChanged: onPiPackagesChanged,
     });
 
     const { getProfiles, getProfile, getGlobalIdentity, resolveRepositoryGitPaths } = await import('../git/index.js');
@@ -683,45 +682,21 @@ export const createFeatureRoutesRuntime = (dependencies) => {
       fsImpl: fsPromises,
       snapshotRoot: path.join(openchamberDataDir, 'git-ssh-operation-keys'),
     });
-    registerSkillRoutes(app, {
-      fs,
-      path,
-      os,
+    // Skills live in Pi's own folders; the same routes serve the list,
+    // SKILL.md and supporting-file CRUD, the catalog and installs.
+    registerSkillConfigRoutes(app, {
+      store: piSkillStore,
+      getAgentDir: piAgentDir,
       resolveProjectDirectory,
       resolveOptionalProjectDirectory,
-      readSettingsFromDisk,
+      readSettings: readSettingsFromDisk,
       sanitizeSkillCatalogs,
-      isUnsafeSkillRelativePath,
-      refreshOpenCodeAfterConfigChange,
-      clientReloadDelayMs,
-      buildOpenCodeUrl,
-      getOpenCodeAuthHeaders,
-      getOpenCodePort,
-      getSkillSources,
-      discoverSkills,
-      mergeDiscoveredSkills,
-      createSkill,
-      updateSkill,
-      deleteSkill,
-      renameSkill,
-      isManagedSkillPath,
-      readSkillSupportingFile,
-      writeSkillSupportingFile,
-      deleteSkillSupportingFile,
-      SKILL_SCOPE,
-      SKILL_DIR,
-      getCuratedSkillsSources,
-      getCacheKey,
-      scanWithCache,
-      parseSkillRepoSource,
-      scanSkillsRepository,
-      installSkillsFromRepository,
-      fetchGitHubRepoMetas,
       getProfiles,
       getProfile,
       createHttpsCredentialReference,
       resolveSourceControlAccount,
       credentialResolver: gitCredentialResolver,
+      onChanged: onPiSkillsChanged,
     });
     gitRepositoryCredentialRuntime = createGitRepositoryCredentialRuntime({
       readBinding: (directory) => walkthroughBindingService.get(directory),

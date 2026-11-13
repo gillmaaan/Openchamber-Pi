@@ -1,0 +1,29 @@
+{
+  "location": {
+    "directory": "/work/nongit"
+  },
+  "data": [
+    {
+      "name": "dead",
+      "status": {
+        "status": "failed",
+        "error": "NotFound: ChildProcess.spawn (/nonexistent-bin-xyz )"
+      }
+    },
+    {
+      "name": "off",
+      "status": {
+        "status": "failed",
+        "error": "Connection closed: MCP server process exited with code 0"
+      }
+    },
+    {
+      "name": "remote",
+      "status": {
+        "status": "failed",
+        "error": "ECONNREFUSED: Unable to connect. Is the computer able to access the url?"
+      },
+      "integrationID": "mcp_935e03619075f6fb"
+    }
+  ]
+}

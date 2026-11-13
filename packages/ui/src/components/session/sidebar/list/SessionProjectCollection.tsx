@@ -58,11 +58,12 @@ import { deriveTimelineActivityItems, matchZoneSessionsForSidebarQuery, pruneSes
 import { resolveSidebarSessionLocations } from '../recent/sessionLocation';
 import { buildSessionSidebarRowModel, PROJECTS_CAPTION_COLLAPSE_KEY, sidebarSectionActivityKey, type SessionSidebarBlock, type SessionSidebarWorkEntry } from '../sessionSidebarRowModel';
 import { useSidebarBlockDragStore } from './blockDrag';
-import { resolveSidebarSectionMembership, resolveVisibleSidebarSections } from '../sections/sectionMembership';
+import { resolveSidebarSectionMembership, resolveVisibleSidebarSections, sectionsForSidebarMode } from '../sections/sectionMembership';
 import { buildSidebarWorkFacts } from '../sections/workFacts';
 import { useSidebarLiveFacts, useSidebarPlanSessions, useSidebarSectionsNow } from '../sections/useSidebarLiveFacts';
 import { useSidebarSectionsUiStore } from '../sections/sectionActions';
 import { DEFAULT_PIN_LIST, sidebarSectionReadsLiveState, sidebarSectionReadsPlans, type SidebarWorkFacts } from '@/lib/sidebarSections';
+import type { SidebarMode } from '@/lib/sidebarNav';
 import { useRemovingWorktreePaths } from '@/lib/worktrees/worktreeRemovalState';
 import { buildSessionRootIndex, buildSidebarWorkIndex, buildWorktreeArchiveAnchors, isFiledInFolder, isGroupWork, orderInWorkWorks, orderSidebarWorks, type SidebarFolderMembership, type SidebarWorkRef } from '../works/sidebarWorks';
 import { getSessionLifecycleOrderValue } from '@/sync/session-ordering';
@@ -147,6 +148,11 @@ type SessionProjectCollectionProps = {
     onSearchMatchCountChange: (count: number) => void;
     /** Draws the list in place of the desktop's scroller: the phone's rows over the same model. */
     renderList?: (props: SessionProjectListProps) => React.ReactNode;
+    /**
+     * The desktop and web sidebar's mode: Chat lists the Chats section, Code
+     * every other. Left out (VS Code, the phone) the sections stay as they are.
+     */
+    sidebarMode?: SidebarMode;
   };
   actions: {
     rowActions: {
@@ -165,6 +171,8 @@ type SessionProjectCollectionProps = {
     reorderProjects: (fromIndex: number, toIndex: number) => void;
     startSessionWorktreeMenuLoad: SessionTreeItemProps['startSessionWorktreeMenuLoad'];
     renderProjectStatusIndicator?: (projectId: string, groups: SessionGroup[]) => React.ReactNode;
+    /** Cowork mode: the display menu, opened from an icon at the end of the Chats caption. */
+    renderDisplayMenu?: (trigger: React.ReactElement) => React.ReactNode;
     initialActiveSessionByProject: Map<string, string>;
     persistActiveSessionByProject: (value: Map<string, string>) => void;
     projectViewActions: Pick<
@@ -438,7 +446,8 @@ const VisibleSessionProjects: React.FC<SessionProjectCollectionProps> = ({ topol
   const hiddenSections = useSessionDisplayStore((state) => state.hiddenSections);
   const sectionDraft = useSidebarSectionsUiStore((state) => state.draft);
   const sectionDraftIsNew = useSidebarSectionsUiStore((state) => state.draftIsNew);
-  const visibleSections = React.useMemo(() => resolveVisibleSidebarSections({
+  const sidebarMode = view.sidebarMode;
+  const visibleSections = React.useMemo(() => sectionsForSidebarMode(resolveVisibleSidebarSections({
     sections: savedSections,
     hiddenSections,
     draft: sectionDraft,
@@ -446,7 +455,7 @@ const VisibleSessionProjects: React.FC<SessionProjectCollectionProps> = ({ topol
     show: { chats: showChatsSection, pinned: showPinnedSection, work: sessionWorkEnabled && showWorkSection },
     keepWorkInPlace,
     customSections: !topology.isVSCode,
-  }), [hiddenSections, keepWorkInPlace, savedSections, sectionDraft, sectionDraftIsNew, sessionWorkEnabled, showChatsSection, showPinnedSection, showWorkSection, topology.isVSCode]);
+  }), sidebarMode), [hiddenSections, keepWorkInPlace, savedSections, sectionDraft, sectionDraftIsNew, sessionWorkEnabled, showChatsSection, showPinnedSection, showWorkSection, sidebarMode, topology.isVSCode]);
   const showPinned = visibleSections.some((section) => section.kind === 'pinned');
   const showWork = visibleSections.some((section) => section.kind === 'work');
   const customTimeSections = visibleSections.some((section) => section.kind === 'custom' && section.section.grouping === 'time');
@@ -1241,12 +1250,13 @@ const VisibleSessionProjects: React.FC<SessionProjectCollectionProps> = ({ topol
     singleProjectId: selectedSingleProjectId,
     showOnlyMainWorkspace: view.showOnlyMainWorkspace,
     hideDirectoryControls: view.hideDirectoryControls,
+    sidebarMode,
     projectsCaption: !view.hideDirectoryControls,
     projectsCaptionAtTop: blockDrag === 'section',
     sessionBatchSize: singleProjectMode && !view.useGroupedSections ? 20 : undefined,
     runIndex,
     blocks: sidebarBlocks,
-  }), [blockDrag, sidebarBlocks, runIndex, archivedChatGroup, chatGroup, showChatsSection, rowCollapsedActivities, pinnedItems, pinnedWorktreeEntries, workEntries, timeEntries, draftPlacement, movedSessionIds, movedGroupKeys, zoneSessionIds, detailedZoneRows, collapsedFolderIds, collection.pinnedSessionIds, expandedParents, folderAuthorityByOwner, foldersMap, groupSearchDataByGroup, groupStatusByKey, orderedSectionsForRender, ownership.bySessionId, projectSections, collapsedGroups, rowCollapsedProjects, selectedSingleProjectId, sessionOrderIndex, singleProjectMode, view.activeProjectId, view.hasSessionSearchQuery, view.hideDirectoryControls, view.normalizedSessionSearchQuery, view.showOnlyMainWorkspace, view.useGroupedSections, visibleCountByContainer, worktreeArchiveAnchors, liveSpaceIds]);
+  }), [blockDrag, sidebarBlocks, runIndex, archivedChatGroup, chatGroup, showChatsSection, rowCollapsedActivities, pinnedItems, pinnedWorktreeEntries, workEntries, timeEntries, draftPlacement, movedSessionIds, movedGroupKeys, zoneSessionIds, detailedZoneRows, collapsedFolderIds, collection.pinnedSessionIds, expandedParents, folderAuthorityByOwner, foldersMap, groupSearchDataByGroup, groupStatusByKey, orderedSectionsForRender, ownership.bySessionId, projectSections, collapsedGroups, rowCollapsedProjects, selectedSingleProjectId, sessionOrderIndex, singleProjectMode, sidebarMode, view.activeProjectId, view.hasSessionSearchQuery, view.hideDirectoryControls, view.normalizedSessionSearchQuery, view.showOnlyMainWorkspace, view.useGroupedSections, visibleCountByContainer, worktreeArchiveAnchors, liveSpaceIds]);
   React.useEffect(() => {
     onSearchMatchCountChange(sidebarRowModel.searchMatchCount);
   }, [onSearchMatchCountChange, sidebarRowModel.searchMatchCount]);
@@ -1327,6 +1337,7 @@ const VisibleSessionProjects: React.FC<SessionProjectCollectionProps> = ({ topol
     removeProject: scrollerActions.removeProject,
     reorderProjects: scrollerActions.reorderProjects,
     renderProjectStatusIndicator: scrollerActions.renderProjectStatusIndicator,
+    renderDisplayMenu: scrollerActions.renderDisplayMenu,
     setSingleProjectId,
   }), [
     groupActions,
@@ -1340,6 +1351,7 @@ const VisibleSessionProjects: React.FC<SessionProjectCollectionProps> = ({ topol
     scrollerActions.setSessionSwitcherOpen,
     toggleProject,
     scrollerActions.renderProjectStatusIndicator,
+    scrollerActions.renderDisplayMenu,
     setSingleProjectId,
   ]);
   return <>

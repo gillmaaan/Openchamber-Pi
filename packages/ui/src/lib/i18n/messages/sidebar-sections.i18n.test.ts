@@ -4,10 +4,12 @@ import { sidebarSectionsI18n } from './sidebar-sections.i18n';
 
 const locales = ['en', 'de', 'fr', 'nl', 'es', 'ja', 'pt-BR', 'uk', 'ko', 'pl', 'zh-CN', 'zh-TW', 'tr', 'ar', 'he'] as const;
 // Words those languages take from English as they are: git and forge terms, and a few words spelled the same.
+// Cowork is a name, spelled the same in every language.
+const NAMES = new Set(['sessions.sidebar.mode.chat']);
 const SHARED_WITH_ENGLISH = new Map(Object.entries({
-  de: new Set(['sessions.sidebar.sections.link.plan', 'sessions.sidebar.pinTo.newListName', 'sessions.sidebar.sections.name', 'sessions.sidebar.sections.kind.worktree', 'sessions.sidebar.sections.kind.space', 'sessions.sidebar.sections.link.issue']),
-  fr: new Set(['sessions.sidebar.sections.link.plan', 'sessions.sidebar.sections.open', 'sessions.sidebar.sections.template.prs', 'sessions.sidebar.sections.kind.session', 'sessions.sidebar.sections.kind.worktree', 'sessions.sidebar.sections.link.pr']),
-  nl: new Set(['sessions.sidebar.sections.link.plan', 'sessions.sidebar.sections.template.prs', 'sessions.sidebar.sections.kind.worktree', 'sessions.sidebar.sections.kind.space', 'sessions.sidebar.sections.kind.run', 'sessions.sidebar.sections.link.pr', 'sessions.sidebar.sections.link.issue', 'sessions.sidebar.sections.matchWorksSingle', 'sessions.sidebar.sections.matchWorksPlural', 'sessions.sidebar.sections.matchProjectsSingle']),
+  de: new Set(['sessions.sidebar.mode.code', 'sessions.sidebar.sections.link.plan', 'sessions.sidebar.pinTo.newListName', 'sessions.sidebar.sections.name', 'sessions.sidebar.sections.kind.worktree', 'sessions.sidebar.sections.kind.space', 'sessions.sidebar.sections.link.issue']),
+  fr: new Set(['sessions.sidebar.mode.code', 'sessions.sidebar.sections.link.plan', 'sessions.sidebar.sections.template.prs', 'sessions.sidebar.sections.kind.session', 'sessions.sidebar.sections.kind.worktree', 'sessions.sidebar.sections.link.pr']),
+  nl: new Set(['sessions.sidebar.mode.code', 'sessions.sidebar.sections.link.plan', 'sessions.sidebar.sections.template.prs', 'sessions.sidebar.sections.kind.worktree', 'sessions.sidebar.sections.kind.space', 'sessions.sidebar.sections.kind.run', 'sessions.sidebar.sections.link.pr', 'sessions.sidebar.sections.link.issue', 'sessions.sidebar.sections.matchWorksSingle', 'sessions.sidebar.sections.matchWorksPlural', 'sessions.sidebar.sections.matchProjectsSingle']),
   es: new Set(['sessions.sidebar.sections.link.plan', 'sessions.sidebar.sections.template.prs', 'sessions.sidebar.sections.kind.worktree', 'sessions.sidebar.sections.link.pr', 'sessions.sidebar.sections.link.issue']),
   ja: new Set(['sessions.sidebar.sections.link.issue']),
   'pt-BR': new Set(['sessions.sidebar.sections.template.prs', 'sessions.sidebar.sections.kind.worktree', 'sessions.sidebar.sections.link.pr', 'sessions.sidebar.sections.link.issue', 'sessions.sidebar.sections.matchWorksSingle']),
@@ -25,7 +27,7 @@ describe('sidebar sections translations', () => {
       expect([...dictionary.keys()].sort()).toEqual(english.map(([key]) => key).sort());
       for (const [key, englishText] of english) {
         expect(dictionary.get(key)?.trim()).toBeTruthy();
-        if (locale !== 'en' && !SHARED_WITH_ENGLISH.get(locale)?.has(key)) {
+        if (locale !== 'en' && !NAMES.has(key) && !SHARED_WITH_ENGLISH.get(locale)?.has(key)) {
           expect(`${locale} ${key}: ${dictionary.get(key)}`).not.toBe(`${locale} ${key}: ${englishText}`);
         }
       }

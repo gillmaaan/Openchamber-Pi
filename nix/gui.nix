@@ -5,11 +5,9 @@
 #
 # Recipe parity with the AppImage build:
 #   1. build:web-assets    -> done by openchamberCore (packages/web build)
-#   2. prepare:opencode-cli -> opencodeCli: the OpenCode CLI built from
-#                             upstream's flake at the pinned tag
-#   3. bundle:main         -> bun ./scripts/bundle-main.mjs
-#   4. rebuild:native      -> node-pty rebuilt against the Electron headers
-#   5. electron-builder    -> replaced by a plain Electron tree at
+#   2. bundle:main         -> bun ./scripts/bundle-main.mjs
+#   3. rebuild:native      -> node-pty rebuilt against the Electron headers
+#   4. electron-builder    -> replaced by a plain Electron tree at
 #                             $out/share/openchamber (resources/app instead
 #                             of app.asar); the renamed executable is what
 #                             makes Electron treat it as a packaged app.
@@ -44,14 +42,11 @@
   version,
   src,
   openchamberCore,
-  opencodeCli,
   ozonePlatformHint ? "auto",
   extraCommandLineFlags ? [ ],
 }:
 
 let
-  # The desktop prefers its bundled OpenCode CLI over PATH, so nixpkgs
-  # opencode is deliberately not injected here (it is a different major).
   runtimePath = lib.makeBinPath [
     git
     openssh
@@ -66,12 +61,6 @@ let
     gnutar
     bzip2
   ];
-
-  # Must match the tag the opencode flake input is pinned to in flake.nix;
-  # asserted against the staged binary below.
-  opencodeCliVersion =
-    (builtins.fromJSON (builtins.readFile "${self}/packages/electron/package.json"))
-    .opencodeCli.version;
 
   desktopItem = makeDesktopItem {
     name = "openchamber";
@@ -202,25 +191,6 @@ stdenv.mkDerivation {
     cp -a "${self}/packages/electron/resources/icons/icon.png" \
       "${self}/packages/electron/resources/icons/app-icon.png" \
       "${self}/packages/electron/resources/icons/tray" "$resources/icons/"
-    mkdir -p "$resources/opencode-cli"
-    cp "${opencodeCli}/bin/opencode" "$resources/opencode-cli/opencode"
-    chmod 0755 "$resources/opencode-cli/opencode"
-
-    # Pin invariant: the bundled CLI must be the version
-    # packages/electron/package.json asks for (upstream's flake appends the
-    # git rev, hence the substring match). The CLI needs a writable HOME
-    # even for --version.
-    stagedVersion="$(
-      HOME="$(mktemp -d)" OPENCODE_DISABLE_MODELS_FETCH=1 "$resources/opencode-cli/opencode" --version 2>/dev/null
-    )"
-    case "$stagedVersion" in
-      *"v${opencodeCliVersion}"*) ;;
-      *)
-        echo "opencode CLI version mismatch: staged '$stagedVersion', want ${opencodeCliVersion}"
-        exit 1
-        ;;
-    esac
-
     mkdir -p "$out/bin"
     platformFlags=()
     ${lib.optionalString stdenv.hostPlatform.isLinux ''
@@ -259,11 +229,11 @@ stdenv.mkDerivation {
   dontFixup = true;
 
   passthru = {
-    inherit opencodeCli openchamberCore;
+    inherit openchamberCore;
   };
 
   meta = {
-    description = "OpenChamber desktop GUI (Electron) for OpenCode";
+    description = "OpenChamber desktop GUI (Electron) for the Pi coding agent";
     homepage = "https://github.com/openchamber/openchamber";
     license = lib.licenses.mit;
     mainProgram = "openchamber-desktop";

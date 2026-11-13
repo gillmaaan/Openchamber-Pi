@@ -387,11 +387,24 @@ export const usesLinuxNativeFrame = () => (
   process.platform === 'linux' && readSettingsRoot().desktopLinuxNativeFrame === true
 );
 
+// The sessions sidebar shows the window's macOS material through it (the
+// Finder look). The renderer reports the choice over IPC and main keeps it
+// here, so the next window starts with the material instead of switching it on
+// after the first paint.
+export const SIDEBAR_VIBRANCY = 'sidebar';
+export const CLEAR_WINDOW_BACKGROUND = '#00000000';
+export const usesSidebarVibrancy = () => (
+  process.platform === 'darwin' && readSettingsRoot().desktopSidebarVibrancy === true
+);
+
 export const usesFramelessChrome = () => (
   process.platform === 'win32' || (process.platform === 'linux' && !usesLinuxNativeFrame())
 );
 
-export const buildMainWindowOptions = ({ bounds, backgroundColor, additionalArguments }) => {
+// `sidebarVibrancy` is off for the window that opens before the splash has
+// painted: it is shown at once in the theme colour, and the page turns the
+// material on when the app mounts.
+export const buildMainWindowOptions = ({ bounds, backgroundColor, additionalArguments, sidebarVibrancy = usesSidebarVibrancy() }) => {
   const usesCustomTitleBar = process.platform === 'darwin' || usesFramelessChrome();
   const options = {
     title: 'OpenChamber',
@@ -429,6 +442,10 @@ export const buildMainWindowOptions = ({ bounds, backgroundColor, additionalArgu
       sandbox: false,
     },
   };
+  if (sidebarVibrancy) {
+    options.vibrancy = SIDEBAR_VIBRANCY;
+    options.backgroundColor = CLEAR_WINDOW_BACKGROUND;
+  }
   // Without a saved position Electron centers the window on the primary display.
   if (Number.isFinite(bounds?.x) && Number.isFinite(bounds?.y)) {
     options.x = bounds.x;
@@ -502,6 +519,7 @@ export const createEarlyWindow = () => {
     bounds,
     backgroundColor: resolveSplashBackgroundColor(),
     additionalArguments: buildRendererAdditionalArguments(),
+    sidebarVibrancy: false,
   }));
   recordEarlyStartupMark('electron.window.created');
   if (maximized) browserWindow.maximize();

@@ -6,6 +6,7 @@ import {
   type SidebarSectionEntry,
   type SidebarWorkFacts,
 } from '@/lib/sidebarSections';
+import type { SidebarMode } from '@/lib/sidebarNav';
 import type { SidebarWorkRef } from '../works/sidebarWorks';
 
 /**
@@ -62,6 +63,17 @@ export const resolveVisibleSidebarSections = ({
     return hidden.has(entry.id) ? [] : [{ kind: 'custom', section: entry, preview: false }];
   });
 };
+
+/**
+ * The sections one sidebar mode lists: Chat the Chats section alone, Code every
+ * other. Without a mode (VS Code, the phone) the sections stay as they are.
+ */
+export const sectionsForSidebarMode = (
+  sections: readonly VisibleSidebarSection[],
+  mode: SidebarMode | undefined,
+): readonly VisibleSidebarSection[] => (
+  mode === undefined ? sections : sections.filter((section) => (section.kind === 'chats') === (mode === 'chat'))
+);
 
 type SidebarSectionMembership = {
   /** Pinned root sessions and pinned worktree works the Pinned section lists. */

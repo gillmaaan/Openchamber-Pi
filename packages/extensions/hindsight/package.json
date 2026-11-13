@@ -1,0 +1,19 @@
+{
+  "name": "@openchamber/extension-hindsight",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "openchamber": {
+    "apiVersion": 1,
+    "engines": { "openchamber": ">=2.7.0" },
+    "contributes": {
+      "panel": {
+        "id": "hindsight",
+        "name": "Hindsight",
+        "icon": "brain",
+        "entry": "panel.html"
+      },
+      "service": { "entry": "service.js", "runtime": "host" }
+    }
+  }
+}
