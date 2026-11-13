@@ -134,7 +134,7 @@ being created from a draft's first message, and a message waiting for its
 space (`ComposerStatusStrip`; the creating line yields to the worktree line,
 so one wait shows one line, and appears only once the creation has taken
 300 ms, `useShownAfter`, so a fast server never flashes it), the goal (`SessionGoalRow`), a
-review loop and, once it ends, its result until dismissed, a dispute unfolding in place (`AutoReviewStrip`), the pull request the agent waits on with Stop watching (`PullRequestWatchStrip`), background commands, a staged revert
+review loop and, once it ends, its result until dismissed, a dispute unfolding in place (`AutoReviewStrip`), the pull requests the agent waits on with Stop watching, several collapsed into a count (`PullRequestWatchStrip`), background commands, a staged revert
 (`RevertedMessagesStrip`), the queue (`QueuedMessagesStrip`),
 the "looks done" hint or the review offer, the suggestion
 (`SessionSuggestionChip`). BTW hides all of them. A pending form, a nonempty
@@ -212,11 +212,50 @@ ends, and a row's own Send sends just that message. Like any send, it dismisses
 open permission requests and forms. Scheduled items stay visible in the
 queue rows with reorder and remove, but no edit or send action.
 
-While a turn runs and the composer has content, a follow-up button sits above
-Stop (inside the pill on collapsed mobile). It takes the same path as plain
-Enter under the follow-up setting: with Queue it queues and shows the rotated
-icon labelled "Queue message"; with Steer it steers into the running turn and
-looks like the ordinary send button.
+The action button (`ComposerActionButtons`, and the same rule in the
+collapsed mobile pill) is one disc in one slot: 28px on desktop, the footer's
+button size in VS Code, and a 28px disc at the end of the 32px touch target on
+phones, where the footer and the collapsed pill take `pe-3.5` so the disc's
+right edge lines up with the agent label in the row below. The pill's action
+row is built like the expanded footer (`h-12`, the attach button in
+`composer-mobile-actions` at a 10px inset, mic and Send in a `gap-x-1`
+group), so no icon moves across the swap with 32px buttons or on the 36px
+touch floor. It is drawn by `.oc-action-disc` in `design-system.css`: the
+composer's text colour with the glyph cut out in the composer's own fill
+(`--oc-composer-foreground` over `--oc-composer-background`), flat, no ring
+or shadow. Disabled, it is a quiet tone step of the text colour with the
+glyph in the muted text. Which glyph it shows:
+
+- idle: Send (`arrow-up`);
+- a turn running, input empty: Stop, its square in the theme's error colour
+  (`--status-error`) on the quiet disc (`data-idle`): a bright disc for the
+  whole length of a run pulled the eye; the bare Stop shown beside
+  Send (below) takes the same red square;
+- a turn running, input with content: Send again, taking the same path as
+  plain Enter under the follow-up setting: with Queue it queues and is
+  labelled "Queue message", with Steer it steers into the running turn.
+  Ctrl/Cmd+Enter sends now instead of the setting's choice, as it does for
+  Enter.
+
+A run stays stoppable with the draft intact. Whether double Escape
+(`abort_run`, `hooks/useComposerAbortEscape.ts`) reaches a composer's session
+is decided in one place, `state/abortShortcutReach.ts`, which `ChatInput`
+passes down as `escapeStops`:
+
+| Surface | Running with a draft |
+| --- | --- |
+| Main window (and a chat pinned in its side panel), with a keyboard | One disc (Send); double Escape stops, named in the Send tooltip |
+| Mini Chat, with a keyboard | The same: `useMiniChatKeyboardShortcuts` wires the gesture to Mini Chat's own session |
+| BTW | A bare Stop icon before the disc: BTW's Escape collapses BTW, and the shortcut skips its composer |
+| Touch (the mobile composers, or a device with no hover and a coarse pointer) | A bare Stop icon before the disc, at the touch-target size |
+| Anything else (`unknown`) | A bare Stop icon before the disc, until the surface is wired |
+
+The visible Stop appears only in that state and takes room from the row on
+its left, so the disc does not move.
+
+Only the glyph changes as a run starts or ends, so nothing beside it moves. On
+desktop the footer's end padding is 8px, so the disc sits as far from the
+composer's right edge as from its bottom edge.
 
 `BackgroundShellsStrip` lists the commands that went to the background (not the ones
 a turn is waiting for, see `background` in `sync/background-shells.ts`) of
@@ -229,7 +268,7 @@ collapse into a count that expands in place, collapsed again on a session
 switch, and the count row carries Stop all. Stop all sends one call per owning
 session, so each agent gets one note for all of its commands and their
 completions arrive together; a stopping row stays disabled until OpenCode
-reports its command ended, and a failed call makes its commands stoppable again. It shows whether the session runs or idles, and hides in BTW and
+reports its command ended, and a failed call makes its commands stoppable again. A command its chat row is stopping from the foreground (`foregroundShellStop.ts`) appears here once its call moved to the background; its Stop stays disabled and Stop all leaves it out, so the agent gets one note; Stop all itself is disabled while every listed command is being stopped, and comes back when such a stop fails. It shows whether the session runs or idles, and hides in BTW and
 new-session drafts. The elapsed text is a leaf on the shared one-second
 ticker, and the tree is compared as a string, so neither the tick nor
 session-list updates re-render the composer. Images the session and its
@@ -568,9 +607,12 @@ found in the text.
 
 ## The editor
 
-`editor/bidi.ts` gives each rendered logical line native `dir="auto"` and
-enables CodeMirror's `perLineTextDirection`, so browser layout and cursor
-movement use the same direction. The content root stays LTR; automatic
+`editor/bidi.ts` gives each rendered logical line the direction most of its
+words run (`proseTextDirection` in `lib/i18n/textDirection.ts`, the count chat
+prose uses), so a Latin-first Arabic line runs right to left beside an English
+one; a line without letters gets `dir="auto"`. It enables CodeMirror's
+`perLineTextDirection`, so browser layout and cursor movement use the same
+direction. The content root stays LTR; automatic
 direction there would depend on which lines virtualization has mounted.
 Only visible lines get decorations, rebuilt on document or viewport changes.
 
@@ -1028,58 +1070,6 @@ few words (#6160). The `/` list reads the `@` list's width constant
 `max-w` class cap), so the two stay equal if either changes; a narrower
 composer still narrows both.
 
-## Desktop footer
-
-The footer row (`ui/ComposerFooter.tsx`) reads left to right: attach, auto-accept
-and goal on the left; agent, model with its effort, dictation and send on the
-right. The attach control and the send, stop and queue controls are circles of
-`size-7` (`size-6` in VS Code): attach is the raised outline button, send and
-queue the primary tint, stop the destructive tint (`ComposerAttachmentControls`
-and `ComposerActionButtons`, driven by `roundSizeClass`). The agent is a 6px dot
-in its colour and its name in muted text. A missing agent swaps the dot for the
-warning mark. The model is its name alone: the provider logo is not drawn in the
-desktop trigger, and the model's tooltip names the provider. The mobile footer
-keeps its bare icons and never passes `roundSizeClass`.
-
-The model, the slash and the effort sit 2px apart. The effort icon that stands in
-for them on a narrow row keeps a 2px margin so it is still 4px from the model.
-The gap between agent, model, dictation and send is 14px box to box (8px in
-VS Code, where there is no dictation). Measured between the visible glyphs it is
-15px for all three: agent to model, effort to dictation, dictation to send. The
-dictation glyph is 10px wide inside a 24px button, so the button takes
-`-ms-[calc(7px*var(--padding-scale,1))] -me-1.5` (`triggerClassName` on
-`ComposerDictation`, which leaves the overlay's buttons alone); without it the
-glyph sat 6 to 7px further out. The margins follow the density setting
-(`--padding-scale`) like the button, the glyph and the gaps do. Only the spacing
-steps in `design-system.css` scale, and it has no 1.75, hence the `calc`.
-Check a change here by scanning the pixels of a 2x screenshot of the footer row
-for runs of ink, not by reading element boxes: the glyph and the letters carry
-air that the boxes do not show.
-
-When the row narrows (`index.css`, `@container model-controls`), only the effort
-collapses, to its icon. The agent and model names shorten and stay, because
-neither has an icon to fall back to: the agent to 5rem and then 3rem (3.5rem in
-VS Code), the model to 4rem below 10rem. Around a 280px composer both names
-truncate; the footer never hides either of them.
-
-### Why the agent is a dot and a name, and sits before the model
-
-The agent used to be an icon in its colour followed by its name, after the
-model. The icon was the only thing left when a narrow row hid the label, and
-the row showed two coloured marks next to each other. Now the dot carries the
-colour, as it does in the agent menu rows, and the name stays visible at every
-width, so the agent is never reduced to an unlabelled mark. The agent leads so
-the model and its effort sit beside the send button, and the name is muted so
-the model reads first. Rejected: moving the agent into its own control on the
-left. `ModelControls` holds the agent and model state in one instance, and two
-instances would run its selection effects twice.
-
-### Why send is a circle on desktop and a bare icon on mobile
-
-A tinted circle states "this is the primary action" without a label and bookends
-the row with the attach circle. The mobile footer is a thumb-reach row of
-equal 32px icon buttons; changing them is a mobile design question of its own.
-
 ## Effort label color
 
 The effort after the model name (`ModelControls`, `MobileEffortButton` on the
@@ -1163,6 +1153,14 @@ picker uses, and then draws as a chip where it stands: its number and title.
   (typed or restored), with that read.
 - Editing a queued message puts each item its text links back as that link's
   chip, the rest above the text.
+- The sent message draws the same chips where the links stand
+  (`message/parts/referenceLinkChips.tsx`, from the message's context parts;
+  in Markdown mode through `MarkdownLink`, by the link's `href`). A link names
+  an item whatever page of it opens (`isSameRepositoryItemLink`, the tracker's
+  identifier), so a picker item whose link the user also typed draws there too.
+  An item drawn inline leaves the attachment row; one the text does not link,
+  or links only inside code, stays there. Both chips open the item in the
+  Tracker (`useOpenTrackerItem`), Cmd or Ctrl its page.
 - A link on another host than the project's, or one no account can read, stays
   text with the picker's attach-failed toast. A link past the project's fork
   network is read again as a linked item, as the Tracker does. Discussions stay
@@ -1303,7 +1301,11 @@ one app-wide composer state is split per column:
   chat. A pinned composer sends with `usePinnedComposerSelection`: what was
   picked in it, saved for its session in the selection store the way the BTW
   composer saves its picks, otherwise the session record's model, variant and
-  agent. Its picker is `ModelControls` in controlled mode, where the agent
+  agent. A variant `"default"` is how OpenCode stores no effort, so the
+  pinned composer shows it as Default, as the main chat does: from the record
+  it is no effort, and saved as a pick (older pickers copied it there) it is
+  an explicit Default that still wins over the record. Its picker is
+  `ModelControls` in controlled mode, where the agent
   pick is saved for the picker's own session and never changes the main
   chat's agent. As in BTW, the pick carries the effort the composer shows to
   the new agent when the session has none saved for that agent and model, so
@@ -1343,7 +1345,13 @@ one app-wide composer state is split per column:
   prompt while the column still shows the previous session, and taking it then
   would save it into that session's draft. Preset
   submits, guest-issue attaches and pending composer references are main-chat
-  only.
+  only. The mode says how the text meets the draft: `replace`, `append` (a
+  block on its own lines), `append-inline`, or `slash-command`, where the text
+  is a command name the draft starts with and the rest of the draft becomes
+  its argument (`withLeadingSlashCommand`; the command palette's extension
+  commands). Taking one leaves shell mode. An expanded `/btw` fork leaves it
+  pending for the parent, because the fork does not route extension commands
+  and would send `/name` to its model as text.
 - **Focus.** `focusChatInput()` focuses the main chat's composer and skips
   pinned ones; a chat focuses its own through `useChatColumnActions().focusInput`.
   A pinned composer takes focus on session entry only when the focus is

@@ -50,6 +50,7 @@ import {
     type ChatDraftSnapshot,
 } from '@/lib/chatDraftPersistence';
 import { CHAT_DRAFT_PROJECT_ID } from '@/lib/chatDirectories';
+import { abortShortcutReachesComposer, isTouchOnlyInput } from './composer/state/abortShortcutReach';
 import { ReviewFlowDialog } from '@/components/session/ReviewFlowDialog';
 import { useReviewFlowStart } from '@/components/session/useReviewFlowStart';
 import { BtwPanel } from './btw/BtwPanel';
@@ -62,6 +63,7 @@ import type { ToolPopupContent } from './message/types';
 import { QueuedMessagesStrip } from './QueuedMessagesStrip';
 import { AutoReviewStrip } from './AutoReviewStrip';
 import { PullRequestWatchStrip } from './PullRequestWatchStrip';
+import { ExtensionWaitStrip } from './ExtensionWaitStrip';
 import type { FileMentionHandle } from './FileMentionAutocomplete';
 import { resolveGuestMention, type GuestMention } from '@/lib/guests/mentions';
 import type { CommandAutocompleteHandle, CommandInfo } from './CommandAutocomplete';
@@ -88,6 +90,10 @@ import { toast } from '@/components/ui';
 // useMessageStore removed — messages now come from sync system
 import { getSettingsSurface } from '@/lib/settings/surface';
 import { isVSCodeRuntime } from '@/lib/desktop';
+import { isMobileSurfaceRuntime } from '@/lib/runtimeSurface';
+import { GuestIcon } from '@/components/layout/GuestRailIcon';
+import { openGuestSurface } from '@/lib/guests/open-surface';
+import { guestPanelOpensHere } from '@/lib/guests/phone';
 import { useTabletLayout } from '@/lib/device';
 import { useHardwareKeyboard } from '@/lib/hardwareKeyboard';
 import { isCapacitorApp } from '@/lib/platform';
@@ -144,7 +150,7 @@ import { openGuestWithItem, useGuestDialogStore } from '@/lib/guests/dialog-stor
 import { runGuestCommand } from '@/lib/guests/run-command';
 import { useGuestsStore } from '@/lib/guests/store';
 import { isGuestActive } from '@/lib/guests/capabilities';
-import { routeGuestSlashCommand } from './composer/submit/guestCommands';
+import { reservedComposerCommandNames, routeGuestSlashCommand } from './composer/submit/guestCommands';
 import { pluginModeFromId } from '@/lib/surfaces/modes';
 import { AgentUnavailableError, opencodeClient, type SkillMentions } from '@/lib/opencode/client';
 import { isLocationNotFoundError } from '@/lib/opencode/location-errors';
@@ -1027,11 +1033,8 @@ const ChatInputComponent: React.FC<ChatInputProps> = ({
         ? EMPTY_COMPOSER_SKILLS
         : selectAvailableSkillsForDirectory(s, commandsTarget.directory));
     const knownSlashNames = React.useMemo(() => {
-        const names = new Set<string>([
-            'init', 'review', 'undo', 'redo', 'timeline', 'compact', 'fork', 'btw', 'summary', 'workspace-review', 'plan-feature', 'craft-goal', 'schedule-task', 'catch-up', 'debug', 'weigh', 'explore',
-        ]);
-        if (!isMobile && !isVSCodeRuntime()) names.add('handoff-review');
-        for (const command of availableCommands) names.add(command.name.toLowerCase());
+        const names = reservedComposerCommandNames(availableCommands);
+        if (isMobile || isVSCodeRuntime()) names.delete('handoff-review');
         return names;
     }, [availableCommands, isMobile]);
     const knownSkillNames = React.useMemo(
@@ -1710,7 +1713,16 @@ const ChatInputComponent: React.FC<ChatInputProps> = ({
     // useComposerDraft: on a draft switch the incoming draft loads first and
     // the pending text lands on top of it.
     const focusComposer = React.useCallback(() => composerRef.current?.focus(), []);
-    usePendingComposerText({ target: mailboxTarget, sessionId: shownSessionId, setMessage, focus: focusComposer });
+    // A command picked in the command palette is no shell command.
+    const leaveShellMode = React.useCallback(() => setInputMode('normal'), []);
+    usePendingComposerText({
+        target: mailboxTarget,
+        sessionId: shownSessionId,
+        setMessage,
+        focus: focusComposer,
+        holdSlashCommand: isBtwActive,
+        onSlashCommand: leaveShellMode,
+    });
 
     const parallel = useParallelComposer({
         enabled: !isMobile && !isBtwActive,
@@ -4079,6 +4091,9 @@ const ChatInputComponent: React.FC<ChatInputProps> = ({
             // when the user is already working inside its column (e.g. opened
             // a subtask from there).
             if (columnPinned && !composerFormRef.current?.closest('[data-chat-column]')?.contains(document.activeElement)) return;
+            // A rename that switched to this session (Rename on an inactive
+            // tab) keeps its title field.
+            if (document.activeElement?.closest('[data-session-rename-form]')) return;
             composerRef.current?.focus();
         });
         return () => window.cancelAnimationFrame(frame);
@@ -4373,6 +4388,11 @@ const ChatInputComponent: React.FC<ChatInputProps> = ({
             setAttachDialogGuestId(guestId);
             return;
         }
+        // The phone's panel is the extension's workspace tab.
+        if (isMobileSurfaceRuntime()) {
+            openGuestSurface({ mode: pluginModeFromId(guestId), directory: currentDirectory || null, supported: true });
+            return;
+        }
         useUIStore.getState().openContextSurface(currentDirectory || '', pluginModeFromId(guestId));
     }, [currentDirectory, guestAttachItems]);
     // Clicking the guest chip reopens that guest with the chip as `ready.item`,
@@ -4393,8 +4413,8 @@ const ChatInputComponent: React.FC<ChatInputProps> = ({
         }
         if (reference.data !== undefined) issue.data = reference.data;
         // A chip can outlive the place it was attached in: the session may be
-        // open on mobile or VS Code, where extensions never load, or the
-        // extension may be paused or removed here. Say so instead of opening
+        // open in VS Code, where extensions never load, or the extension may
+        // be paused or removed here. Say so instead of opening
         // an empty surface.
         const installed = useGuestsStore.getState().guests.find((entry) => entry.id === issue.providerId);
         if (!installed || !isGuestActive(installed)) {
@@ -4402,6 +4422,11 @@ const ChatInputComponent: React.FC<ChatInputProps> = ({
             toast.info(t(!supported
                 ? 'chat.chatInput.toast.guestUnavailableHere'
                 : installed ? 'chat.chatInput.toast.guestOff' : 'chat.chatInput.toast.guestRemoved'));
+            return;
+        }
+        // The phone opens an extension's panel or dialog only when it opted into the phone.
+        if (!guestPanelOpensHere(installed)) {
+            toast.info(t('chat.chatInput.toast.guestNotOnPhone', { name: installed.name }));
             return;
         }
         if (!installed.entry) {
@@ -4565,6 +4590,12 @@ const ChatInputComponent: React.FC<ChatInputProps> = ({
 
     const chatSurfaceMode = useChatSurfaceMode();
     const isMiniChatSurface = chatSurfaceMode === 'mini-chat';
+    // Whether double Escape can stop this composer's run; where it cannot,
+    // the action button keeps a visible Stop beside Send (abortShortcutReach).
+    const abortShortcutReaches = abortShortcutReachesComposer({
+        surface: isBtwActive ? 'btw' : isMiniChatSurface ? 'mini-chat' : chatSurfaceMode === 'default' ? 'main' : 'unknown',
+        touch: isMobile || isTouchOnlyInput(),
+    });
     const showDesktopDraftPresentation = (newSessionDraftOpen || draftPresentationExiting)
         && !isDesktopExpanded
         && !isMobile
@@ -4852,8 +4883,12 @@ const ChatInputComponent: React.FC<ChatInputProps> = ({
         ? <ComposerStatusStrip icon="time" text={t('spaces.draft.queued')} />
         : null;
     const autoReviewRow = !isBtwActive && !newSessionDraftOpen ? <AutoReviewStrip /> : null;
-    // The agent waits on its pull request; the server wakes it.
-    const prWatchRow = !isBtwActive && !newSessionDraftOpen ? <PullRequestWatchStrip sessionId={currentSessionId} /> : null;
+    // The agent waits on its pull requests; the server wakes it. Keyed by
+    // session, as the commands below, so an expanded list collapses on a
+    // switch; the prefix keeps the two keys of this fragment apart.
+    const prWatchRow = !isBtwActive && !newSessionDraftOpen ? <PullRequestWatchStrip key={`pr-watch:${currentSessionId ?? ''}`} sessionId={currentSessionId} /> : null;
+    // The agent waits on something an extension follows; the server wakes it.
+    const extensionWaitRow = !isBtwActive && !newSessionDraftOpen ? <ExtensionWaitStrip sessionId={currentSessionId} /> : null;
     // The session's goal, then what is still running, then what waits for it.
     const goalRow = !isBtwActive ? (
         <SessionGoalRow
@@ -4885,7 +4920,7 @@ const ChatInputComponent: React.FC<ChatInputProps> = ({
     const trustPausedRow = trustPausedDirectory && !folderMissingRow && !isBtwActive
         ? <SessionTrustPausedRow directory={trustPausedDirectory} />
         : null;
-    const composerTopRows = folderMissingRow || trustPausedRow || worktreeSetupRow || creatingSessionRow || spaceWaitRow || goalRow || autoReviewRow || prWatchRow || backgroundShellsRow || revertRow || queueRow || doneHintRow || reviewHintRow || suggestionRow ? (
+    const composerTopRows = folderMissingRow || trustPausedRow || worktreeSetupRow || creatingSessionRow || spaceWaitRow || goalRow || autoReviewRow || prWatchRow || extensionWaitRow || backgroundShellsRow || revertRow || queueRow || doneHintRow || reviewHintRow || suggestionRow ? (
         <>
             {folderMissingRow}
             {trustPausedRow}
@@ -4895,6 +4930,7 @@ const ChatInputComponent: React.FC<ChatInputProps> = ({
             {goalRow}
             {autoReviewRow}
             {prWatchRow}
+            {extensionWaitRow}
             {backgroundShellsRow}
             {revertRow}
             {queueRow}
@@ -4971,7 +5007,8 @@ const ChatInputComponent: React.FC<ChatInputProps> = ({
     const footerPaddingClass = isMobile ? 'px-1.5 py-1.5' : (isVSCode ? 'px-1.5 py-1' : 'px-2.5 py-1.5');
     const buttonSizeClass = isMobile ? 'h-8 w-8' : (isVSCode ? 'h-5 w-5' : 'h-6 w-6');
     const sendIconSizeClass = isMobile ? 'h-4 w-4' : (isVSCode ? 'h-3.5 w-3.5' : 'h-4 w-4');
-    const stopIconSizeClass = isMobile ? 'h-6 w-6' : (isVSCode ? 'h-4 w-4' : 'h-5 w-5');
+    // Inside the action disc, the send arrow's size.
+    const stopIconSizeClass = isMobile ? 'h-4 w-4' : (isVSCode ? 'h-3.5 w-3.5' : 'h-4 w-4');
     // 16px on desktop, the size of the model controls' effort and agent icons
     // and of the send arrow, so the footer's glyphs read as one row.
     const iconSizeClass = isMobile ? 'h-[18px] w-[18px]' : 'h-4 w-4';
@@ -5267,7 +5304,7 @@ const ChatInputComponent: React.FC<ChatInputProps> = ({
                         isComposerExpanded && 'flex-1 min-h-0',
                         // Opaque: always on screen over the moving transcript
                         // (see .oc-surface-floating in design-system.css).
-                        'oc-surface-floating',
+                        'oc-surface-floating oc-composer-surface',
                         // Lit like a dropdown (top edge, hairline, shadow). Its
                         // box-shadow would hide the drag ring, so it steps aside
                         // while a file is dragged over.
@@ -5386,7 +5423,7 @@ const ChatInputComponent: React.FC<ChatInputProps> = ({
                     <ComposerFooter
                         isMobile={isMobile}
                         isVSCode={isVSCode}
-                        escapeStops={!isMiniChatSurface}
+                        escapeStops={abortShortcutReaches}
                         sessionId={currentSessionId}
                         directory={currentSessionDirectoryForSync ?? currentDirectory}
                         newSessionDraftOpen={newSessionDraftOpen}
@@ -5477,7 +5514,10 @@ const ChatInputComponent: React.FC<ChatInputProps> = ({
                     />
                 ) : null}
             </div>
-            {showDesktopDraftPresentation ? (
+            {/* Starters act on a project ("Explore the codebase"), so they wait
+                until the draft has one: without a project the target is the
+                chat stand-in, shown as "Choose project". */}
+            {showDesktopDraftPresentation && selectedDraftProject && selectedDraftProject.kind !== 'chat' ? (
                 <DraftPresetChips
                     onSubmit={handlePresetChipSubmit}
                     className={cn('chat-input-column mt-4', draftPresentationClassName)}
@@ -5512,7 +5552,7 @@ const ChatInputComponent: React.FC<ChatInputProps> = ({
                 onConfirm={attachReferences}
             />
         ) : null}
-        {attachDialogGuestId && !isMobile ? (
+        {attachDialogGuestId ? (
             <React.Suspense fallback={null}>
                 <GuestAttachDialog
                     guestId={attachDialogGuestId}
@@ -5594,6 +5634,21 @@ const ChatInputComponent: React.FC<ChatInputProps> = ({
                         }}
                     >
                         {picker.label}
+                    </MobileSheetRow>
+                ))}
+                {/* Extensions that opted into the phone: a dialog opens full
+                    screen, a panel as the extension's workspace tab. */}
+                {guestAttachItems.map((guest) => (
+                    <MobileSheetRow
+                        key={guest.id}
+                        leading={<GuestIcon icon={guest.icon} iconSrc={guest.iconSrc} className="size-4 flex-shrink-0 text-muted-foreground" />}
+                        onClick={() => {
+                            mobileShell.skipNextOverlayCloseRestore();
+                            setMobileAttachMenuOpen(false);
+                            requestAnimationFrame(() => openGuestAttach(guest.id));
+                        }}
+                    >
+                        {guest.name}
                     </MobileSheetRow>
                 ))}
             </MobileOverlayPanel>

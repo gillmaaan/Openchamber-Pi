@@ -37,8 +37,6 @@ interface ComposerDictationProps {
     radius?: number | string;
     isMobile: boolean;
     footerIconButtonClass: string;
-    /** Added to the idle mic button only; the overlay's buttons keep `footerIconButtonClass`. */
-    triggerClassName?: string;
     footerPaddingClass: string;
     iconSizeClass: string;
     sendIconSizeClass: string;
@@ -124,7 +122,6 @@ export const ComposerDictation: React.FC<ComposerDictationProps> = ({
     radius,
     isMobile,
     footerIconButtonClass,
-    triggerClassName,
     footerPaddingClass,
     iconSizeClass,
     sendIconSizeClass,
@@ -441,7 +438,7 @@ export const ComposerDictation: React.FC<ComposerDictationProps> = ({
                 <button
                     type="button"
                     {...keepKeyboardFocusProps}
-                    className={cn(footerIconButtonClass, triggerClassName)}
+                    className={footerIconButtonClass}
                     onClick={startRecording}
                     disabled={disabled || isActive}
                     aria-label={t('chat.dictation.start')}

@@ -380,6 +380,13 @@ globbing (`isolated-server.mjs` writes them into the project under
 `agent-100tools-x5-300cps` makes its hundred calls five at a time: twenty
 steps whose messages hold five tool parts each, the turn that windowing by
 messages left fully mounted.
+`agent-20tools-wait3000ms-300cps` waits three seconds before each step's first
+token, as a hosted model does. Every step's assistant message then exists
+without parts for that long, which the instant fixtures never show; that wait
+is what once made the client reload the transcript page once per step. Read
+what a turn requested in `pageSignals.requestsByRoute` of the summary, a count
+per route with ids replaced and the `limit` kept
+(`GET /api/session/:id/message?limit=30`).
 `perf/unicode-300cps` (and `unicode-1200cps`) streams prose with em dashes,
 curly quotes and whole Cyrillic paragraphs, and a 150-line TypeScript fence
 whose comments and strings carry the same characters. V8 stores a string with
@@ -396,18 +403,22 @@ node scripts/perf/seed-long-session.mjs --port 4599 --dir <project directory> --
 
 A seeded session opens with only its last ten turns in memory, the
 cold-navigation window, so streaming into it measures a short history however
-long the session is. Someone working in one chat holds every turn since they
-opened it. `--grow <turns>` reproduces that: before recording it sends that
-many turns with the page showing the session (`--grow-model`, by default
-`agent-20tools-20000cps`, and the `agent-*-20000cps` models grow agentic
-history in about three seconds a turn), scrolling to the end after each one as
-a reader who follows the chat. The summary reports the message records held
-before and after (`historyRecordsBefore`/`After`). What scales with history is
-small on a fast machine: one agentic turn cost 4.9% of the main thread with 10
-turns held and 6.2% with 100. `--cpu-throttle <rate>` slows the page's CPU
-(`Emulation.setCPUThrottlingRate`) to approximate a slower machine; at 4 the
-same turns cost 14% and 26%, with 28 long tasks instead of 5. The `grow` and
-`grow-short` scenarios of `profile:compare` are those two, throttled.
+long the session is. `--grow <turns>` reproduces a chat someone has worked in
+for a long time: before recording it sends that many turns with the page
+showing the session (`--grow-model`, by default `agent-20tools-20000cps`, and
+the `agent-*-20000cps` models grow agentic history in about three seconds a
+turn), scrolling to the end after each one as a reader who follows the chat.
+The summary reports the message records held before and after
+(`historyRecordsBefore`/`After`). The page keeps a window of the history: after
+10 and after 100 grown `agent-20reads` turns it held about 240 records either
+way. `--cpu-throttle <rate>` slows the page's CPU
+(`Emulation.setCPUThrottlingRate`) to approximate a slower machine. Measured
+at 4 with `--timing` (2026-11-11, one run each, the `grow-short` and `grow`
+arguments below), a streamed agentic turn kept the main thread 9.2% busy with
+10 turns grown and 13.2% with 100, with 1 and 6 long tasks, the longest 64 and
+68 ms. OpenCode's own CPU while it streamed rose from 7% to 25% of a core
+between the two. The `grow` and `grow-short` scenarios of `profile:compare`
+are those two runs.
 
 Run-to-run spread on an unchanged build is one to two points of renderer CPU,
 so a smaller difference is noise.
@@ -740,6 +751,17 @@ The test reports a skip if Chrome is unavailable. An explicit invalid Chrome pat
 ```bash
 node --test scripts/perf/chat-quote-popover.browser.test.mjs
 OPENCHAMBER_TEST_CHROME=/path/to/chrome node --test scripts/perf/chat-quote-popover.browser.test.mjs
+```
+
+It skips without Chrome and fails on an explicit invalid Chrome path, the same as the JSON tree test.
+
+## Rendered page layout regression
+
+`html-render-page-fit.browser.test.mjs` builds the real rendered-page document through `buildHtmlRenderDocument` in an isolated Vite fixture that has its own optimizer cache, and compares the document root's `scrollWidth` with its `clientWidth` inside frames 420, 720 and 960 px wide. A page whose pictures carry a `1px` border at `width: 100%`, and one with a bare embedded frame, must not scroll sideways; a page with a 1200 px block still must, because a page wider than its frame keeps its scrollbar (#4949). Like the two tests above, it stays on loopback and stops what it started.
+
+```bash
+node --test scripts/perf/html-render-page-fit.browser.test.mjs
+OPENCHAMBER_TEST_CHROME=/path/to/chrome node --test scripts/perf/html-render-page-fit.browser.test.mjs
 ```
 
 It skips without Chrome and fails on an explicit invalid Chrome path, the same as the JSON tree test.
@@ -1206,7 +1228,8 @@ The measurement rules are in `.agents/skills/performance-engineering/SKILL.md`, 
 | `cdp.mjs` | Chrome launch, target discovery, minimal CDP client. Owns the anti-throttling launch flags and the per-run temporary Chrome profile (`resolveProfileDir`, which also removes the `openchamber-perf-*` profiles earlier runs left: those whose `SingletonLock` symlink names a dead process); `profile:browser` alone keeps a reusable profile, for a manually driven session. |
 | `metrics.mjs` | Metric derivations shared by the profilers: growth rates, percentiles, long-task, frame-budget, windowed longest-task, trace-event and per-thread summaries. |
 | `process-cpu.mjs` | CPU per process from cumulative counters: Chrome through browser-level `SystemInfo`, the server and its OpenCode child through `ps`. Context switches (wakes) and idle wakeups per process from macOS `top`, read around the measured window. Unresolved processes are reported as missing, never as zero. |
-| `fixture-provider.mjs` | Deterministic OpenAI-compatible provider: one fixed document at a rate chosen by model name. |
+| `fixture-provider.mjs` | Deterministic OpenAI-compatible provider: one fixed document at a rate chosen by model name. A prompt from `fixture-conversations.mjs` gets that conversation's scripted answer instead. |
+| `fixture-conversations.mjs` | Scripted conversations keyed by prompt, with tool steps OpenCode runs for real, and the scratch project files they edit. `scripts/design/shots.mjs` seeds its sessions from them; no perf scenario sends these prompts. |
 | `seed-long-session.mjs` | Builds a long session (default 120 turns) through the `openchamber session` CLI and the fixture provider's seeding models. |
 | `aggregate-runs.mjs` | Median, p95, min and max per metric over repeated single-run captures, excluding runs whose validity flags say they measured nothing. |
 | `network.mjs` | Request and byte accounting over the CDP Network domain, grouped by endpoint pattern. |

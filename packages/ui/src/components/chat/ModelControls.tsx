@@ -2,7 +2,7 @@ import { OPENCODE_TOOLS } from '@/lib/opencode/tools';
 import React from 'react';
 import { useChatColumnActions, useChatSessionSelection } from './chatColumnSession';
 import { MobileModelButton } from './MobileModelButton';
-import { useAgentMissingFromCatalog } from './agentAvailability';
+import { useAgentMissingFromCatalog, useModelMissingFromCatalog } from './agentAvailability';
 import type { EditPermissionMode } from '@/stores/types/sessionTypes';
 import type { ModelMetadata } from '@/types';
 import type { Agent, Message, PermissionRuleset, Session } from '@/lib/opencode/model';
@@ -69,6 +69,7 @@ import {
 import type { BtwSelection } from '@/stores/useBtwStore';
 import { listModelVariantIds, type ModelVariantSource } from '@/lib/modelVariants';
 import { effortMemoryKey, rememberEffort, resolveEffortChoice, resolveEffortForModelSelection } from '@/lib/modelEfforts';
+import { restingAgentColor } from '@/lib/agentColors';
 
 type IconComponent = IconName;
 
@@ -565,6 +566,9 @@ export const ModelControls: React.FC<ModelControlsProps> = ({
         ? { providerID: AUTO_PROVIDER_ID, modelID: AUTO_MODEL_ID, model: { id: AUTO_MODEL_ID, name: t('chat.modelControls.autoModel') } }
         : null), [autoReady, t]);
     const isAutoSelected = isAutoModel(currentProviderId, currentModelId);
+    // Its provider was removed: the send would stop with an error, so the
+    // picker says so beforehand, as it does for a missing agent.
+    const modelUnavailable = useModelMissingFromCatalog(catalogDirectory, currentProviderId, currentModelId);
 
     const { isMobile: deviceIsMobile } = useDeviceInfo();
     // The composer decides whether it renders the mobile layout from the UI
@@ -676,8 +680,11 @@ export const ModelControls: React.FC<ModelControlsProps> = ({
     const sizeVariant: 'mobile' | 'vscode' | 'default' = isMobile ? 'mobile' : isVSCodeRuntime ? 'vscode' : 'default';
     const buttonHeight = sizeVariant === 'mobile' ? 'h-9' : sizeVariant === 'vscode' ? 'h-6' : 'h-8';
     const controlIconSize = sizeVariant === 'mobile' ? 'size-5' : sizeVariant === 'vscode' ? 'size-4' : 'size-4';
+    const providerLogoSize = sizeVariant === 'mobile' ? 'size-[21px]' : 'size-[17px]';
     const controlTextSize = isCompact ? 'typography-micro' : 'typography-meta';
-    const inlineGapClass = sizeVariant === 'mobile' ? 'gap-x-1' : sizeVariant === 'vscode' ? 'gap-x-2' : 'gap-x-3.5';
+    // The model unit (logo, name, effort) to the agent: 16px on the desktop
+    // footer, a group gap; the footer adds 20px before the mic and Send.
+    const inlineGapClass = sizeVariant === 'mobile' ? 'gap-x-1' : sizeVariant === 'vscode' ? 'gap-x-2' : 'gap-x-4';
 
     const currentProvider = selection ? providers.find((provider) => provider.id === currentProviderId) : getCurrentProvider();
     const models = Array.isArray(currentProvider?.models) ? currentProvider.models : [];
@@ -1669,6 +1676,9 @@ export const ModelControls: React.FC<ModelControlsProps> = ({
     };
 
     const currentModelDisplayName = getCurrentModelDisplayName();
+    const modelUnavailableText = modelUnavailable
+        ? t('chat.modelControls.modelUnavailable', { model: currentModelDisplayName })
+        : undefined;
     const modelLabelRef = React.useRef<HTMLSpanElement>(null);
     const isModelLabelTruncated = useIsTextTruncated(modelLabelRef, [currentModelDisplayName, isCompact]);
 
@@ -1990,6 +2000,7 @@ export const ModelControls: React.FC<ModelControlsProps> = ({
                     labels={modelPickerLabels}
                     selectedModel={currentProviderId && currentModelId ? { providerID: currentProviderId, modelID: currentModelId } : null}
                     leadingEntry={autoEntry}
+                    searchAction={selection ? null : { label: t('chat.modelControls.addNewProvider'), icon: 'add', onSelect: openAddProviderSettings }}
                     isFavorite={(entry) => isFavoriteModel(entry.providerID, entry.modelID)}
                     onToggleFavorite={(entry) => toggleFavoriteModel(entry.providerID, entry.modelID)}
                     onEntryDetails={(entry) => {
@@ -1999,6 +2010,7 @@ export const ModelControls: React.FC<ModelControlsProps> = ({
                         setMobileDetailsEntry(entry);
                     }}
                     providersStartCollapsed
+                    sheetCaptions
                     autoFocus={false}
                     tooltipsEnabled={false}
                     maxHeightClassName="min-h-0 flex-1"
@@ -2145,7 +2157,13 @@ export const ModelControls: React.FC<ModelControlsProps> = ({
         );
     };
 
-    const renderModelTooltipContent = () => (
+    const renderModelTooltipContent = () => modelUnavailableText ? (
+        <TooltipContent align="start" sideOffset={8} className="max-w-[280px]">
+            <div className="min-w-[200px] typography-meta text-foreground">
+                <TooltipLabelWithShortcut label={modelUnavailableText} shortcut={modelShortcut} />
+            </div>
+        </TooltipContent>
+    ) : (
         <TooltipContent align="start" sideOffset={8} className="max-w-[320px]">
             {currentMetadata ? (
                 <div className="flex min-w-[240px] flex-col gap-3">
@@ -2353,6 +2371,7 @@ export const ModelControls: React.FC<ModelControlsProps> = ({
                             <DropdownMenuTrigger asChild nativeButton={false}>
                                 <div
                                     ref={modelTriggerRef}
+                                    aria-label={modelUnavailableText}
                                     className={cn(
                                         'model-controls__model-trigger flex items-center gap-1.5 cursor-pointer select-none hover:bg-transparent hover:opacity-70 min-w-0 overflow-hidden',
                                         buttonHeight
@@ -2371,7 +2390,19 @@ export const ModelControls: React.FC<ModelControlsProps> = ({
                                         </>
                                     ) : isAutoSelected ? (
                                         <Icon name="openchamber" className={cn(controlIconSize, 'flex-shrink-0')} />
-                                    ) : currentProviderId ? null : (
+                                    ) : modelUnavailable ? (
+                                        <Icon name="error-warning" className={cn(controlIconSize, 'flex-shrink-0 text-[var(--status-warning)]')} />
+                                    ) : currentProviderId ? (
+                                        <>
+                                            {/* Provider logos read smaller than the sprite icons
+                                                beside them at the same box size, so they get a step up. */}
+                                            <ProviderLogo
+                                                providerId={currentProviderId}
+                                                className={cn(providerLogoSize, 'flex-shrink-0')}
+                                            />
+                                            <Icon name="pencil-ai" className={cn(controlIconSize, 'text-primary/60 hidden')} />
+                                        </>
+                                    ) : (
                                         <Icon name="pencil-ai" className={cn(controlIconSize, 'text-muted-foreground')} />
                                     )}
                                     {modelSelectionReady && (
@@ -2379,7 +2410,8 @@ export const ModelControls: React.FC<ModelControlsProps> = ({
                                             ref={modelLabelRef}
                                             key={`${currentProviderId}-${currentModelId}`}
                                             className={cn(
-                                                'model-controls__model-label overflow-hidden',
+                                                // Cut short, the name ends in an ellipsis (`.marquee-text--active`).
+                                                'model-controls__model-label overflow-hidden text-ellipsis',
                                                 controlTextSize,
                                                 'font-medium whitespace-nowrap text-foreground min-w-0',
                                                 'max-w-[260px]'
@@ -2444,7 +2476,8 @@ export const ModelControls: React.FC<ModelControlsProps> = ({
                                         : false;
 
                                     return (
-                                        <div className="flex items-center gap-x-2 whitespace-nowrap overflow-hidden">
+                                        // Hint groups 16px apart, so they read as separate keys and not one sentence.
+                                        <div className="flex items-center gap-x-4 whitespace-nowrap overflow-hidden">
                                             <span>{t('chat.modelControls.keyboardHintNavigate')}</span>
                                             {agentShortcut ? <span>{t('chat.modelControls.keyboardHintSwitchAgent', { shortcut: agentShortcut })}</span> : null}
                                             {activeHasThinkingVariants ? <span>{t('chat.modelControls.keyboardHintThinking')}</span> : null}
@@ -2465,6 +2498,7 @@ export const ModelControls: React.FC<ModelControlsProps> = ({
                         onTouchEnd={isReady ? handleLongPressEnd : undefined}
                         onTouchCancel={isReady ? handleLongPressEnd : undefined}
                         disabled={!isReady}
+                        aria-label={modelUnavailableText}
                         className={cn(
                             'model-controls__model-trigger flex items-center gap-1.5 min-w-0 focus:outline-none',
                             isReady ? 'cursor-pointer hover:bg-transparent hover:opacity-70' : 'opacity-60 cursor-not-allowed',
@@ -2482,6 +2516,8 @@ export const ModelControls: React.FC<ModelControlsProps> = ({
                             <>
                                 {isAutoSelected ? (
                                     <Icon name="openchamber" className={cn(controlIconSize, 'flex-shrink-0')} />
+                                ) : modelUnavailable ? (
+                                    <Icon name="error-warning" className={cn(controlIconSize, 'flex-shrink-0 text-[var(--status-warning)]')} />
                                 ) : currentProviderId ? (
                                     <ProviderLogo
                                         providerId={currentProviderId}
@@ -2493,7 +2529,7 @@ export const ModelControls: React.FC<ModelControlsProps> = ({
                                 <span
                                     ref={modelLabelRef}
                                     className={cn(
-                                        'model-controls__model-label typography-micro font-medium overflow-hidden min-w-0',
+                                        'model-controls__model-label typography-micro font-medium overflow-hidden text-ellipsis whitespace-nowrap min-w-0',
                                         isMobile ? 'max-w-[120px]' : 'max-w-[220px]',
                                     )}
                                 >
@@ -2659,7 +2695,8 @@ export const ModelControls: React.FC<ModelControlsProps> = ({
         const triggerLabel = (
             <>
                 <Icon name="brain-ai-3" className={cn('model-controls__variant-icon flex-shrink-0 text-muted-foreground group-hover:text-foreground', controlIconSize)} />
-                <span aria-hidden="true" className="model-controls__variant-slash text-muted-foreground/60">/</span>
+                {/* At the label's size, so it sits on the label's baseline. */}
+                <span aria-hidden="true" className={cn('model-controls__variant-slash text-muted-foreground/60', controlTextSize)}>/</span>
                 <span
                     className={cn(
                         'model-controls__variant-label',
@@ -2725,7 +2762,8 @@ export const ModelControls: React.FC<ModelControlsProps> = ({
                                 ref={variantTriggerRef}
                                 aria-label={tooltipText}
                                 className={cn(
-                                    'model-controls__variant-trigger group flex items-center gap-0.5 cursor-pointer select-none hover:bg-transparent min-w-0 overflow-hidden',
+                                    // Keeps its width: the model's name is what truncates (index.css).
+                                    'model-controls__variant-trigger group flex flex-shrink-0 items-center gap-1 cursor-pointer select-none hover:bg-transparent overflow-hidden',
                                     buttonHeight,
                                 )}
                             >
@@ -2758,7 +2796,7 @@ export const ModelControls: React.FC<ModelControlsProps> = ({
                             );
                         })}
                         {/* The model picker's footer, flush with the menu's edges. */}
-                        <div className="-mx-1 -mb-1 mt-1 flex items-center gap-x-2 overflow-hidden whitespace-nowrap border-t border-edge-muted px-3 pt-1 pb-1.5 typography-micro text-muted-foreground">
+                        <div className="-mx-1 -mb-1 mt-1 flex items-center gap-x-4 overflow-hidden whitespace-nowrap border-t border-edge-muted px-3 pt-1 pb-1.5 typography-micro text-muted-foreground">
                             <span>{t('chat.modelControls.keyboardHintNavigate')}</span>
                             {thinkingShortcut ? <span>{t('chat.modelControls.keyboardHintSwitchThinking', { shortcut: thinkingShortcut })}</span> : null}
                         </div>
@@ -2771,15 +2809,18 @@ export const ModelControls: React.FC<ModelControlsProps> = ({
         );
     };
 
-    // The agent is its name. Its colour is a dot before the name; a missing
-    // agent swaps the dot for the warning mark.
+    // A missing agent swaps its own mark for the warning one, the same size.
     const renderAgentMark = () => agentUnavailable ? (
         <Icon name="error-warning" className={cn(controlIconSize, 'flex-shrink-0 text-[var(--status-warning)]')} />
     ) : (
-        <span
-            aria-hidden="true"
-            className={cn('size-1.5 flex-shrink-0 rounded-full', !uiAgentName && 'bg-muted-foreground')}
-            style={uiAgentName ? { background: getAgentColor(uiAgentName).color } : undefined}
+        <Icon name="ai-agent"
+            className={cn(
+                controlIconSize,
+                'flex-shrink-0',
+                uiAgentName ? '' : 'text-muted-foreground'
+            )}
+            // At rest in the composer: the agent's hue, quieted (restingAgentColor).
+            style={uiAgentName ? { color: restingAgentColor(getAgentColor(uiAgentName).color) } : undefined}
         />
     );
 
@@ -2833,7 +2874,8 @@ export const ModelControls: React.FC<ModelControlsProps> = ({
                 </AgentDescriptionTooltip>
             );
             return (
-                <div className="flex items-center gap-2 min-w-0">
+                // Keeps its width: the model's name truncates first, so the agent keeps its label (index.css).
+                <div className="flex flex-shrink-0 items-center gap-2">
                     <Tooltip delayDuration={600}>
                         <DropdownMenu open={canSelectAgent && isAgentSelectorOpen} onOpenChange={canSelectAgent ? setIsAgentSelectorOpen : undefined}>
                             <TooltipTrigger asChild>
@@ -2867,7 +2909,7 @@ export const ModelControls: React.FC<ModelControlsProps> = ({
                                                     className={cn(
                                                         'model-controls__agent-label',
                                                         controlTextSize,
-                                                        'font-medium min-w-0 truncate text-muted-foreground',
+                                                        'font-medium min-w-0 truncate text-foreground',
                                                         isDesktop ? 'max-w-[220px]' : undefined
                                                     )}
                                                 >
@@ -2979,7 +3021,7 @@ export const ModelControls: React.FC<ModelControlsProps> = ({
                                 'font-medium truncate min-w-0',
                                 (agentUnavailable || !uiAgentName) && 'text-foreground',
                             )}
-                            style={!agentUnavailable && uiAgentName ? { color: getAgentColor(uiAgentName).color } : undefined}
+                            style={!agentUnavailable && uiAgentName ? { color: restingAgentColor(getAgentColor(uiAgentName).color) } : undefined}
                         >
                             {getAgentDisplayName()}
                         </span>
@@ -3016,16 +3058,19 @@ export const ModelControls: React.FC<ModelControlsProps> = ({
                         // No overflow-hidden: mobile.css makes it a vertical scroller,
                         // and the 36px triggers in this 26px row would draw its thumb.
                         inlineGapClass,
+                        // The desktop footer's group gaps: 16px to the agent here,
+                        // and this padding plus the footer's 8px gap make 20px to
+                        // the mic. Collapsed narrow, both tighten to 12px (index.css).
+                        sizeVariant === 'default' && 'model-controls__row pe-3',
                     )}
                 >
-                    {/* The agent leads on desktop, so the model and its effort sit beside the send button. */}
-                    {!isCompact && !isAutoSelected && renderAgentSelector()}
-                    {/* The effort follows the model as its suffix, so the two sit closer than the other controls. */}
-                    <div className="flex items-center min-w-0 gap-x-0.5">
+                    {/* The effort follows the model as its suffix, one unit with it:
+                        6px on the desktop, as an icon to its label. */}
+                    <div className={cn('flex items-center min-w-0', isMobile ? 'gap-x-0.5' : sizeVariant === 'vscode' ? 'gap-x-2' : 'gap-x-1.5')}>
                         {renderModelSelector()}
                         {renderVariantSelector()}
                     </div>
-                    {isCompact && !isAutoSelected && renderAgentSelector()}
+                    {!isAutoSelected && renderAgentSelector()}
                 </div>
             </div>
 

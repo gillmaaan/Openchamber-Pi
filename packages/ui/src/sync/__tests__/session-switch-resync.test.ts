@@ -510,7 +510,7 @@ describe("OpenChamber-native frames", () => {
         expect(infoToasts.map((entry) => entry.id)).toEqual(["opencode-restart-interrupted"])
         expect(infoToastDescriptions.at(-1)).toBe(kind === "opencode-restart-resuming"
           ? "OpenCode restarted while a response was still running. The chat will resume automatically; send a message if it does not."
-          : "OpenCode restarted while a response was still running. Send a message to continue.")
+          : "Pi restarted while a response was still running. Send a message to continue.")
         expect(agentCompletions).toHaveLength(1)
         expect(agentCompletions[0]).toMatchObject({
           title: "Agent finished",

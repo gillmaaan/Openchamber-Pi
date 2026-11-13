@@ -4,7 +4,7 @@ import type { PluginFile } from '@/stores/usePluginsStore';
 
 const browser = new Window({ url: 'http://localhost/' });
 Object.assign(globalThis, {
-  window: browser, document: browser.document, navigator: browser.navigator,
+  window: browser, document: browser.document, CustomEvent: browser.CustomEvent, navigator: browser.navigator,
   localStorage: browser.localStorage, sessionStorage: browser.sessionStorage,
   Event: browser.Event, FocusEvent: browser.FocusEvent,
   PointerEvent: browser.PointerEvent,
@@ -233,7 +233,7 @@ test('OpenChamber\'s own old denial never reads as a rule, and the policy re-rea
     { resource: 'plugin:users-*', effect: 'deny', path: null },
   ];
   const policySpy = spyOn(opencodeClient, 'getIntegrationPolicies').mockImplementation(async () => policies);
-  const rule = 'A rule in your OpenCode config blocks this plugin';
+  const rule = 'A rule in your Pi config blocks this plugin';
   await act(async () => {
     usePluginsStore.setState({
       entries: ['file-layer', 'env-layer', 'users-rule', 'users-wildcard'].map((spec) => (

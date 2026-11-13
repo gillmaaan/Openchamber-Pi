@@ -16,6 +16,10 @@ import { Icon } from "@/components/icon/Icon";
 import { useSessionDisplayStore } from '@/stores/useSessionDisplayStore';
 import { useI18n } from '@/lib/i18n';
 import { SessionSearchInput } from '@/components/session/SessionSearchInput';
+import type { SearchScope } from '@/lib/search/omniQuery';
+import { SearchInMenu } from '@/components/search/SearchInMenu';
+import { SearchStatusMark } from '@/components/search/SearchStatusMark';
+import type { ContentSearchStatus } from '@/hooks/useConversationSearch';
 import { arrangeSidebarNav, isGuestPageNavId, type SidebarMode } from '@/lib/sidebarNav';
 import { SidebarDisplayMenu } from './SidebarDisplayMenu';
 import { SidebarModeSwitch } from './SidebarModeSwitch';
@@ -38,13 +42,16 @@ type Props = {
   showSourceBoard: boolean;
   isSessionSearchOpen: boolean;
   openSessionSearch: () => void;
-  /** Hides the field and drops its query. */
+  /** Hides the field and drops its query and its scope. */
   closeSessionSearch: () => void;
   sessionSearchInputRef: React.RefObject<HTMLInputElement | null>;
   sessionSearchQuery: string;
   setSessionSearchQuery: (value: string) => void;
-  hasSessionSearchQuery: boolean;
-  searchMatchCount: number;
+  searchScope: SearchScope;
+  setSearchScope: (scope: SearchScope) => void;
+  searchStatus: ContentSearchStatus;
+  /** Null while no search is applied or the total is not known yet. */
+  searchMatchCount: number | null;
   collapseAll: () => void;
   expandAll: () => void;
   /** The usage stats page, which the app's own runtimes offer. */
@@ -76,7 +83,9 @@ export function SidebarHeader(props: Props): React.ReactNode {
     sessionSearchInputRef,
     sessionSearchQuery,
     setSessionSearchQuery,
-    hasSessionSearchQuery,
+    searchScope,
+    setSearchScope,
+    searchStatus,
     searchMatchCount,
     collapseAll,
     expandAll,
@@ -99,12 +108,36 @@ export function SidebarHeader(props: Props): React.ReactNode {
     closeSessionSearch();
   };
 
+  // The field's own controls: the match count, message search at work or in
+  // trouble, then the one menu with where to look and what to do with the search.
+  const matchCountLabel = searchMatchCount === null ? undefined : searchMatchCount === 1
+    ? t('sessions.sidebar.header.search.matchCountSingle', { count: searchMatchCount })
+    : t('sessions.sidebar.header.search.matchCountPlural', { count: searchMatchCount });
+  const searchTrailing = <>
+    {searchMatchCount !== null ? (
+      <span className="shrink-0 px-1 typography-micro tabular-nums text-muted-foreground" aria-label={matchCountLabel}>{searchMatchCount}</span>
+    ) : null}
+    {sessionSearchQuery.trim() !== '' || searchScope !== 'everything' ? <>
+      <SearchStatusMark status={searchStatus} scope={searchScope} />
+      <SearchInMenu
+        scope={searchScope}
+        onChange={setSearchScope}
+        actions={canSaveSearch ? (
+          <DropdownMenuItem onClick={saveSearchAsSection} className="flex items-center gap-2">
+            <Icon name="stack" className="h-4 w-4" />
+            <span>{t('sessions.sidebar.sections.saveSearch')}</span>
+          </DropdownMenuItem>
+        ) : undefined}
+      />
+    </> : null}
+  </>;
+
   if (hideDirectoryControls) {
     // VS Code: the sidebar is always a single workspace, so project/directory
-    // controls stay hidden, but session search is still useful. Show a compact,
-    // always-visible search input at the top of the sessions list.
+    // controls stay hidden and the search field has the row to itself, with
+    // room for the match count inside it.
     return (
-      <div className="select-none flex-shrink-0 px-2.5 py-1.5">
+      <div className="select-none flex-shrink-0 px-2 py-1">
         <SessionSearchInput
           inputRef={sessionSearchInputRef}
           value={sessionSearchQuery}
@@ -112,12 +145,7 @@ export function SidebarHeader(props: Props): React.ReactNode {
           onClose={closeSessionSearch}
           placeholder={t('sessions.sidebar.header.search.placeholder')}
           clearLabel={t('sessions.sidebar.header.search.clear')}
-          leadingHint={hasSessionSearchQuery
-            ? (searchMatchCount === 1
-              ? t('sessions.sidebar.header.search.matchCountSingle', { count: searchMatchCount })
-              : t('sessions.sidebar.header.search.matchCountPlural', { count: searchMatchCount }))
-            : undefined}
-          trailingHint={t('sessions.sidebar.header.search.escapeHint')}
+          trailing={searchTrailing}
         />
       </div>
     );
@@ -184,16 +212,7 @@ export function SidebarHeader(props: Props): React.ReactNode {
                 onClose={closeSessionSearch}
                 placeholder={t('sessions.sidebar.header.search.placeholder')}
                 clearLabel={t('sessions.sidebar.header.search.clear')}
-                leadingHint={hasSessionSearchQuery
-                  ? (searchMatchCount === 1
-                    ? t('sessions.sidebar.header.search.matchCountSingle', { count: searchMatchCount })
-                    : t('sessions.sidebar.header.search.matchCountPlural', { count: searchMatchCount }))
-                  : undefined}
-                trailingHint={canSaveSearch ? (
-                  <button type="button" onClick={saveSearchAsSection} className="text-muted-foreground hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50">
-                    {t('sessions.sidebar.sections.saveSearch')}
-                  </button>
-                ) : t('sessions.sidebar.header.search.escapeHint')}
+                trailing={searchTrailing}
               />
             </div>
           ) : (
